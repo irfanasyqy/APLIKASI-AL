@@ -1,0 +1,38 @@
+/* ========== VALAS.CSS ========== */
+/* Style untuk fitur Pembelian Valas dan Tab */
+
+.transfer-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 5px;
+}
+
+.transfer-tab {
+    background: transparent !important;
+    color: #64748b;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: auto;
+    margin: 0 !important;
+    border-radius: 0 !important;
+}
+
+.transfer-tab.active {
+    color: #1e3c72;
+    border-bottom: 2px solid #e67e22;
+    background: transparent !important;
+}
+
+.transfer-form {
+    margin-top: 20px;
+}
+
+#jumlahDapat {
+    background: #f0f0f0;
+    font-weight: bold;
+    color: #27ae60;
+}

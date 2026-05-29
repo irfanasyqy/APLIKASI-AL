@@ -135,3 +135,95 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     document.body.innerHTML = original;
     location.reload();
 });
+// ========== TAB NAVIGATION ==========
+const tabSupplier = document.getElementById('tabSupplier');
+const tabValas = document.getElementById('tabValas');
+const formSupplier = document.getElementById('formSupplier');
+const formValas = document.getElementById('formValas');
+
+if (tabSupplier && tabValas) {
+    tabSupplier.addEventListener('click', () => {
+        tabSupplier.classList.add('active');
+        tabValas.classList.remove('active');
+        formSupplier.style.display = 'block';
+        formValas.style.display = 'none';
+    });
+    
+    tabValas.addEventListener('click', () => {
+        tabValas.classList.add('active');
+        tabSupplier.classList.remove('active');
+        formSupplier.style.display = 'none';
+        formValas.style.display = 'block';
+    });
+}
+
+// ========== HITUNG JUMLAH DAPAT VALAS ==========
+const jumlahIDR = document.getElementById('jumlahIDR');
+const kursValas = document.getElementById('kursValas');
+const keRekening = document.getElementById('keRekening');
+const jumlahDapat = document.getElementById('jumlahDapat');
+
+function hitungJumlahDapat() {
+    const idr = parseFloat(jumlahIDR?.value) || 0;
+    const kurs = parseFloat(kursValas?.value) || 0;
+    const mataUang = keRekening?.value || 'USD';
+    
+    if (kurs > 0 && idr > 0) {
+        const hasil = idr / kurs;
+        jumlahDapat.value = hasil.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ' + mataUang;
+    } else {
+        jumlahDapat.value = '';
+    }
+}
+
+if (jumlahIDR) jumlahIDR.addEventListener('input', hitungJumlahDapat);
+if (kursValas) kursValas.addEventListener('input', hitungJumlahDapat);
+if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
+
+// ========== PRINT PEMBELIAN VALAS ==========
+document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
+    const perusahaan = document.getElementById('perusahaanSelect')?.value || '';
+    const dariRek = document.getElementById('dariRekening')?.value || 'IDR';
+    const keRek = document.getElementById('keRekening')?.value || 'USD';
+    const jumlahIDRVal = parseFloat(document.getElementById('jumlahIDR')?.value) || 0;
+    const kurs = parseFloat(document.getElementById('kursValas')?.value) || 0;
+    const jumlahDapatVal = jumlahIDRVal / kurs;
+    const berita = document.getElementById('beritaValas')?.value || '-';
+    const noRef = document.getElementById('noRefValas')?.value || 'REF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*1000);
+    
+    if (jumlahIDRVal <= 0 || kurs <= 0) {
+        alert('Masukkan jumlah IDR dan Kurs dengan benar!');
+        return;
+    }
+    
+    const printContent = `
+        <div style="font-family: monospace; padding: 20px; width: 105mm; margin: 0 auto;">
+            <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px;">
+                <h2>APLIKASI AL</h2>
+                <h3>BUKTI PEMBELIAN VALAS</h3>
+            </div>
+            <div><strong>Perusahaan:</strong> ${perusahaan}</div>
+            <div><strong>Tanggal:</strong> ${new Date().toLocaleDateString('id-ID')}</div>
+            <div><strong>No Ref:</strong> ${noRef}</div>
+            <div style="margin-top: 15px;"><strong>Detail Transaksi:</strong></div>
+            <div>Dari Rekening: ${dariRek}</div>
+            <div>Ke Rekening: ${keRek}</div>
+            <div>Jumlah Dibayar: IDR ${jumlahIDRVal.toLocaleString('id-ID')}</div>
+            <div>Kurs: 1 ${keRek} = IDR ${kurs.toLocaleString('id-ID')}</div>
+            <div style="font-size: 14pt; font-weight: bold; margin: 10px 0;">
+                Jumlah Dapat: ${jumlahDapatVal.toLocaleString('en-US', {minimumFractionDigits: 2})} ${keRek}
+            </div>
+            <div><strong>Berita:</strong> ${berita}</div>
+            <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
+                Dicetak dari APLIKASI AL
+            </div>
+        </div>
+    `;
+    
+    // Print
+    const originalBody = document.body.innerHTML;
+    document.body.innerHTML = printContent;
+    window.print();
+    document.body.innerHTML = originalBody;
+    location.reload();
+});
