@@ -1,0 +1,34 @@
+.supplier-table, .data-table, .riwayat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.supplier-table th, .data-table th, .riwayat-table th {
+    background: #e2e8f0;
+    padding: 8px;
+    text-align: left;
+}
+
+.supplier-table td, .data-table td, .riwayat-table td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+}
+
+.riwayat-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.riwayat-tab {
+    background: #e2e8f0;
+    color: #2c3e50;
+    flex: 1;
+    margin: 0;
+}
+
+.riwayat-tab.active {
+    background: #1e3c72;
+    color: white;
+}
