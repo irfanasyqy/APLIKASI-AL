@@ -1,3 +1,4 @@
+// ========== script.js ==========
 let suppliers = [];
 
 async function loadSuppliers() {
@@ -8,21 +9,43 @@ async function loadSuppliers() {
             suppliers = result.data;
             updateDropdowns();
             renderSupplierTable();
+        } else {
+            console.error('Gagal:', result.error);
+            document.getElementById('supplierTableBody').innerHTML = '<tr><td colspan="7">Gagal load data: ' + (result.error || 'Unknown error') + '</td></tr>';
         }
-    } catch(e) { console.error(e); }
+    } catch(e) {
+        console.error('Error:', e);
+        document.getElementById('supplierTableBody').innerHTML = '<tr><td colspan="7">Error: ' + e.message + '</td></tr>';
+    }
 }
 
 function updateDropdowns() {
     const options = '<option value="">-- Pilih --</option>' + suppliers.map((s,i) => `<option value="${i}">${s.nama}</option>`).join('');
     const selects = ['supplierSelect', 'ttSupplierSelect', 'labelSupplierSelect', 'editSupplierSelect', 'fakturSupplierSelect'];
-    selects.forEach(id => { let el = document.getElementById(id); if(el) el.innerHTML = options; });
+    selects.forEach(id => {
+        let el = document.getElementById(id);
+        if(el) el.innerHTML = options;
+    });
 }
 
 function renderSupplierTable() {
     let tbody = document.getElementById('supplierTableBody');
     if(!tbody) return;
-    if(!suppliers.length) { tbody.innerHTML = '<tr><td colspan="7">Tidak ada data</td>\(`; return; }
-    tbody.innerHTML = suppliers.map(s => `<tr><td>${s.no||'-'}</td><td>${s.nama||'-'}</td><td>${s.account||'-'}</td><td>${s.currency||'-'}</td><td>${s.bankName||'-'}</td><td>${s.swift||'-'}</td><td>${s.country||'-'}</td></tr>`).join('');
+    if(!suppliers.length) {
+        tbody.innerHTML = '<tr><td colspan="7">Tidak ada data supplier</td></tr>';
+        return;
+    }
+    tbody.innerHTML = suppliers.map(s => `
+        <tr>
+            <td>${s.no || '-'}</td>
+            <td>${s.nama || '-'}</td>
+            <td>${s.account || '-'}</td>
+            <td>${s.currency || '-'}</td>
+            <td>${s.bankName || '-'}</td>
+            <td>${s.swift || '-'}</td>
+            <td>${s.country || '-'}</td>
+        </tr>
+    `).join('');
 }
 
 function setupBankSelection() {
@@ -35,16 +58,21 @@ function setupBankSelection() {
     });
 }
 
-// ========== SUPPLIER INFO ==========
+// Supplier info di transfer
 document.getElementById('supplierSelect')?.addEventListener('change', (e) => {
     let idx = e.target.value;
-    if (idx === "") { document.getElementById('supplierInfo').style.display = 'none'; document.getElementById('currencyDisplay').value = ''; return; }
+    if (idx === "") {
+        document.getElementById('supplierInfo').style.display = 'none';
+        document.getElementById('currencyDisplay').value = '';
+        return;
+    }
     let s = suppliers[idx];
     document.getElementById('supplierInfo').innerHTML = `<strong>${s.nama}</strong><br>Account: ${s.account}<br>Bank: ${s.bankName} (${s.swift})`;
     document.getElementById('supplierInfo').style.display = 'block';
     document.getElementById('currencyDisplay').value = s.currency;
 });
 
+// TT supplier info
 document.getElementById('ttSupplierSelect')?.addEventListener('change', (e) => {
     let s = suppliers[e.target.value];
     if(s) {
@@ -54,12 +82,13 @@ document.getElementById('ttSupplierSelect')?.addEventListener('change', (e) => {
     }
 });
 
+// Faktur supplier info
 document.getElementById('fakturSupplierSelect')?.addEventListener('change', (e) => {
     let s = suppliers[e.target.value];
     if(s) document.getElementById('fakturCurrency').value = s.currency;
 });
 
-// ========== PRINT TRANSFER ==========
+// PRINT TRANSFER
 document.getElementById('btnPrintTransfer')?.addEventListener('click', async () => {
     let idx = document.getElementById('supplierSelect').value;
     if (!idx) { alert('Pilih supplier'); return; }
@@ -80,6 +109,7 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async () 
         berita: document.getElementById('beritaTransfer').value,
         tujuan: document.getElementById('tujuanTransfer').value
     };
+    
     await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
     
     let printContent = bank === 'PANIN' ? 
@@ -95,7 +125,7 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async () 
     location.reload();
 });
 
-// ========== PRINT TANDA TERIMA ==========
+// PRINT TANDA TERIMA
 document.getElementById('btnPrintTT')?.addEventListener('click', () => {
     let idx = document.getElementById('ttSupplierSelect').value;
     if (!idx) { alert('Pilih supplier'); return; }
@@ -118,7 +148,7 @@ document.getElementById('btnPrintTT')?.addEventListener('click', () => {
     location.reload();
 });
 
-// ========== CETAK LABEL ==========
+// CETAK LABEL
 document.getElementById('btnPrintLabel')?.addEventListener('click', () => {
     let idx = document.getElementById('labelSupplierSelect').value;
     if (!idx) { alert('Pilih supplier'); return; }
@@ -137,7 +167,7 @@ document.getElementById('btnPrintLabel')?.addEventListener('click', () => {
     location.reload();
 });
 
-// ========== EDIT DATA ==========
+// EDIT DATA
 document.getElementById('editSupplierSelect')?.addEventListener('change', (e) => {
     let s = suppliers[e.target.value];
     if(s) {
@@ -155,7 +185,7 @@ document.getElementById('btnUpdateSupplier')?.addEventListener('click', () => {
     alert('Edit data: Silakan edit langsung di Google Sheets Anda.');
 });
 
-// ========== TUKAR FAKTUR ==========
+// TUKAR FAKTUR
 document.getElementById('btnTukarFaktur')?.addEventListener('click', () => {
     let fakturData = {
         no: document.getElementById('fakturNo').value,
@@ -168,7 +198,7 @@ document.getElementById('btnTukarFaktur')?.addEventListener('click', () => {
     document.getElementById('fakturResult').style.display = 'block';
 });
 
-// ========== RIWAYAT TABS ==========
+// RIWAYAT TABS
 document.getElementById('riwayatTransferBtn')?.addEventListener('click', () => {
     document.getElementById('riwayatTransferList').style.display = 'block';
     document.getElementById('riwayatTTList').style.display = 'none';
@@ -183,7 +213,7 @@ document.getElementById('riwayatTTBtn')?.addEventListener('click', () => {
     document.getElementById('riwayatTransferBtn').classList.remove('active');
 });
 
-// ========== INIT ==========
+// INIT
 window.onload = () => {
     setupBankSelection();
     loadSuppliers();
