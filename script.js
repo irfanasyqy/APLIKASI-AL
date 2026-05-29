@@ -51,47 +51,149 @@ function setupBankSelection() {
 }
 
 // ========== PRINT TRANSFER ==========
+// ========== PRINT TRANSFER (PANIN & BCA) ==========
 document.getElementById('btnPrintTransfer')?.addEventListener('click', async () => {
-    let idx = document.getElementById('supplierSelect').value;
-    if(!idx) { alert('Pilih supplier'); return; }
-    let supplier = suppliers[idx];
-    let jumlah = document.getElementById('jumlahTransfer').value;
-    if(!jumlah) { alert('Masukkan jumlah'); return; }
+    const idx = document.getElementById('supplierSelect').value;
+    if (!idx) { alert('Pilih supplier dulu!'); return; }
+    const supplier = suppliers[idx];
+    const jumlah = parseFloat(document.getElementById('jumlahTransfer').value);
+    if (!jumlah || jumlah <= 0) { alert('Masukkan jumlah transfer!'); return; }
     
-    let bank = document.getElementById('selectedBank').value;
-    
-    // Simpan ke Google Sheets
-    let transferData = {
+    const bank = document.getElementById('selectedBank').value;
+    const data = {
         type: 'saveTransfer',
-        tanggal: new Date().toLocaleDateString(),
+        tanggal: new Date().toLocaleDateString('id-ID'),
         noLoa: document.getElementById('noCekLoa').value,
         bankTujuan: bank,
         namaPenerima: supplier.nama,
         accountNumber: supplier.account,
         currency: supplier.currency,
-        jumlah: parseFloat(jumlah),
+        jumlah: jumlah,
         berita: document.getElementById('beritaTransfer').value,
         tujuan: document.getElementById('tujuanTransfer').value
     };
-    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(transferData) });
     
-    // Print
-    let content = bank === 'PANIN' ? 
-        `<div class="preview-field ${currentLayoutPanin.nama}">Penerima: ${supplier.nama}</div>
-         <div class="preview-field ${currentLayoutPanin.jumlah}">Jumlah: ${jumlah} ${supplier.currency}</div>
-         ${currentLayoutPanin.loa !== 'Tidak' ? `<div class="preview-field ${currentLayoutPanin.loa}">LOA: ${document.getElementById('noCekLoa').value}</div>` : ''}`
-        :
-        `<div class="preview-field ${currentLayoutBca.nama}">Penerima: ${supplier.nama}</div>
-         <div class="preview-field ${currentLayoutBca.jumlah}">${jumlah} ${supplier.currency}</div>`;
+    // Simpan ke Google Sheets
+    await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
     
-    let printDiv = bank === 'PANIN' ? document.getElementById('paninPrintContent') : document.getElementById('bcaPrintContent');
-    printDiv.innerHTML = content;
-    let original = document.body.innerHTML;
-    document.body.innerHTML = document.getElementById(bank === 'PANIN' ? 'printAreaPanin' : 'printAreaBca').innerHTML;
-    window.print();
-    document.body.innerHTML = original;
+    // Generate print content sesuai bank
+    let printHtml = '';
+    if (bank === 'PANIN') {
+        printHtml = generatePaninPrint(supplier, data, jumlah);
+        document.getElementById('paninPrintContent').innerHTML = printHtml;
+        const originalBody = document.body.innerHTML;
+        document.body.innerHTML = document.getElementById('printAreaPanin').innerHTML;
+        window.print();
+        document.body.innerHTML = originalBody;
+    } else {
+        printHtml = generateBcaPrint(supplier, data, jumlah);
+        document.getElementById('bcaPrintContent').innerHTML = printHtml;
+        const originalBody = document.body.innerHTML;
+        document.body.innerHTML = document.getElementById('printAreaBca').innerHTML;
+        window.print();
+        document.body.innerHTML = originalBody;
+    }
     location.reload();
 });
+
+// ========== GENERATE PRINT BANK PANIN ==========
+function generatePaninPrint(supplier, data, jumlah) {
+    const formattedJumlah = jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
+    const terbilang = `${terbilangAngka(jumlah)} ${supplier.currency}`;
+    
+    return `
+        <div class="panin-print">
+            <div class="panin-jumlah-atas">${supplier.currency} ${formattedJumlah}</div>
+            <div class="panin-terbilang">${terbilang}</div>
+            
+            <div class="panin-dua-kolom">
+                <div class="panin-kiri">
+                    <div class="panin-nama">${supplier.nama || '-'}</div>
+                    <div class="panin-account">${supplier.account || '-'}</div>
+                    <div class="panin-alamat">${supplier.alamat || '-'}</div>
+                    <div class="panin-spacer"></div>
+                    <div class="panin-bank-name">${supplier.bankName || '-'}</div>
+                    <div class="panin-iban">IBAN : ${supplier.account || '-'}</div>
+                    <div class="panin-swift">SWIFT: ${supplier.swift || '-'}</div>
+                    <div class="panin-negara">${supplier.country || '-'}</div>
+                    <div class="panin-spacer"></div>
+                    <div class="panin-berita">${data.berita || 'PAYMENT FOR BUYING MACHINE'}</div>
+                    <div class="panin-no-dokumen">PAYMENT DOC NO ${data.noLoa || 'FC26102950'}</div>
+                    <div class="panin-spacer"></div>
+                    <div class="panin-pengirim">PT. SINAR CAHAYA CEMERLANG</div>
+                    <div class="panin-deretan-angka">0 7 9 6 0 0 0 6 6 5</div>
+                </div>
+                
+                <div class="panin-kanan">
+                    <div class="panin-ref-row">
+                        <span class="panin-ref-kode">B084235</span>
+                        <span class="panin-ref-nomor">${data.noLoa || '0796000665'}</span>
+                        <span class="panin-ref-jumlah">${supplier.currency} ${formattedJumlah}</span>
+                    </div>
+                    <div class="panin-jumlah-tengah">${supplier.currency} ${formattedJumlah}</div>
+                    <div class="panin-biaya-row">
+                        <div class="panin-biaya-item">${supplier.currency} ${formattedJumlah}</div>
+                        <div class="panin-biaya-item">${supplier.currency} 25</div>
+                        <div class="panin-biaya-item">IDR. 50,000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ========== GENERATE PRINT BANK BCA ==========
+function generateBcaPrint(supplier, data, jumlah) {
+    const formattedJumlah = jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
+    const terbilang = `${terbilangAngka(jumlah)} ${supplier.currency}`;
+    
+    return `
+        <div class="bca-print">
+            <div class="bca-header">BANK BCA</div>
+            <div class="bca-jumlah-besar">${supplier.currency} ${formattedJumlah}</div>
+            <div class="bca-terbilang">${terbilang}</div>
+            <div class="bca-penerima">Penerima: ${supplier.nama}</div>
+            <div class="bca-account">Account: ${supplier.account}</div>
+            <div class="bca-bank">Bank: ${supplier.bankName} (${supplier.swift})</div>
+            <div class="bca-tujuan">Tujuan: ${data.tujuan || '-'}</div>
+            <div class="bca-berita">Berita: ${data.berita || '-'}</div>
+            <div class="bca-ref">Ref: ${data.noLoa || '-'}</div>
+        </div>
+    `;
+}
+
+// ========== FUNGSI TERBILANG ANGKA ==========
+function terbilangAngka(angka) {
+    const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
+    const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
+    const puluhan = ['', '', 'DUA PULUH', 'TIGA PULUH', 'EMPAT PULUH', 'LIMA PULUH', 'ENAM PULUH', 'TUJUH PULUH', 'DELAPAN PULUH', 'SEMBILAN PULUH'];
+    
+    function convert(n) {
+        if (n === 0) return '';
+        if (n < 10) return satuan[n];
+        if (n < 20) return belasan[n - 10];
+        if (n < 100) {
+            let puluh = Math.floor(n / 10);
+            let sisa = n % 10;
+            return puluhan[puluh] + (sisa > 0 ? ' ' + satuan[sisa] : '');
+        }
+        if (n < 1000) {
+            let ratus = Math.floor(n / 100);
+            let sisa = n % 100;
+            return satuan[ratus] + ' RATUS' + (sisa > 0 ? ' ' + convert(sisa) : '');
+        }
+        return n.toString();
+    }
+    
+    let bulat = Math.floor(angka);
+    let pecahan = Math.round((angka - bulat) * 100);
+    let hasil = convert(bulat);
+    if (hasil === '') hasil = 'NOL';
+    if (pecahan > 0) {
+        hasil += ` KOMA ${pecahan}`;
+    }
+    return hasil;
+}
 
 // ========== LAYOUT EDITOR ==========
 function loadLayouts() {
