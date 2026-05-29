@@ -1,0 +1,94 @@
+.form-group {
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    color: #2c3e50;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ccd7e4;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: #fff;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #e67e22;
+    box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+}
+
+.row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.row .form-group {
+    flex: 1;
+}
+
+.bank-option {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.bank-card {
+    flex: 1;
+    background: #f8fafc;
+    padding: 14px;
+    text-align: center;
+    border-radius: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1.5px solid #cbd5e1;
+    transition: 0.2s;
+}
+
+.bank-card.selected {
+    background: #1e3c72;
+    color: white;
+    border-color: #1e3c72;
+}
+
+button {
+    background: #1e3c72;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    width: 100%;
+}
+
+.btn-success {
+    background: #27ae60;
+}
+
+.supplier-info {
+    background: #eef2ff;
+    padding: 12px;
+    border-radius: 18px;
+    font-size: 0.8rem;
+    margin-bottom: 15px;
+}
+
+.info-note {
+    background: #fef9e3;
+    padding: 12px;
+    border-radius: 18px;
+    font-size: 0.8rem;
+    color: #7d6608;
+}
