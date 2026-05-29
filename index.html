@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f4f8;
+            padding: 16px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; color: #1e3c72; }
+        .header span { color: #1e88e5; }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active {
+            background: #1e88e5;
+            color: white;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #1e3c72;
+            border-left: 4px solid #1e88e5;
+            padding-left: 12px;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #0b3b5f;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .row .form-group { flex: 1; }
+        
+        button {
+            background: #1e88e5;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .btn-success { background: #10b981; }
+        .btn-secondary { background: #64748b; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .print-area { display: none; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th { background: #f1f5f9; }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .header, .tabs, .card, button { display: none; }
+            .print-area { display: block; padding: 0.5cm; }
+            .print-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>APLIKASI <span>AL</span></h1>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="transfer">🏦 TRANSFER</button>
+        <button class="tab-btn" data-tab="supplier">📦 SUPPLIER</button>
+        <button class="tab-btn" data-tab="label">🏷️ LABEL</button>
+        <button class="tab-btn" data-tab="tt">📄 TANDA TERIMA</button>
+    </div>
+    
+    <!-- TAB TRANSFER -->
+    <div id="tab-transfer" class="tab-content active">
+        <div class="card">
+            <h2>FORM TRANSFER BANK</h2>
+            <div class="row">
+                <div class="form-group">
+                    <label>Bank Tujuan</label>
+                    <select id="bankTujuan">
+                        <option value="PANIN">🏦 BANK PANIN</option>
+                        <option value="BCA">🏦 BANK BCA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Transfer</label>
+                    <input type="date" id="tglTransfer">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Pilih Supplier</label>
+                <select id="supplierTransfer">
+                    <option value="">-- Pilih Supplier --</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>No. Rekening Tujuan</label>
+                    <input type="text" id="noRekening" readonly placeholder="Otomatis">
+                </div>
+                <div class="form-group">
+                    <label>Atas Nama</label>
+                    <input type="text" id="atasNama" readonly placeholder="Otomatis">
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>Jumlah Transfer (Rp)</label>
+                    <input type="number" id="jumlahTransfer" step="1000" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Biaya Admin (Rp)</label>
+                    <input type="number" id="adminTransfer" value="6500" step="500">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Keterangan</label>
+                <textarea id="keteranganTransfer" rows="2" placeholder="Contoh: Pembayaran invoice..."></textarea>
+            </div>
+            <button id="btnTransfer" class="btn-success">✅ SUBMIT & PRINT</button>
+        </div>
+    </div>
+    
+    <!-- TAB SUPPLIER -->
+    <div id="tab-supplier" class="tab-content">
+        <div class="card">
+            <h2>DATA SUPPLIER</h2>
+            <div class="row">
+                <div class="form-group"><label>Kode Supplier</label><input type="text" id="supplierKode" placeholder="SUP-001"></div>
+                <div class="form-group"><label>Nama Supplier</label><input type="text" id="supplierNama" placeholder="Nama lengkap"></div>
+            </div>
+            <div class="form-group"><label>Alamat</label><textarea id="supplierAlamat" rows="2" placeholder="Alamat lengkap"></textarea></div>
+            <div class="row">
+                <div class="form-group"><label>Kota</label><input type="text" id="supplierKota" placeholder="Kota"></div>
+                <div class="form-group"><label>Telepon</label><input type="text" id="supplierTelepon" placeholder="No telepon"></div>
+            </div>
+            <hr>
+            <h3>🏦 Rekening Bank Panin</h3>
+            <div class="row">
+                <div class="form-group"><label>No. Rekening Panin</label><input type="text" id="supplierRekPanin" placeholder="No rekening"></div>
+                <div class="form-group"><label>A/N Panin</label><input type="text" id="supplierNamaPanin" placeholder="Atas nama"></div>
+            </div>
+            <h3>🏦 Rekening Bank BCA</h3>
+            <div class="row">
+                <div class="form-group"><label>No. Rekening BCA</label><input type="text" id="supplierRekBca" placeholder="No rekening"></div>
+                <div class="form-group"><label>A/N BCA</label><input type="text" id="supplierNamaBca" placeholder="Atas nama"></div>
+            </div>
+            <input type="hidden" id="supplierId">
+            <div class="row">
+                <button id="btnSaveSupplier" class="btn-success">💾 SIMPAN</button>
+                <button id="btnResetSupplier" class="btn-secondary">🗑️ RESET</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 DAFTAR SUPPLIER</h2>
+            <div id="supplierList" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+    
+    <!-- TAB LABEL -->
+    <div id="tab-label" class="tab-content">
+        <div class="card">
+            <h2>🏷️ CETAK LABEL ALAMAT</h2>
+            <div class="form-group">
+                <label>Pilih Supplier</label>
+                <select id="supplierLabel">
+                    <option value="">-- Pilih Supplier --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Alamat Lengkap</label>
+                <textarea id="labelAlamat" rows="6" readonly style="background:#f8fafc; font-family: monospace;"></textarea>
+            </div>
+            <button id="btnPrintLabel" class="btn-success">🖨️ PRINT LABEL</button>
+        </div>
+    </div>
+    
+    <!-- TAB TANDA TERIMA -->
+    <div id="tab-tt" class="tab-content">
+        <div class="card">
+            <h2>📄 FORM TANDA TERIMA</h2>
+            <div class="row">
+                <div class="form-group"><label>No. Tanda Terima</label><input type="text" id="ttNo" placeholder="Auto"></div>
+                <div class="form-group"><label>Tanggal</label><input type="date" id="ttTanggal"></div>
+            </div>
+            <div class="form-group"><label>Dari (Pemberi)</label><input type="text" id="ttDari" placeholder="Nama pemberi / PT"></div>
+            <div class="form-group">
+                <label>Kepada (Penerima)</label>
+                <select id="ttSupplier">
+                    <option value="">-- Pilih Supplier --</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Alamat Penerima</label><textarea id="ttAlamat" rows="2" readonly style="background:#f8fafc;"></textarea></div>
+            <div class="row">
+                <div class="form-group"><label>Jumlah (Rp)</label><input type="number" id="ttJumlah" step="1000" placeholder="0"></div>
+                <div class="form-group"><label>Untuk Pembayaran</label><input type="text" id="ttUntuk" placeholder="Invoice / Tagihan"></div>
+            </div>
+            <div class="form-group"><label>Keterangan</label><textarea id="ttKeterangan" rows="2"></textarea></div>
+            <button id="btnTT" class="btn-success">✅ SUBMIT & PRINT</button>
+        </div>
+    </div>
+    
+    <!-- PRINT AREA TRANSFER -->
+    <div class="print-area" id="printTransfer">
+        <div class="print-header">
+            <h2>APLIKASI AL</h2>
+            <h3>BUKTI TRANSFER BANK</h3>
+            <p>Ref: <span id="pRef">-</span></p>
+        </div>
+        <p><strong>Tanggal:</strong> <span id="pTgl">-</span></p>
+        <p><strong>Bank Tujuan:</strong> <span id="pBank">-</span></p>
+        <p><strong>Supplier:</strong> <span id="pSupplier">-</span></p>
+        <p><strong>No. Rekening:</strong> <span id="pNoRek">-</span></p>
+        <p><strong>Atas Nama:</strong> <span id="pAtasNama">-</span></p>
+        <p><strong>Jumlah Transfer:</strong> Rp <span id="pJumlah">0</span></p>
+        <p><strong>Biaya Admin:</strong> Rp <span id="pAdmin">0</span></p>
+        <p><strong>Total Didebit:</strong> Rp <span id="pTotal">0</span></p>
+        <p><strong>Keterangan:</strong> <span id="pKeterangan">-</span></p>
+    </div>
+    
+    <!-- PRINT AREA LABEL -->
+    <div class="print-area" id="printLabelArea">
+        <div id="labelPrintContent" style="border: 1px solid #000; padding: 10px; width: 250px; font-size: 11px;"></div>
+    </div>
+    
+    <!-- PRINT AREA TANDA TERIMA -->
+    <div class="print-area" id="printTT">
+        <div class="print-header">
+            <h2>APLIKASI AL</h2>
+            <h3>TANDA TERIMA</h3>
+            <p>No: <span id="pTTNo">-</span></p>
+        </div>
+        <p><strong>Tanggal:</strong> <span id="pTTTgl">-</span></p>
+        <p><strong>Telah terima dari:</strong> <span id="pTTDari">-</span></p>
+        <p><strong>Kepada:</strong> <span id="pTTKepada">-</span></p>
+        <p><strong>Alamat:</strong> <span id="pTTAlamat">-</span></p>
+        <p><strong>Jumlah:</strong> Rp <span id="pTTJumlah">0</span></p>
+        <p><strong>Untuk Pembayaran:</strong> <span id="pTTUntuk">-</span></p>
+        <p><strong>Keterangan:</strong> <span id="pTTKeterangan">-</span></p>
+        <p style="margin-top: 50px; text-align: right;">
+            Penerima,<br><br><br>
+            <u><span id="pTTTtd">-</span></u>
+        </p>
+    </div>
+</div>
+
+<script>
+    // 🔴 NANTI GANTI DENGAN URL APPS SCRIPT 🔴
+    const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+    
+    let suppliers = [];
+    
+    async function callAPI(data) {
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            return true;
+        } catch(e) { 
+            console.log(e);
+            return false; 
+        }
+    }
+    
+    async function loadSuppliers() {
+        try {
+            const response = await fetch(API_URL + '?type=getSuppliers');
+            const result = await response.json();
+            suppliers = result.data || [];
+            updateDropdowns();
+            renderSupplierList();
+        } catch(e) {
+            console.log('Gagal load supplier:', e);
+        }
+    }
+    
+    function updateDropdowns() {
+        const options = '<option value="">-- Pilih Supplier --</option>' + 
+            suppliers.map(s => `<option value="${s.id}" data-nama="${s.nama}" data-alamat="${s.alamat} ${s.kota}" data-rekpanin="${s.rekPanin}" data-namapanin="${s.namaPanin}" data-rekbca="${s.rekBca}" data-namabca="${s.namaBca}">${s.kode} - ${s.nama}</option>`).join('');
+        
+        const supplierTransfer = document.getElementById('supplierTransfer');
+        const supplierLabel = document.getElementById('supplierLabel');
+        const ttSupplier = document.getElementById('ttSupplier');
+        
+        if(supplierTransfer) supplierTransfer.innerHTML = options;
+        if(supplierLabel) supplierLabel.innerHTML = options;
+        if(ttSupplier) ttSupplier.innerHTML = options;
+    }
+    
+    function renderSupplierList() {
+        const div = document.getElementById('supplierList');
+        if(!div) return;
+        
+        if(suppliers.length === 0) {
+            div.innerHTML = '<p style="text-align:center">Belum ada data supplier</p>';
+            return;
+        }
+        
+        div.innerHTML = `
+            <table>
+                <thead>
+                    <tr><th>Kode</th><th>Nama</th><th>Alamat</th><th>Rek Panin</th><th>Rek BCA</th><th>Aksi</th></tr>
+                </thead>
+                <tbody>
+                    ${suppliers.map(s => `
+                        <tr>
+                            <td>${s.kode || '-'}</td>
+                            <td>${s.nama || '-'}</td>
+                            <td>${(s.alamat || '').substring(0,30)}${(s.alamat || '').length > 30 ? '...' : ''}</td>
+                            <td>${s.rekPanin ? s.rekPanin.substring(0,10)+'...' : '-'}</td>
+                            <td>${s.rekBca ? s.rekBca.substring(0,10)+'...' : '-'}</td>
+                            <td>
+                                <button onclick="editSupplier(${s.id})" style="background:#1e88e5; width:auto; padding:5px 10px; margin:0 2px;">✏️</button>
+                                <button onclick="deleteSupplier(${s.id})" style="background:#ef4444; width:auto; padding:5px 10px; margin:0 2px;">🗑️</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+    
+    window.editSupplier = function(id) {
+        const s = suppliers.find(s => s.id == id);
+        if(s) {
+            document.getElementById('supplierId').value = s.id;
+            document.getElementById('supplierKode').value = s.kode || '';
+            document.getElementById('supplierNama').value = s.nama || '';
+            document.getElementById('supplierAlamat').value = s.alamat || '';
+            document.getElementById('supplierKota').value = s.kota || '';
+            document.getElementById('supplierTelepon').value = s.telepon || '';
+            document.getElementById('supplierRekPanin').value = s.rekPanin || '';
+            document.getElementById('supplierNamaPanin').value = s.namaPanin || '';
+            document.getElementById('supplierRekBca').value = s.rekBca || '';
+            document.getElementById('supplierNamaBca').value = s.namaBca || '';
+        }
+    };
+    
+    window.deleteSupplier = async function(id) {
+        if(!confirm('Hapus supplier ini?')) return;
+        await callAPI({ type: 'deleteSupplier', id: id });
+        await loadSuppliers();
+    };
+    
+    async function saveSupplier() {
+        const id = document.getElementById('supplierId').value || Date.now();
+        const data = {
+            type: 'saveSupplier',
+            id: id,
+            kode: document.getElementById('supplierKode').value,
+            nama: document.getElementById('supplierNama').value,
+            alamat: document.getElementById('supplierAlamat').value,
+            kota: document.getElementById('supplierKota').value,
+            telepon: document.getElementById('supplierTelepon').value,
+            rekPanin: document.getElementById('supplierRekPanin').value,
+            namaPanin: document.getElementById('supplierNamaPanin').value,
+            rekBca: document.getElementById('supplierRekBca').value,
+            namaBca: document.getElementById('supplierNamaBca').value
+        };
+        await callAPI(data);
+        resetSupplierForm();
+        await loadSuppliers();
+        alert('Supplier tersimpan!');
+    }
+    
+    function resetSupplierForm() {
+        document.getElementById('supplierId').value = '';
+        document.getElementById('supplierKode').value = '';
+        document.getElementById('supplierNama').value = '';
+        document.getElementById('supplierAlamat').value = '';
+        document.getElementById('supplierKota').value = '';
+        document.getElementById('supplierTelepon').value = '';
+        document.getElementById('supplierRekPanin').value = '';
+        document.getElementById('supplierNamaPanin').value = '';
+        document.getElementById('supplierRekBca').value = '';
+        document.getElementById('supplierNamaBca').value = '';
+    }
+    
+    // Event handlers
+    document.getElementById('supplierTransfer')?.addEventListener('change', (e) => {
+        const id = parseInt(e.target.value);
+        const supplier = suppliers.find(s => s.id == id);
+        if(supplier) {
+            const bank = document.getElementById('bankTujuan').value;
+            if(bank === 'PANIN') {
+                document.getElementById('noRekening').value = supplier.rekPanin || '';
+                document.getElementById('atasNama').value = supplier.namaPanin || '';
+            } else {
+                document.getElementById('noRekening').value = supplier.rekBca || '';
+                document.getElementById('atasNama').value = supplier.namaBca || '';
+            }
+        }
+    });
+    
+    document.getElementById('bankTujuan')?.addEventListener('change', () => {
+        const select = document.getElementById('supplierTransfer');
+        const id = parseInt(select.value);
+        const supplier = suppliers.find(s => s.id == id);
+        if(supplier) {
+            const bank = document.getElementById('bankTujuan').value;
+            if(bank === 'PANIN') {
+                document.getElementById('noRekening').value = supplier.rekPanin || '';
+                document.getElementById('atasNama').value = supplier.namaPanin || '';
+            } else {
+                document.getElementById('noRekening').value = supplier.rekBca || '';
+                document.getElementById('atasNama').value = supplier.namaBca || '';
+            }
+        }
+    });
+    
+    document.getElementById('supplierLabel')?.addEventListener('change', (e) => {
+        const id = parseInt(e.target.value);
+        const supplier = suppliers.find(s => s.id == id);
+        if(supplier) {
+            const label = `${supplier.nama}\n${supplier.alamat}\n${supplier.kota}\nTelp: ${supplier.telepon || '-'}`;
+            document.getElementById('labelAlamat').value = label;
+            document.getElementById('labelPrintContent').innerHTML = label.replace(/\n/g, '<br>');
+        }
+    });
+    
+    document.getElementById('ttSupplier')?.addEventListener('change', (e) => {
+        const id = parseInt(e.target.value);
+        const supplier = suppliers.find(s => s.id == id);
+        if(supplier) {
+            document.getElementById('ttAlamat').value = `${supplier.alamat || ''} ${supplier.kota || ''}`.trim();
+        }
+    });
+    
+    async function submitTransfer() {
+        const supplierId = parseInt(document.getElementById('supplierTransfer').value);
+        if(!supplierId) { alert('Pilih supplier dulu!'); return; }
+        const supplier = suppliers.find(s => s.id == supplierId);
+        const jumlah = parseFloat(document.getElementById('jumlahTransfer').value);
+        if(!jumlah || jumlah <= 0) { alert('Masukkan jumlah transfer!'); return; }
+        
+        const noRef = 'TRF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*10000);
+        const data = {
+            type: 'saveTransfer',
+            noRef: noRef,
+            tanggal: document.getElementById('tglTransfer').value || new Date().toISOString().slice(0,10),
+            bank: document.getElementById('bankTujuan').value,
+            supplier: supplier.nama,
+            noRekening: document.getElementById('noRekening').value,
+            atasNama: document.getElementById('atasNama').value,
+            jumlah: jumlah,
+            admin: parseFloat(document.getElementById('adminTransfer').value) || 0,
+            keterangan: document.getElementById('keteranganTransfer').value
+        };
+        
+        await callAPI(data);
+        
+        document.getElementById('pRef').innerText = noRef;
+        document.getElementById('pTgl').innerText = data.tanggal;
+        document.getElementById('pBank').innerText = data.bank;
+        document.getElementById('pSupplier').innerText = data.supplier;
+        document.getElementById('pNoRek').innerText = data.noRekening;
+        document.getElementById('pAtasNama').innerText = data.atasNama;
+        document.getElementById('pJumlah').innerText = jumlah.toLocaleString('id-ID');
+        document.getElementById('pAdmin').innerText = data.admin.toLocaleString('id-ID');
+        document.getElementById('pTotal').innerText = (jumlah + data.admin).toLocaleString('id-ID');
+        document.getElementById('pKeterangan').innerText = data.keterangan;
+        
+        alert('Transfer tersimpan!');
+        setTimeout(() => window.print(), 300);
+    }
+    
+    async function submitTT() {
+        const supplierId = parseInt(document.getElementById('ttSupplier').value);
+        if(!supplierId) { alert('Pilih supplier (penerima) dulu!'); return; }
+        const supplier = suppliers.find(s => s.id == supplierId);
+        const dari = document.getElementById('ttDari').value.trim();
+        const jumlah = parseFloat(document.getElementById('ttJumlah').value);
+        if(!dari) { alert('Isi Dari (pemberi)!'); return; }
+        if(!jumlah || jumlah <= 0) { alert('Masukkan jumlah!'); return; }
+        
+        const noTT = document.getElementById('ttNo').value.trim() || ('TT-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*1000));
+        const data = {
+            type: 'saveTandaTerima',
+            noTT: noTT,
+            tanggal: document.getElementById('ttTanggal').value || new Date().toISOString().slice(0,10),
+            dari: dari,
+            kepada: supplier.nama,
+            alamat: document.getElementById('ttAlamat').value,
+            jumlah: jumlah,
+            untuk: document.getElementById('ttUntuk').value,
+            keterangan: document.getElementById('ttKeterangan').value
+        };
+        
+        await callAPI(data);
+        
+        document.getElementById('pTTNo').innerText = noTT;
+        document.getElementById('pTTTgl').innerText = data.tanggal;
+        document.getElementById('pTTDari').innerText = data.dari;
+        document.getElementById('pTTKepada').innerText = data.kepada;
+        document.getElementById('pTTAlamat').innerText = data.alamat;
+        document.getElementById('pTTJumlah').innerText = jumlah.toLocaleString('id-ID');
+        document.getElementById('pTTUntuk').innerText = data.untuk;
+        document.getElementById('pTTKeterangan').innerText = data.keterangan;
+        document.getElementById('pTTTtd').innerText = supplier.nama;
+        
+        alert('Tanda terima tersimpan!');
+        setTimeout(() => window.print(), 300);
+    }
+    
+    function printLabel() {
+        const id = parseInt(document.getElementById('supplierLabel').value);
+        if(!id) { alert('Pilih supplier dulu!'); return; }
+        const supplier = suppliers.find(s => s.id == id);
+        if(supplier) {
+            const label = `${supplier.nama}\n${supplier.alamat}\n${supplier.kota}\nTelp: ${supplier.telepon || '-'}`;
+            document.getElementById('labelPrintContent').innerHTML = label.replace(/\n/g, '<br>');
+            setTimeout(() => window.print(), 200);
+        }
+    }
+    
+    // Setup tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+        });
+    });
+    
+    // Setup button listeners
+    document.getElementById('btnSaveSupplier')?.addEventListener('click', saveSupplier);
+    document.getElementById('btnResetSupplier')?.addEventListener('click', resetSupplierForm);
+    document.getElementById('btnTransfer')?.addEventListener('click', submitTransfer);
+    document.getElementById('btnTT')?.addEventListener('click', submitTT);
+    document.getElementById('btnPrintLabel')?.addEventListener('click', printLabel);
+    
+    // Initialize
+    window.onload = () => {
+        document.getElementById('tglTransfer').value = new Date().toISOString().slice(0,10);
+        document.getElementById('ttTanggal').value = new Date().toISOString().slice(0,10);
+        loadSuppliers();
+    };
+</script>
+</body>
+</html>
