@@ -2,599 +2,679 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APLIKASI AL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>APLIKASI AL - Transfer Bank Luar Negeri</title>
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f0f4f8;
+            font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
             padding: 16px;
         }
-        .container { max-width: 700px; margin: 0 auto; }
-        .header {
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .app-header {
             text-align: center;
-            background: white;
-            padding: 15px;
-            border-radius: 50px;
             margin-bottom: 20px;
         }
-        .header h1 { margin: 0; color: #1e3c72; }
-        .header span { color: #1e88e5; }
-        
+
+        .app-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e3c72;
+            background: white;
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            letter-spacing: 2px;
+        }
+
+        .app-title span {
+            color: #e67e22;
+        }
+
+        /* Tabs */
         .tabs {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
             margin-bottom: 20px;
         }
+
         .tab-btn {
             flex: 1;
+            min-width: 100px;
             background: white;
             border: none;
-            padding: 12px;
+            padding: 12px 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
             border-radius: 40px;
             cursor: pointer;
-            font-weight: bold;
+            color: #64748b;
+            transition: 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+
         .tab-btn.active {
-            background: #1e88e5;
+            background: #1e3c72;
             color: white;
         }
-        
+
+        /* Cards */
         .card {
             background: white;
-            border-radius: 20px;
+            border-radius: 24px;
             padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
+
         .card h2 {
             margin-top: 0;
             color: #1e3c72;
-            border-left: 4px solid #1e88e5;
+            font-size: 1.2rem;
+            border-left: 4px solid #e67e22;
             padding-left: 12px;
+            margin-bottom: 16px;
         }
-        
-        .form-group { margin-bottom: 15px; }
+
+        .card h3 {
+            font-size: 1rem;
+            margin: 12px 0;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 5px;
-            font-size: 0.85rem;
             color: #0b3b5f;
+            font-size: 0.8rem;
         }
+
         input, select, textarea {
             width: 100%;
-            padding: 10px;
+            padding: 10px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 12px;
             font-size: 0.9rem;
+            font-family: inherit;
         }
-        .row { display: flex; gap: 12px; flex-wrap: wrap; }
-        .row .form-group { flex: 1; }
-        
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #e67e22;
+            box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .row .form-group {
+            flex: 1;
+            min-width: 120px;
+        }
+
         button {
-            background: #1e88e5;
+            background: #1e3c72;
             color: white;
             border: none;
-            padding: 12px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
             border-radius: 40px;
             cursor: pointer;
             font-weight: bold;
             width: 100%;
             margin-top: 8px;
         }
-        .btn-success { background: #10b981; }
-        .btn-secondary { background: #64748b; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        .print-area { display: none; }
-        
-        table {
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-secondary {
+            background: #7f8c8d;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Print Area - Beda layout per bank */
+        .print-area {
+            display: none;
+        }
+
+        /* Tabel Supplier */
+        .supplier-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
+            overflow-x: auto;
+            display: block;
         }
-        th, td {
+
+        .supplier-table th, .supplier-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 6px;
             text-align: left;
         }
-        th { background: #f1f5f9; }
-        
+
+        .supplier-table th {
+            background: #f1f5f9;
+            font-weight: bold;
+        }
+
+        .supplier-table td button {
+            padding: 4px 8px;
+            margin: 2px;
+            font-size: 0.7rem;
+            width: auto;
+        }
+
+        hr {
+            margin: 16px 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Bank Selection */
+        .bank-option {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .bank-card {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .bank-card.selected {
+            border-color: #e67e22;
+            background: #fff8f0;
+        }
+
+        .bank-card img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 5px;
+        }
+
+        /* Info */
+        .info-note {
+            background: #eef2f7;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 10px;
+        }
+
         @media print {
-            body { background: white; padding: 0; }
-            .header, .tabs, .card, button { display: none; }
-            .print-area { display: block; padding: 0.5cm; }
-            .print-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; }
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .app-header, .tabs, .card, button, .bank-option, .info-note {
+                display: none !important;
+            }
+            .print-area {
+                display: block !important;
+                padding: 0.5cm;
+                margin: 0;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="header">
-        <h1>APLIKASI <span>AL</span></h1>
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
     </div>
-    
+
     <div class="tabs">
-        <button class="tab-btn active" data-tab="transfer">🏦 TRANSFER</button>
-        <button class="tab-btn" data-tab="supplier">📦 SUPPLIER</button>
-        <button class="tab-btn" data-tab="label">🏷️ LABEL</button>
-        <button class="tab-btn" data-tab="tt">📄 TANDA TERIMA</button>
+        <button class="tab-btn active" data-tab="supplier">📦 DATA SUPPLIER</button>
+        <button class="tab-btn" data-tab="transfer">💰 TRANSFER</button>
     </div>
-    
-    <!-- TAB TRANSFER -->
-    <div id="tab-transfer" class="tab-content active">
+
+    <!-- ==================== TAB SUPPLIER ==================== -->
+    <div id="tab-supplier" class="tab-content active">
         <div class="card">
-            <h2>FORM TRANSFER BANK</h2>
+            <h2>📋 INPUT DATA SUPPLIER (LUAR NEGERI)</h2>
             <div class="row">
-                <div class="form-group">
-                    <label>Bank Tujuan</label>
-                    <select id="bankTujuan">
-                        <option value="PANIN">🏦 BANK PANIN</option>
-                        <option value="BCA">🏦 BANK BCA</option>
+                <div class="form-group"><label>No. Urut</label><input type="text" id="supplierNo" placeholder="001"></div>
+                <div class="form-group"><label>NAMA PENERIMA</label><input type="text" id="supplierNama" placeholder="Nama supplier" required></div>
+            </div>
+            <div class="row">
+                <div class="form-group"><label>ACCOUNT NUMBER</label><input type="text" id="supplierAccount" placeholder="Nomor rekening"></div>
+                <div class="form-group"><label>CURRENCY</label>
+                    <select id="supplierCurrency">
+                        <option>USD</option><option>EUR</option><option>SGD</option><option>JPY</option><option>GBP</option><option>AUD</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Tanggal Transfer</label>
-                    <input type="date" id="tglTransfer">
-                </div>
             </div>
-            <div class="form-group">
-                <label>Pilih Supplier</label>
-                <select id="supplierTransfer">
-                    <option value="">-- Pilih Supplier --</option>
-                </select>
-            </div>
+            <div class="form-group"><label>ALAMAT PENERIMA</label><textarea id="supplierAlamat" rows="2" placeholder="Alamat lengkap"></textarea></div>
             <div class="row">
-                <div class="form-group">
-                    <label>No. Rekening Tujuan</label>
-                    <input type="text" id="noRekening" readonly placeholder="Otomatis">
-                </div>
-                <div class="form-group">
-                    <label>Atas Nama</label>
-                    <input type="text" id="atasNama" readonly placeholder="Otomatis">
-                </div>
+                <div class="form-group"><label>BANK NAME</label><input type="text" id="supplierBankName" placeholder="Nama bank"></div>
+                <div class="form-group"><label>SWIFT CODE</label><input type="text" id="supplierSwift" placeholder="Kode SWIFT"></div>
             </div>
+            <div class="form-group"><label>BANK ALAMAT</label><textarea id="supplierBankAlamat" rows="1" placeholder="Alamat bank"></textarea></div>
             <div class="row">
-                <div class="form-group">
-                    <label>Jumlah Transfer (Rp)</label>
-                    <input type="number" id="jumlahTransfer" step="1000" placeholder="0">
-                </div>
-                <div class="form-group">
-                    <label>Biaya Admin (Rp)</label>
-                    <input type="number" id="adminTransfer" value="6500" step="500">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Keterangan</label>
-                <textarea id="keteranganTransfer" rows="2" placeholder="Contoh: Pembayaran invoice..."></textarea>
-            </div>
-            <button id="btnTransfer" class="btn-success">✅ SUBMIT & PRINT</button>
-        </div>
-    </div>
-    
-    <!-- TAB SUPPLIER -->
-    <div id="tab-supplier" class="tab-content">
-        <div class="card">
-            <h2>DATA SUPPLIER</h2>
-            <div class="row">
-                <div class="form-group"><label>Kode Supplier</label><input type="text" id="supplierKode" placeholder="SUP-001"></div>
-                <div class="form-group"><label>Nama Supplier</label><input type="text" id="supplierNama" placeholder="Nama lengkap"></div>
-            </div>
-            <div class="form-group"><label>Alamat</label><textarea id="supplierAlamat" rows="2" placeholder="Alamat lengkap"></textarea></div>
-            <div class="row">
-                <div class="form-group"><label>Kota</label><input type="text" id="supplierKota" placeholder="Kota"></div>
-                <div class="form-group"><label>Telepon</label><input type="text" id="supplierTelepon" placeholder="No telepon"></div>
-            </div>
-            <hr>
-            <h3>🏦 Rekening Bank Panin</h3>
-            <div class="row">
-                <div class="form-group"><label>No. Rekening Panin</label><input type="text" id="supplierRekPanin" placeholder="No rekening"></div>
-                <div class="form-group"><label>A/N Panin</label><input type="text" id="supplierNamaPanin" placeholder="Atas nama"></div>
-            </div>
-            <h3>🏦 Rekening Bank BCA</h3>
-            <div class="row">
-                <div class="form-group"><label>No. Rekening BCA</label><input type="text" id="supplierRekBca" placeholder="No rekening"></div>
-                <div class="form-group"><label>A/N BCA</label><input type="text" id="supplierNamaBca" placeholder="Atas nama"></div>
+                <div class="form-group"><label>COUNTRY</label><input type="text" id="supplierCountry" placeholder="Negara"></div>
             </div>
             <input type="hidden" id="supplierId">
             <div class="row">
-                <button id="btnSaveSupplier" class="btn-success">💾 SIMPAN</button>
+                <button id="btnSaveSupplier" class="btn-success">💾 SIMPAN SUPPLIER</button>
                 <button id="btnResetSupplier" class="btn-secondary">🗑️ RESET</button>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>📋 DAFTAR SUPPLIER</h2>
-            <div id="supplierList" style="overflow-x: auto;"></div>
+            <div style="overflow-x: auto;">
+                <table class="supplier-table" id="supplierTable">
+                    <thead>
+                        <tr><th>No</th><th>Nama Penerima</th><th>Account No</th><th>Currency</th><th>Bank Name</th><th>Swift</th><th>Country</th><th>Aksi</th></tr>
+                    </thead>
+                    <tbody id="supplierTableBody"><tr><td colspan="8" style="text-align:center">Loading...</td></tr></tbody>
+                </table>
+            </div>
         </div>
     </div>
-    
-    <!-- TAB LABEL -->
-    <div id="tab-label" class="tab-content">
+
+    <!-- ==================== TAB TRANSFER ==================== -->
+    <div id="tab-transfer" class="tab-content">
         <div class="card">
-            <h2>🏷️ CETAK LABEL ALAMAT</h2>
+            <h2>🏦 FORM TRANSFER BANK</h2>
+            
             <div class="form-group">
-                <label>Pilih Supplier</label>
-                <select id="supplierLabel">
+                <label>Pilih Supplier Penerima</label>
+                <select id="transferSupplier">
                     <option value="">-- Pilih Supplier --</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Alamat Lengkap</label>
-                <textarea id="labelAlamat" rows="6" readonly style="background:#f8fafc; font-family: monospace;"></textarea>
+
+            <div class="bank-option" id="bankOption">
+                <div class="bank-card" data-bank="PANIN">
+                    <div>🏦</div>
+                    <div><strong>BANK PANIN</strong></div>
+                </div>
+                <div class="bank-card" data-bank="BCA">
+                    <div>🏦</div>
+                    <div><strong>BANK BCA</strong></div>
+                </div>
             </div>
-            <button id="btnPrintLabel" class="btn-success">🖨️ PRINT LABEL</button>
-        </div>
-    </div>
-    
-    <!-- TAB TANDA TERIMA -->
-    <div id="tab-tt" class="tab-content">
-        <div class="card">
-            <h2>📄 FORM TANDA TERIMA</h2>
+            <input type="hidden" id="selectedBank" value="PANIN">
+
+            <hr>
+
+            <h3>💵 Detail Transfer</h3>
             <div class="row">
-                <div class="form-group"><label>No. Tanda Terima</label><input type="text" id="ttNo" placeholder="Auto"></div>
-                <div class="form-group"><label>Tanggal</label><input type="date" id="ttTanggal"></div>
+                <div class="form-group"><label>Jumlah Transfer</label><input type="number" id="jumlahTransfer" step="100" placeholder="0"></div>
+                <div class="form-group"><label>Currency</label><input type="text" id="currencyDisplay" readonly style="background:#f0f0f0"></div>
             </div>
-            <div class="form-group"><label>Dari (Pemberi)</label><input type="text" id="ttDari" placeholder="Nama pemberi / PT"></div>
-            <div class="form-group">
-                <label>Kepada (Penerima)</label>
-                <select id="ttSupplier">
-                    <option value="">-- Pilih Supplier --</option>
-                </select>
-            </div>
-            <div class="form-group"><label>Alamat Penerima</label><textarea id="ttAlamat" rows="2" readonly style="background:#f8fafc;"></textarea></div>
-            <div class="row">
-                <div class="form-group"><label>Jumlah (Rp)</label><input type="number" id="ttJumlah" step="1000" placeholder="0"></div>
-                <div class="form-group"><label>Untuk Pembayaran</label><input type="text" id="ttUntuk" placeholder="Invoice / Tagihan"></div>
-            </div>
-            <div class="form-group"><label>Keterangan</label><textarea id="ttKeterangan" rows="2"></textarea></div>
-            <button id="btnTT" class="btn-success">✅ SUBMIT & PRINT</button>
+            <div class="form-group"><label>Berita / Keterangan</label><textarea id="beritaTransfer" rows="2" placeholder="Berita transfer..."></textarea></div>
+            <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1" placeholder="Tujuan transfer..."></textarea></div>
+            <div class="form-group"><label>No CEK / LOA</label><input type="text" id="noCekLoa" placeholder="Contoh: LOA-2024-001"></div>
+            
+            <button id="btnPrintTransfer" class="btn-success">🖨️ PRINT BUKTI TRANSFER</button>
         </div>
     </div>
-    
-    <!-- PRINT AREA TRANSFER -->
-    <div class="print-area" id="printTransfer">
-        <div class="print-header">
+
+    <!-- ==================== PRINT AREA BANK PANIN ==================== -->
+    <div class="print-area" id="printAreaPanin">
+        <div style="text-align:center; border-bottom:2px solid #1e3c72; padding-bottom:10px; margin-bottom:15px;">
             <h2>APLIKASI AL</h2>
-            <h3>BUKTI TRANSFER BANK</h3>
-            <p>Ref: <span id="pRef">-</span></p>
+            <h3>BANK PANIN - BUKTI TRANSFER INTERNASIONAL</h3>
+            <p>No CEK/LOA: <strong><span id="printPaninLoa">-</span></strong></p>
         </div>
-        <p><strong>Tanggal:</strong> <span id="pTgl">-</span></p>
-        <p><strong>Bank Tujuan:</strong> <span id="pBank">-</span></p>
-        <p><strong>Supplier:</strong> <span id="pSupplier">-</span></p>
-        <p><strong>No. Rekening:</strong> <span id="pNoRek">-</span></p>
-        <p><strong>Atas Nama:</strong> <span id="pAtasNama">-</span></p>
-        <p><strong>Jumlah Transfer:</strong> Rp <span id="pJumlah">0</span></p>
-        <p><strong>Biaya Admin:</strong> Rp <span id="pAdmin">0</span></p>
-        <p><strong>Total Didebit:</strong> Rp <span id="pTotal">0</span></p>
-        <p><strong>Keterangan:</strong> <span id="pKeterangan">-</span></p>
+        <div><strong>Tanggal:</strong> <span id="printPaninTgl">-</span></div>
+        <div style="margin-top:10px;"><strong>PENERIMA:</strong></div>
+        <div>Nama: <span id="printPaninNama">-</span></div>
+        <div>Alamat: <span id="printPaninAlamat">-</span></div>
+        <div>Account No: <span id="printPaninAccount">-</span></div>
+        <div>Currency: <span id="printPaninCurrency">-</span></div>
+        <div style="margin-top:10px;"><strong>BANK PENERIMA:</strong></div>
+        <div>Bank: <span id="printPaninBankName">-</span></div>
+        <div>Bank Alamat: <span id="printPaninBankAlamat">-</span></div>
+        <div>SWIFT Code: <span id="printPaninSwift">-</span></div>
+        <div>Country: <span id="printPaninCountry">-</span></div>
+        <div style="margin-top:10px;"><strong>TRANSFER DETAIL:</strong></div>
+        <div>Jumlah: <span id="printPaninJumlah">0</span> <span id="printPaninCurrSym">USD</span></div>
+        <div>Berita Transfer: <span id="printPaninBerita">-</span></div>
+        <div>Tujuan Transfer: <span id="printPaninTujuan">-</span></div>
+        <div style="margin-top:30px; text-align:center; font-size:10px;">Dicetak dari APLIKASI AL - Bank Panin</div>
     </div>
-    
-    <!-- PRINT AREA LABEL -->
-    <div class="print-area" id="printLabelArea">
-        <div id="labelPrintContent" style="border: 1px solid #000; padding: 10px; width: 250px; font-size: 11px;"></div>
-    </div>
-    
-    <!-- PRINT AREA TANDA TERIMA -->
-    <div class="print-area" id="printTT">
-        <div class="print-header">
+
+    <!-- ==================== PRINT AREA BANK BCA ==================== -->
+    <div class="print-area" id="printAreaBca">
+        <div style="text-align:center; border-bottom:2px solid #1e3c72; padding-bottom:10px; margin-bottom:15px;">
             <h2>APLIKASI AL</h2>
-            <h3>TANDA TERIMA</h3>
-            <p>No: <span id="pTTNo">-</span></p>
+            <h3>BANK BCA - BUKTI TRANSFER INTERNASIONAL</h3>
+            <p>Referensi LOA: <strong><span id="printBcaLoa">-</span></strong></p>
         </div>
-        <p><strong>Tanggal:</strong> <span id="pTTTgl">-</span></p>
-        <p><strong>Telah terima dari:</strong> <span id="pTTDari">-</span></p>
-        <p><strong>Kepada:</strong> <span id="pTTKepada">-</span></p>
-        <p><strong>Alamat:</strong> <span id="pTTAlamat">-</span></p>
-        <p><strong>Jumlah:</strong> Rp <span id="pTTJumlah">0</span></p>
-        <p><strong>Untuk Pembayaran:</strong> <span id="pTTUntuk">-</span></p>
-        <p><strong>Keterangan:</strong> <span id="pTTKeterangan">-</span></p>
-        <p style="margin-top: 50px; text-align: right;">
-            Penerima,<br><br><br>
-            <u><span id="pTTTtd">-</span></u>
-        </p>
+        <div><strong>Tanggal Transaksi:</strong> <span id="printBcaTgl">-</span></div>
+        <div style="margin-top:15px;"><strong>BENEFICIARY DETAILS:</strong></div>
+        <div>Beneficiary Name: <span id="printBcaNama">-</span></div>
+        <div>Address: <span id="printBcaAlamat">-</span></div>
+        <div>Account Number: <span id="printBcaAccount">-</span></div>
+        <div>Currency: <span id="printBcaCurrency">-</span></div>
+        <div style="margin-top:10px;"><strong>BANK DETAILS:</strong></div>
+        <div>Bank Name: <span id="printBcaBankName">-</span></div>
+        <div>Bank Address: <span id="printBcaBankAlamat">-</span></div>
+        <div>SWIFT/BIC: <span id="printBcaSwift">-</span></div>
+        <div>Country: <span id="printBcaCountry">-</span></div>
+        <div style="margin-top:10px;"><strong>PAYMENT DETAILS:</strong></div>
+        <div>Amount: <span id="printBcaJumlah">0</span> <span id="printBcaCurrSym">USD</span></div>
+        <div>Narrative/Remark: <span id="printBcaBerita">-</span></div>
+        <div>Purpose of Payment: <span id="printBcaTujuan">-</span></div>
+        <div style="margin-top:30px; text-align:center; font-size:10px;">Generated by APLIKASI AL - BCA International Transfer</div>
     </div>
 </div>
 
 <script>
-    // 🔴 NANTI GANTI DENGAN URL APPS SCRIPT 🔴
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzehrJCcWuOQ6Ls9_OLb0-WnHkRjLgsr2wRmZy8qhdrP6DDHFc4p82r4_LhUZk8wj9Dng/exec';
-    
+    // Data storage
     let suppliers = [];
-    
-    async function callAPI(data) {
-        try {
-            await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            return true;
-        } catch(e) { 
-            console.log(e);
-            return false; 
+
+    // Load from localStorage
+    function loadSuppliersFromStorage() {
+        const stored = localStorage.getItem('al_suppliers_international');
+        if(stored) {
+            suppliers = JSON.parse(stored);
+        } else {
+            // Contoh data awal
+            suppliers = [];
         }
+        renderSupplierTable();
+        updateSupplierDropdown();
     }
-    
-    async function loadSuppliers() {
-        try {
-            const response = await fetch(API_URL + '?type=getSuppliers');
-            const result = await response.json();
-            suppliers = result.data || [];
-            updateDropdowns();
-            renderSupplierList();
-        } catch(e) {
-            console.log('Gagal load supplier:', e);
-        }
+
+    function saveSuppliersToStorage() {
+        localStorage.setItem('al_suppliers_international', JSON.stringify(suppliers));
+        renderSupplierTable();
+        updateSupplierDropdown();
     }
-    
-    function updateDropdowns() {
-        const options = '<option value="">-- Pilih Supplier --</option>' + 
-            suppliers.map(s => `<option value="${s.id}" data-nama="${s.nama}" data-alamat="${s.alamat} ${s.kota}" data-rekpanin="${s.rekPanin}" data-namapanin="${s.namaPanin}" data-rekbca="${s.rekBca}" data-namabca="${s.namaBca}">${s.kode} - ${s.nama}</option>`).join('');
-        
-        const supplierTransfer = document.getElementById('supplierTransfer');
-        const supplierLabel = document.getElementById('supplierLabel');
-        const ttSupplier = document.getElementById('ttSupplier');
-        
-        if(supplierTransfer) supplierTransfer.innerHTML = options;
-        if(supplierLabel) supplierLabel.innerHTML = options;
-        if(ttSupplier) ttSupplier.innerHTML = options;
-    }
-    
-    function renderSupplierList() {
-        const div = document.getElementById('supplierList');
-        if(!div) return;
-        
+
+    function renderSupplierTable() {
+        const tbody = document.getElementById('supplierTableBody');
+        if(!tbody) return;
         if(suppliers.length === 0) {
-            div.innerHTML = '<p style="text-align:center">Belum ada data supplier</p>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">Belum ada data supplier</td></tr>';
             return;
         }
-        
-        div.innerHTML = `
-            <table>
-                <thead>
-                    <tr><th>Kode</th><th>Nama</th><th>Alamat</th><th>Rek Panin</th><th>Rek BCA</th><th>Aksi</th></tr>
-                </thead>
-                <tbody>
-                    ${suppliers.map(s => `
-                        <tr>
-                            <td>${s.kode || '-'}</td>
-                            <td>${s.nama || '-'}</td>
-                            <td>${(s.alamat || '').substring(0,30)}${(s.alamat || '').length > 30 ? '...' : ''}</td>
-                            <td>${s.rekPanin ? s.rekPanin.substring(0,10)+'...' : '-'}</td>
-                            <td>${s.rekBca ? s.rekBca.substring(0,10)+'...' : '-'}</td>
-                            <td>
-                                <button onclick="editSupplier(${s.id})" style="background:#1e88e5; width:auto; padding:5px 10px; margin:0 2px;">✏️</button>
-                                <button onclick="deleteSupplier(${s.id})" style="background:#ef4444; width:auto; padding:5px 10px; margin:0 2px;">🗑️</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
+        tbody.innerHTML = suppliers.map(s => `
+            <tr>
+                <td>${s.no || '-'}</td>
+                <td>${s.nama || '-'}</td>
+                <td>${s.account || '-'}</td>
+                <td>${s.currency || '-'}</td>
+                <td>${s.bankName || '-'}</td>
+                <td>${s.swift || '-'}</td>
+                <td>${s.country || '-'}</td>
+                <td>
+                    <button onclick="editSupplier('${s.id}')" style="background:#1e3c72">✏️</button>
+                    <button onclick="deleteSupplier('${s.id}')" style="background:#e74c3c">🗑️</button>
+                </td>
+            </tr>
+        `).join('');
     }
-    
+
+    function updateSupplierDropdown() {
+        const select = document.getElementById('transferSupplier');
+        if(!select) return;
+        if(suppliers.length === 0) {
+            select.innerHTML = '<option value="">-- Pilih Supplier --</option>';
+            return;
+        }
+        let options = '<option value="">-- Pilih Supplier --</option>';
+        suppliers.forEach(s => {
+            options += `<option value="${s.id}" data-currency="${s.currency}" data-account="${s.account}" data-nama="${s.nama}" data-alamat="${s.alamat}" data-bankname="${s.bankName}" data-bankalamat="${s.bankAlamat}" data-swift="${s.swift}" data-country="${s.country}">${s.no} - ${s.nama}</option>`;
+        });
+        select.innerHTML = options;
+        // reset currency display
+        document.getElementById('currencyDisplay').value = '';
+    }
+
     window.editSupplier = function(id) {
-        const s = suppliers.find(s => s.id == id);
+        const s = suppliers.find(x => x.id == id);
         if(s) {
             document.getElementById('supplierId').value = s.id;
-            document.getElementById('supplierKode').value = s.kode || '';
+            document.getElementById('supplierNo').value = s.no || '';
             document.getElementById('supplierNama').value = s.nama || '';
+            document.getElementById('supplierAccount').value = s.account || '';
+            document.getElementById('supplierCurrency').value = s.currency || 'USD';
             document.getElementById('supplierAlamat').value = s.alamat || '';
-            document.getElementById('supplierKota').value = s.kota || '';
-            document.getElementById('supplierTelepon').value = s.telepon || '';
-            document.getElementById('supplierRekPanin').value = s.rekPanin || '';
-            document.getElementById('supplierNamaPanin').value = s.namaPanin || '';
-            document.getElementById('supplierRekBca').value = s.rekBca || '';
-            document.getElementById('supplierNamaBca').value = s.namaBca || '';
+            document.getElementById('supplierBankName').value = s.bankName || '';
+            document.getElementById('supplierSwift').value = s.swift || '';
+            document.getElementById('supplierBankAlamat').value = s.bankAlamat || '';
+            document.getElementById('supplierCountry').value = s.country || '';
         }
     };
-    
-    window.deleteSupplier = async function(id) {
-        if(!confirm('Hapus supplier ini?')) return;
-        await callAPI({ type: 'deleteSupplier', id: id });
-        await loadSuppliers();
+
+    window.deleteSupplier = function(id) {
+        if(confirm('Hapus supplier ini?')) {
+            suppliers = suppliers.filter(x => x.id != id);
+            saveSuppliersToStorage();
+            if(document.getElementById('supplierId').value == id) resetSupplierForm();
+        }
     };
-    
-    async function saveSupplier() {
-        const id = document.getElementById('supplierId').value || Date.now();
-        const data = {
-            type: 'saveSupplier',
+
+    function saveSupplier() {
+        const id = document.getElementById('supplierId').value || Date.now().toString();
+        const supplier = {
             id: id,
-            kode: document.getElementById('supplierKode').value,
+            no: document.getElementById('supplierNo').value,
             nama: document.getElementById('supplierNama').value,
+            account: document.getElementById('supplierAccount').value,
+            currency: document.getElementById('supplierCurrency').value,
             alamat: document.getElementById('supplierAlamat').value,
-            kota: document.getElementById('supplierKota').value,
-            telepon: document.getElementById('supplierTelepon').value,
-            rekPanin: document.getElementById('supplierRekPanin').value,
-            namaPanin: document.getElementById('supplierNamaPanin').value,
-            rekBca: document.getElementById('supplierRekBca').value,
-            namaBca: document.getElementById('supplierNamaBca').value
+            bankName: document.getElementById('supplierBankName').value,
+            swift: document.getElementById('supplierSwift').value,
+            bankAlamat: document.getElementById('supplierBankAlamat').value,
+            country: document.getElementById('supplierCountry').value
         };
-        await callAPI(data);
+        if(!supplier.nama) { alert('Nama penerima wajib diisi!'); return; }
+        const existingIndex = suppliers.findIndex(x => x.id == id);
+        if(existingIndex >= 0) {
+            suppliers[existingIndex] = supplier;
+        } else {
+            suppliers.push(supplier);
+        }
+        saveSuppliersToStorage();
         resetSupplierForm();
-        await loadSuppliers();
         alert('Supplier tersimpan!');
     }
-    
+
     function resetSupplierForm() {
         document.getElementById('supplierId').value = '';
-        document.getElementById('supplierKode').value = '';
+        document.getElementById('supplierNo').value = '';
         document.getElementById('supplierNama').value = '';
+        document.getElementById('supplierAccount').value = '';
+        document.getElementById('supplierCurrency').value = 'USD';
         document.getElementById('supplierAlamat').value = '';
-        document.getElementById('supplierKota').value = '';
-        document.getElementById('supplierTelepon').value = '';
-        document.getElementById('supplierRekPanin').value = '';
-        document.getElementById('supplierNamaPanin').value = '';
-        document.getElementById('supplierRekBca').value = '';
-        document.getElementById('supplierNamaBca').value = '';
+        document.getElementById('supplierBankName').value = '';
+        document.getElementById('supplierSwift').value = '';
+        document.getElementById('supplierBankAlamat').value = '';
+        document.getElementById('supplierCountry').value = '';
     }
-    
-    // Event handlers
-    document.getElementById('supplierTransfer')?.addEventListener('change', (e) => {
-        const id = parseInt(e.target.value);
-        const supplier = suppliers.find(s => s.id == id);
-        if(supplier) {
-            const bank = document.getElementById('bankTujuan').value;
-            if(bank === 'PANIN') {
-                document.getElementById('noRekening').value = supplier.rekPanin || '';
-                document.getElementById('atasNama').value = supplier.namaPanin || '';
-            } else {
-                document.getElementById('noRekening').value = supplier.rekBca || '';
-                document.getElementById('atasNama').value = supplier.namaBca || '';
-            }
+
+    // Transfer logic
+    document.getElementById('transferSupplier').addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        if(selected && selected.value) {
+            const currency = selected.getAttribute('data-currency') || 'USD';
+            document.getElementById('currencyDisplay').value = currency;
+        } else {
+            document.getElementById('currencyDisplay').value = '';
         }
     });
-    
-    document.getElementById('bankTujuan')?.addEventListener('change', () => {
-        const select = document.getElementById('supplierTransfer');
-        const id = parseInt(select.value);
-        const supplier = suppliers.find(s => s.id == id);
-        if(supplier) {
-            const bank = document.getElementById('bankTujuan').value;
-            if(bank === 'PANIN') {
-                document.getElementById('noRekening').value = supplier.rekPanin || '';
-                document.getElementById('atasNama').value = supplier.namaPanin || '';
-            } else {
-                document.getElementById('noRekening').value = supplier.rekBca || '';
-                document.getElementById('atasNama').value = supplier.namaBca || '';
-            }
-        }
-    });
-    
-    document.getElementById('supplierLabel')?.addEventListener('change', (e) => {
-        const id = parseInt(e.target.value);
-        const supplier = suppliers.find(s => s.id == id);
-        if(supplier) {
-            const label = `${supplier.nama}\n${supplier.alamat}\n${supplier.kota}\nTelp: ${supplier.telepon || '-'}`;
-            document.getElementById('labelAlamat').value = label;
-            document.getElementById('labelPrintContent').innerHTML = label.replace(/\n/g, '<br>');
-        }
-    });
-    
-    document.getElementById('ttSupplier')?.addEventListener('change', (e) => {
-        const id = parseInt(e.target.value);
-        const supplier = suppliers.find(s => s.id == id);
-        if(supplier) {
-            document.getElementById('ttAlamat').value = `${supplier.alamat || ''} ${supplier.kota || ''}`.trim();
-        }
-    });
-    
-    async function submitTransfer() {
-        const supplierId = parseInt(document.getElementById('supplierTransfer').value);
-        if(!supplierId) { alert('Pilih supplier dulu!'); return; }
-        const supplier = suppliers.find(s => s.id == supplierId);
-        const jumlah = parseFloat(document.getElementById('jumlahTransfer').value);
-        if(!jumlah || jumlah <= 0) { alert('Masukkan jumlah transfer!'); return; }
-        
-        const noRef = 'TRF-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*10000);
-        const data = {
-            type: 'saveTransfer',
-            noRef: noRef,
-            tanggal: document.getElementById('tglTransfer').value || new Date().toISOString().slice(0,10),
-            bank: document.getElementById('bankTujuan').value,
-            supplier: supplier.nama,
-            noRekening: document.getElementById('noRekening').value,
-            atasNama: document.getElementById('atasNama').value,
-            jumlah: jumlah,
-            admin: parseFloat(document.getElementById('adminTransfer').value) || 0,
-            keterangan: document.getElementById('keteranganTransfer').value
-        };
-        
-        await callAPI(data);
-        
-        document.getElementById('pRef').innerText = noRef;
-        document.getElementById('pTgl').innerText = data.tanggal;
-        document.getElementById('pBank').innerText = data.bank;
-        document.getElementById('pSupplier').innerText = data.supplier;
-        document.getElementById('pNoRek').innerText = data.noRekening;
-        document.getElementById('pAtasNama').innerText = data.atasNama;
-        document.getElementById('pJumlah').innerText = jumlah.toLocaleString('id-ID');
-        document.getElementById('pAdmin').innerText = data.admin.toLocaleString('id-ID');
-        document.getElementById('pTotal').innerText = (jumlah + data.admin).toLocaleString('id-ID');
-        document.getElementById('pKeterangan').innerText = data.keterangan;
-        
-        alert('Transfer tersimpan!');
-        setTimeout(() => window.print(), 300);
-    }
-    
-    async function submitTT() {
-        const supplierId = parseInt(document.getElementById('ttSupplier').value);
-        if(!supplierId) { alert('Pilih supplier (penerima) dulu!'); return; }
-        const supplier = suppliers.find(s => s.id == supplierId);
-        const dari = document.getElementById('ttDari').value.trim();
-        const jumlah = parseFloat(document.getElementById('ttJumlah').value);
-        if(!dari) { alert('Isi Dari (pemberi)!'); return; }
-        if(!jumlah || jumlah <= 0) { alert('Masukkan jumlah!'); return; }
-        
-        const noTT = document.getElementById('ttNo').value.trim() || ('TT-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*1000));
-        const data = {
-            type: 'saveTandaTerima',
-            noTT: noTT,
-            tanggal: document.getElementById('ttTanggal').value || new Date().toISOString().slice(0,10),
-            dari: dari,
-            kepada: supplier.nama,
-            alamat: document.getElementById('ttAlamat').value,
-            jumlah: jumlah,
-            untuk: document.getElementById('ttUntuk').value,
-            keterangan: document.getElementById('ttKeterangan').value
-        };
-        
-        await callAPI(data);
-        
-        document.getElementById('pTTNo').innerText = noTT;
-        document.getElementById('pTTTgl').innerText = data.tanggal;
-        document.getElementById('pTTDari').innerText = data.dari;
-        document.getElementById('pTTKepada').innerText = data.kepada;
-        document.getElementById('pTTAlamat').innerText = data.alamat;
-        document.getElementById('pTTJumlah').innerText = jumlah.toLocaleString('id-ID');
-        document.getElementById('pTTUntuk').innerText = data.untuk;
-        document.getElementById('pTTKeterangan').innerText = data.keterangan;
-        document.getElementById('pTTTtd').innerText = supplier.nama;
-        
-        alert('Tanda terima tersimpan!');
-        setTimeout(() => window.print(), 300);
-    }
-    
-    function printLabel() {
-        const id = parseInt(document.getElementById('supplierLabel').value);
-        if(!id) { alert('Pilih supplier dulu!'); return; }
-        const supplier = suppliers.find(s => s.id == id);
-        if(supplier) {
-            const label = `${supplier.nama}\n${supplier.alamat}\n${supplier.kota}\nTelp: ${supplier.telepon || '-'}`;
-            document.getElementById('labelPrintContent').innerHTML = label.replace(/\n/g, '<br>');
-            setTimeout(() => window.print(), 200);
-        }
-    }
-    
-    // Setup tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+
+    // Bank selection UI
+    function setupBankSelection() {
+        const bankCards = document.querySelectorAll('.bank-card');
+        bankCards.forEach(card => {
+            card.addEventListener('click', () => {
+                bankCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                const bank = card.getAttribute('data-bank');
+                document.getElementById('selectedBank').value = bank;
+            });
         });
-    });
-    
-    // Setup button listeners
-    document.getElementById('btnSaveSupplier')?.addEventListener('click', saveSupplier);
-    document.getElementById('btnResetSupplier')?.addEventListener('click', resetSupplierForm);
-    document.getElementById('btnTransfer')?.addEventListener('click', submitTransfer);
-    document.getElementById('btnTT')?.addEventListener('click', submitTT);
-    document.getElementById('btnPrintLabel')?.addEventListener('click', printLabel);
-    
-    // Initialize
-    window.onload = () => {
-        document.getElementById('tglTransfer').value = new Date().toISOString().slice(0,10);
-        document.getElementById('ttTanggal').value = new Date().toISOString().slice(0,10);
-        loadSuppliers();
+        // default select Panin
+        document.querySelector('.bank-card[data-bank="PANIN"]').classList.add('selected');
+        document.getElementById('selectedBank').value = 'PANIN';
+    }
+
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID').format(angka || 0);
+    }
+
+    function printTransfer() {
+        const supplierId = document.getElementById('transferSupplier').value;
+        if(!supplierId) {
+            alert('Pilih supplier dulu!');
+            return;
+        }
+        const supplier = suppliers.find(s => s.id == supplierId);
+        if(!supplier) {
+            alert('Supplier tidak ditemukan');
+            return;
+        }
+
+        const jumlah = parseFloat(document.getElementById('jumlahTransfer').value);
+        if(!jumlah || jumlah <= 0) {
+            alert('Masukkan jumlah transfer yang valid!');
+            return;
+        }
+
+        const berita = document.getElementById('beritaTransfer').value.trim() || '-';
+        const tujuan = document.getElementById('tujuanTransfer').value.trim() || '-';
+        const loa = document.getElementById('noCekLoa').value.trim() || '-';
+        const tanggal = new Date().toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric' });
+        
+        const bankTujuan = document.getElementById('selectedBank').value; // PANIN or BCA
+
+        if(bankTujuan === 'PANIN') {
+            // Update print area Panin
+            document.getElementById('printPaninLoa').innerText = loa;
+            document.getElementById('printPaninTgl').innerText = tanggal;
+            document.getElementById('printPaninNama').innerText = supplier.nama || '-';
+            document.getElementById('printPaninAlamat').innerText = supplier.alamat || '-';
+            document.getElementById('printPaninAccount').innerText = supplier.account || '-';
+            document.getElementById('printPaninCurrency').innerText = supplier.currency || 'USD';
+            document.getElementById('printPaninBankName').innerText = supplier.bankName || '-';
+            document.getElementById('printPaninBankAlamat').innerText = supplier.bankAlamat || '-';
+            document.getElementById('printPaninSwift').innerText = supplier.swift || '-';
+            document.getElementById('printPaninCountry').innerText = supplier.country || '-';
+            document.getElementById('printPaninJumlah').innerText = formatRupiah(jumlah);
+            document.getElementById('printPaninCurrSym').innerText = supplier.currency || 'USD';
+            document.getElementById('printPaninBerita').innerText = berita;
+            document.getElementById('printPaninTujuan').innerText = tujuan;
+            // Print Panin layout
+            const printContent = document.getElementById('printAreaPanin').innerHTML;
+            const originalTitle = document.title;
+            document.title = "BUKTI TRANSFER PANIN - APLIKASI AL";
+            const originalBody = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalBody;
+            document.title = originalTitle;
+            // re-attach events after print (page reload will restore, but we reload to be safe)
+            location.reload();
+        } 
+        else if(bankTujuan === 'BCA') {
+            document.getElementById('printBcaLoa').innerText = loa;
+            document.getElementById('printBcaTgl').innerText = tanggal;
+            document.getElementById('printBcaNama').innerText = supplier.nama || '-';
+            document.getElementById('printBcaAlamat').innerText = supplier.alamat || '-';
+            document.getElementById('printBcaAccount').innerText = supplier.account || '-';
+            document.getElementById('printBcaCurrency').innerText = supplier.currency || 'USD';
+            document.getElementById('printBcaBankName').innerText = supplier.bankName || '-';
+            document.getElementById('printBcaBankAlamat').innerText = supplier.bankAlamat || '-';
+            document.getElementById('printBcaSwift').innerText = supplier.swift || '-';
+            document.getElementById('printBcaCountry').innerText = supplier.country || '-';
+            document.getElementById('printBcaJumlah').innerText = formatRupiah(jumlah);
+            document.getElementById('printBcaCurrSym').innerText = supplier.currency || 'USD';
+            document.getElementById('printBcaBerita').innerText = berita;
+            document.getElementById('printBcaTujuan').innerText = tujuan;
+            const printContent = document.getElementById('printAreaBca').innerHTML;
+            const originalTitle = document.title;
+            document.title = "BUKTI TRANSFER BCA - APLIKASI AL";
+            const originalBody = document.body.innerHTML;
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalBody;
+            document.title = originalTitle;
+            location.reload();
+        }
+    }
+
+    // Tab switching
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabs.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                const tabId = btn.getAttribute('data-tab');
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+            });
+        });
+    }
+
+    // Event listeners
+    document.getElementById('btnSaveSupplier').addEventListener('click', saveSupplier);
+    document.getElementById('btnResetSupplier').addEventListener('click', resetSupplierForm);
+    document.getElementById('btnPrintTransfer').addEventListener('click', printTransfer);
+
+    window.onload = function() {
+        setupTabs();
+        setupBankSelection();
+        loadSuppliersFromStorage();
+        // Set default currency display jika ada supplier terpilih
+        const transferSelect = document.getElementById('transferSupplier');
+        if(transferSelect && transferSelect.options.length > 1) {
+            const selectedOpt = transferSelect.options[transferSelect.selectedIndex];
+            if(selectedOpt && selectedOpt.value) {
+                const curr = selectedOpt.getAttribute('data-currency') || 'USD';
+                document.getElementById('currencyDisplay').value = curr;
+            }
+        }
     };
 </script>
 </body>
