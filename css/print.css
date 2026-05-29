@@ -1,0 +1,33 @@
+.print-area {
+    display: none;
+}
+
+@media print {
+    .menu-grid, .btn-back, .card, .app-header, button, .riwayat-tabs, .bank-option, .info-note {
+        display: none !important;
+    }
+    .print-area {
+        display: block !important;
+        margin: 0;
+        padding: 0;
+    }
+    #printAreaPanin, #printAreaBca, #printAreaLabel {
+        width: 105mm;
+        margin: 0 auto;
+        padding: 10mm 8mm;
+        font-family: 'Courier New', monospace;
+        font-size: 10pt;
+        box-sizing: border-box;
+    }
+    #printAreaTT {
+        width: 100%;
+        padding: 15mm;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 11pt;
+        box-sizing: border-box;
+    }
+    @page {
+        size: A4;
+        margin: 0;
+    }
+}
