@@ -1,0 +1,9 @@
+/* ========== APLIKASI AL - MASTER STYLESHEET ========== */
+/* Import semua file CSS */
+
+@import url('main.css');
+@import url('menu.css');
+@import url('card.css');
+@import url('form.css');
+@import url('table.css');
+@import url('print.css');
