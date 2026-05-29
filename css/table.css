@@ -47,3 +47,18 @@
 .btn-print-ulang:hover {
     background: #e67e22;
 }
+.btn-hapus {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: auto;
+    margin-left: 5px;
+}
+
+.btn-hapus:hover {
+    background: #c0392b;
+}
