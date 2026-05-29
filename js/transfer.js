@@ -24,8 +24,8 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     
     let printContent = '';
     
-    if (bank === 'PANIN') {
-    // Fungsi terbilang
+   if (bank === 'PANIN') {
+    // ========== FUNGSI TERBILANG ==========
     function terbilangAngka(angka) {
         const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
         const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
@@ -45,12 +45,22 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
                 let sisa = n % 100;
                 return satuan[ratus] + ' RATUS' + (sisa > 0 ? ' ' + convert(sisa) : '');
             }
+            if (n < 1000000) {
+                let ribu = Math.floor(n / 1000);
+                let sisa = n % 1000;
+                return convert(ribu) + ' RIBU' + (sisa > 0 ? ' ' + convert(sisa) : '');
+            }
             return n.toString();
         }
         
         let bulat = Math.floor(angka);
+        let pecahan = Math.round((angka - bulat) * 100);
         let hasil = convert(bulat);
+        
         if (hasil === '') hasil = 'NOL';
+        if (pecahan > 0) {
+            hasil += ` KOMA ${convert(pecahan)}`;
+        }
         return hasil + ' ' + supplier.currency;
     }
     
@@ -58,9 +68,9 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     
     printContent = `
         <div style="font-family: 'Courier New', monospace; font-size: 10pt; width: 100%;">
-            <!-- Jumlah dan Terbilang di KIRI ATAS -->
-            <div style="margin-bottom: 20px;">
-                <div style="font-size: 13pt; font-weight: bold;">
+            <!-- Jumlah di kiri atas -->
+            <div style="margin-bottom: 10px;">
+                <div style="font-size: 14pt; font-weight: bold;">
                     ${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}
                 </div>
                 <div style="font-size: 9pt; border-bottom: 1px dashed #ccc; padding-bottom: 8px;">
@@ -69,7 +79,6 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
             </div>
             
             <div style="display: flex; gap: 30px; justify-content: space-between;">
-                <!-- KOLOM KIRI -->
                 <div style="flex: 2;">
                     <div style="font-weight: bold;">${supplier.nama}</div>
                     <div>${supplier.account}</div>
@@ -79,14 +88,11 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
                     <div>${supplier.country || '-'}</div>
                     <div style="height: 8px;"></div>
                     <div>${data.berita || '-'}</div>
-                    <!-- TUJUAN TRANSFER (dari data.tujuan) -->
                     <div>${data.tujuan || '-'}</div>
                     <div style="height: 8px;"></div>
                     <div style="font-weight: bold;">PT. SINAR CAHAYA CEMERLANG</div>
                     <div style="letter-spacing: 5px; font-size: 11pt; margin-top: 5px;">0 7 9 6 0 0 0 6 6 5</div>
                 </div>
-                
-                <!-- KOLOM KANAN -->
                 <div style="flex: 1; text-align: right;">
                     <div style="margin-bottom: 15px;">
                         <span>B084235</span>

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>APLIKASI AL - Data Supplier</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -17,23 +17,100 @@
     
     <div class="card">
         <h2>📋 DATA SUPPLIER</h2>
-        <div style="overflow-x:auto;">
+        
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+            <button id="btnAddSupplier" class="btn-add-supplier">➕ Tambah Supplier</button>
+        </div>
+        
+        <div style="overflow-x: auto;">
             <table class="supplier-table">
                 <thead>
-                    <tr><th>No</th><th>Nama</th><th>Account</th><th>Currency</th><th>Bank</th><th>Swift</th><th>Country</th></tr>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Account</th>
+                        <th>Currency</th>
+                        <th>Bank Name</th>
+                        <th>Swift</th>
+                        <th>Country</th>
+                        <th>Aksi</th>
+                    </tr>
                 </thead>
-                <tbody id="supplierTableBody"><tr><td colspan="7">Loading...</td></tr></tbody>
+                <tbody id="supplierTableBody">
+                    <tr><td colspan="8">Loading...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<!-- MODAL TAMBAH / EDIT SUPPLIER -->
+<div id="supplierModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">➕ Tambah Supplier Baru</h3>
+            <span class="modal-close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="modalEditId" value="">
+            <div class="form-group">
+                <label>No Supplier</label>
+                <input type="text" id="modalNo" placeholder="Nomor urut supplier">
+            </div>
+            <div class="form-group">
+                <label>Nama Supplier *</label>
+                <input type="text" id="modalNama" placeholder="Nama supplier" required>
+            </div>
+            <div class="form-group">
+                <label>Account Number</label>
+                <input type="text" id="modalAccount" placeholder="Nomor rekening">
+            </div>
+            <div class="form-group">
+                <label>Currency *</label>
+                <select id="modalCurrency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="JPY">JPY</option>
+                    <option value="GBP">GBP</option>
+                    <option value="SGD">SGD</option>
+                    <option value="IDR">IDR</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Alamat</label>
+                <textarea id="modalAlamat" rows="2" placeholder="Alamat lengkap supplier"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Bank Name</label>
+                <input type="text" id="modalBankName" placeholder="Nama bank">
+            </div>
+            <div class="form-group">
+                <label>Bank Alamat</label>
+                <input type="text" id="modalBankAlamat" placeholder="Alamat bank">
+            </div>
+            <div class="form-group">
+                <label>SWIFT Code</label>
+                <input type="text" id="modalSwift" placeholder="SWIFT code">
+            </div>
+            <div class="form-group">
+                <label>Country</label>
+                <input type="text" id="modalCountry" placeholder="Negara">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="modalSaveBtn" class="btn-success">💾 Simpan</button>
+            <button id="modalCancelBtn" class="btn-secondary">Batal</button>
+        </div>
+    </div>
+</div>
+
 <script src="../config.js"></script>
 <script src="../js/data.js"></script>
 <script src="../js/ui.js"></script>
 <script src="../js/transfer.js"></script>
 <script src="../js/tanda-terima.js"></script>
 <script src="../js/cetak-label.js"></script>
-<script src="../js/edit-data.js"></script>
+<script src="../js/supplier.js"></script>
 <script src="../js/riwayat.js"></script>
 <script src="../js/tukar-faktur.js"></script>
 <script src="../js/main.js"></script>
