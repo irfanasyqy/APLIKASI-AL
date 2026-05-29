@@ -1,1 +1,30 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL - Cetak Label</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Cetak Label</p>
+    </div>
 
+    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>🏷️ CETAK LABEL</h2>
+        <div class="form-group"><label>Pilih Supplier</label><select id="labelSupplierSelect"><option>-- Pilih --</option></select></div>
+        <div class="form-group"><label>Alamat</label><textarea id="labelAlamat" rows="5" readonly style="background:#f0f0f0;"></textarea></div>
+        <button id="btnPrintLabel" class="btn-success">🖨️ PRINT LABEL</button>
+    </div>
+
+    <div class="print-area" id="printAreaLabel"><div id="labelPrintContent"></div></div>
+</div>
+<script src="../config.js"></script>
+<script src="../script.js"></script>
+</body>
+</html>
