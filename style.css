@@ -270,3 +270,109 @@ button {
         padding: 1cm;
     }
 }
+/* Layout Editor Styles */
+.layout-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.layout-tab {
+    background: #e2e8f0;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.layout-tab.active {
+    background: #1e3c72;
+    color: white;
+}
+
+.layout-editor {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 16px;
+    margin-top: 10px;
+}
+
+.layout-field {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.layout-field label {
+    width: 140px;
+    margin-bottom: 0;
+}
+
+.layout-field select {
+    width: auto;
+    min-width: 180px;
+}
+
+.preview-box {
+    background: white;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 300px;
+    position: relative;
+    font-family: monospace;
+    font-size: 11px;
+}
+
+.layout-preview h4 {
+    margin-bottom: 10px;
+    color: #1e3c72;
+}
+
+/* Simulasi posisi field di preview */
+.preview-field {
+    position: relative;
+    display: inline-block;
+}
+
+.preview-field.kiri-atas {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+.preview-field.kanan-atas {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+}
+
+.preview-field.kiri-tengah {
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+}
+
+.preview-field.kanan-tengah {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    text-align: right;
+}
+
+.preview-field.bawah {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+}
+
+.preview-field.tengah {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
