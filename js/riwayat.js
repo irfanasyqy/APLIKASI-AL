@@ -47,21 +47,32 @@ async function loadRiwayatTransfer() {
                         <td>${currency}</td>
                         <td>
                             <button class="btn-print-ulang" data-index="${i}" data-type="transfer">🖨️ Print</button>
+                            <button class="btn-hapus" data-index="${i}" data-type="transfer">🗑️ Hapus</button>
                         </td>
                     </tr>
                 `;
             }
             tbody.innerHTML = html;
             
-            // Simpan data riwayat ke variabel global
             window.riwayatTransferData = result.data;
             
-            // Tambahkan event listener untuk tombol print
+            // Event untuk tombol Print
             document.querySelectorAll('.btn-print-ulang[data-type="transfer"]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     const index = btn.getAttribute('data-index');
                     if (window.riwayatTransferData && window.riwayatTransferData[index]) {
                         printUlangTransfer(window.riwayatTransferData[index]);
+                    }
+                });
+            });
+            
+            // Event untuk tombol Hapus
+            document.querySelectorAll('.btn-hapus[data-type="transfer"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const index = btn.getAttribute('data-index');
+                    if (confirm('Yakin ingin menghapus data transfer ini?')) {
+                        await hapusRiwayatTransfer(index);
+                        await loadRiwayatTransfer(); // Refresh tabel
                     }
                 });
             });
@@ -69,8 +80,8 @@ async function loadRiwayatTransfer() {
             tbody.innerHTML = '<tr><td colspan="7">Belum ada riwayat transfer</td></tr>';
         }
     } catch (error) {
-        console.error("Gagal memuat riwayat transfer:", error);
-        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat data transfer</td></tr>';
+        console.error("Gagal:", error);
+        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat data</td></tr>';
     }
 }
 
@@ -109,6 +120,7 @@ async function loadRiwayatTT() {
                         <td>${currency}</td>
                         <td>
                             <button class="btn-print-ulang" data-index="${i}" data-type="tt">🖨️ Print</button>
+                            <button class="btn-hapus" data-index="${i}" data-type="tt">🗑️ Hapus</button>
                         </td>
                     </tr>
                 `;
@@ -118,10 +130,20 @@ async function loadRiwayatTT() {
             window.riwayatTTData = result.data;
             
             document.querySelectorAll('.btn-print-ulang[data-type="tt"]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', () => {
                     const index = btn.getAttribute('data-index');
                     if (window.riwayatTTData && window.riwayatTTData[index]) {
                         printUlangTT(window.riwayatTTData[index]);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.btn-hapus[data-type="tt"]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const index = btn.getAttribute('data-index');
+                    if (confirm('Yakin ingin menghapus tanda terima ini?')) {
+                        await hapusRiwayatTT(index);
+                        await loadRiwayatTT();
                     }
                 });
             });
@@ -129,8 +151,64 @@ async function loadRiwayatTT() {
             tbody.innerHTML = '<tr><td colspan="7">Belum ada riwayat tanda terima</td></tr>';
         }
     } catch (error) {
-        console.error("Gagal memuat riwayat tanda terima:", error);
-        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat data tanda terima</td></tr>';
+        console.error("Gagal:", error);
+        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat data</td></tr>';
+    }
+}
+
+// ========== HAPUS RIWAYAT TRANSFER ==========
+async function hapusRiwayatTransfer(index) {
+    const rowData = window.riwayatTransferData[index];
+    if (!rowData) return;
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                type: 'deleteRiwayatTransfer', 
+                rowIndex: index,
+                timestamp: rowData[0],
+                noLoa: rowData[2]
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Data berhasil dihapus');
+        } else {
+            alert('Gagal menghapus: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error hapus:', error);
+        alert('Error koneksi saat menghapus');
+    }
+}
+
+// ========== HAPUS RIWAYAT TANDA TERIMA ==========
+async function hapusRiwayatTT(index) {
+    const rowData = window.riwayatTTData[index];
+    if (!rowData) return;
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                type: 'deleteRiwayatTT', 
+                rowIndex: index,
+                timestamp: rowData[0],
+                noTT: rowData[1]
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Data berhasil dihapus');
+        } else {
+            alert('Gagal menghapus: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error hapus:', error);
+        alert('Error koneksi saat menghapus');
     }
 }
 
