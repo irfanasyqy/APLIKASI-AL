@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>APLIKASI AL - Complete</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL - Menu Utama</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,196 +13,44 @@
         <p class="subtitle">Transfer Bank & Dokumentasi</p>
     </div>
 
-    <!-- MAIN MENU - 8 MENU -->
-    <div class="menu-grid" id="mainMenu">
-        <div class="menu-card" data-menu="transfer">
+    <div class="menu-grid">
+        <div class="menu-card" onclick="window.location.href='pages/transfer.html'">
             <div class="menu-icon">🏦</div>
             <div class="menu-title">TRANSFER BANK</div>
             <div class="menu-desc">Transfer ke supplier luar negeri</div>
         </div>
-        <div class="menu-card" data-menu="supplier">
+        <div class="menu-card" onclick="window.location.href='pages/supplier.html'">
             <div class="menu-icon">📦</div>
             <div class="menu-title">SUPPLIER DATA</div>
             <div class="menu-desc">Lihat data supplier</div>
         </div>
-        <div class="menu-card" data-menu="tandaTerima">
+        <div class="menu-card" onclick="window.location.href='pages/tanda-terima.html'">
             <div class="menu-icon">📄</div>
             <div class="menu-title">TANDA TERIMA</div>
             <div class="menu-desc">Buat tanda terima</div>
         </div>
-        <div class="menu-card" data-menu="cetakLabel">
+        <div class="menu-card" onclick="window.location.href='pages/cetak-label.html'">
             <div class="menu-icon">🏷️</div>
             <div class="menu-title">CETAK LABEL</div>
             <div class="menu-desc">Cetak label alamat</div>
         </div>
-        <div class="menu-card" data-menu="editData">
+        <div class="menu-card" onclick="window.location.href='pages/edit-data.html'">
             <div class="menu-icon">✏️</div>
             <div class="menu-title">EDIT DATA</div>
             <div class="menu-desc">Edit supplier</div>
         </div>
-        <div class="menu-card" data-menu="riwayat">
+        <div class="menu-card" onclick="window.location.href='pages/riwayat.html'">
             <div class="menu-icon">📋</div>
             <div class="menu-title">RIWAYAT</div>
             <div class="menu-desc">History transfer</div>
         </div>
-        <div class="menu-card" data-menu="tukarFaktur">
+        <div class="menu-card" onclick="window.location.href='pages/tukar-faktur.html'">
             <div class="menu-icon">🔄</div>
             <div class="menu-title">TUKAR FAKTUR</div>
             <div class="menu-desc">Tukar faktur/invoice</div>
         </div>
-        <div class="menu-card" data-menu="layoutEditor">
-            <div class="menu-icon">🎨</div>
-            <div class="menu-title">LAYOUT EDITOR</div>
-            <div class="menu-desc">Atur posisi field print</div>
-        </div>
     </div>
-
-    <!-- MENU TRANSFER -->
-    <div id="menuTransfer" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>🏦 FORM TRANSFER BANK</h2>
-            <div class="form-group">
-                <label>Pilih Supplier</label>
-                <select id="supplierSelect"><option>-- Loading --</option></select>
-            </div>
-            <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
-            <div class="bank-option">
-                <div class="bank-card" data-bank="PANIN">🏦 BANK PANIN</div>
-                <div class="bank-card" data-bank="BCA">🏦 BANK BCA</div>
-            </div>
-            <input type="hidden" id="selectedBank" value="PANIN">
-            <div class="row">
-                <div class="form-group"><label>Jumlah</label><input type="number" id="jumlahTransfer" step="100"></div>
-                <div class="form-group"><label>Currency</label><input type="text" id="currencyDisplay" readonly></div>
-            </div>
-            <div class="form-group"><label>Berita Transfer</label><textarea id="beritaTransfer" rows="2"></textarea></div>
-            <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1"></textarea></div>
-            <div class="form-group"><label>No CEK/LOA</label><input type="text" id="noCekLoa"></div>
-            <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
-        </div>
-    </div>
-
-    <!-- MENU SUPPLIER -->
-    <div id="menuSupplier" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>📋 DATA SUPPLIER</h2>
-            <div style="overflow-x:auto;">
-                <table class="supplier-table">
-                    <thead><tr><th>No</th><th>Nama</th><th>Account</th><th>Currency</th><th>Bank</th><th>Swift</th><th>Country</th></tr></thead>
-                    <tbody id="supplierTableBody"><tr><td colspan="7">Loading...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- MENU TANDA TERIMA -->
-    <div id="menuTandaTerima" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>📄 TANDA TERIMA</h2>
-            <div class="form-group"><label>Pilih Supplier</label><select id="ttSupplierSelect"><option>-- Pilih --</option></select></div>
-            <div class="row"><div class="form-group"><label>No. TT</label><input type="text" id="ttNo" placeholder="Auto"></div><div class="form-group"><label>Tanggal</label><input type="date" id="ttTanggal"></div></div>
-            <div class="form-group"><label>Dari (Pemberi)</label><input type="text" id="ttDari"></div>
-            <div class="form-group"><label>Kepada (Penerima)</label><input type="text" id="ttKepada" readonly></div>
-            <div class="form-group"><label>Alamat</label><textarea id="ttAlamat" rows="2" readonly></textarea></div>
-            <div class="row"><div class="form-group"><label>Jumlah</label><input type="number" id="ttJumlah" step="100"></div><div class="form-group"><label>Currency</label><input type="text" id="ttCurrency" readonly></div></div>
-            <div class="form-group"><label>Untuk</label><input type="text" id="ttUntuk"></div>
-            <div class="form-group"><label>Keterangan</label><textarea id="ttKeterangan" rows="2"></textarea></div>
-            <button id="btnPrintTT" class="btn-success">🖨️ PRINT TANDA TERIMA</button>
-        </div>
-    </div>
-
-    <!-- MENU CETAK LABEL -->
-    <div id="menuCetakLabel" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>🏷️ CETAK LABEL</h2>
-            <div class="form-group"><label>Pilih Supplier</label><select id="labelSupplierSelect"><option>-- Pilih --</option></select></div>
-            <div class="form-group"><label>Alamat</label><textarea id="labelAlamat" rows="5" readonly style="background:#f0f0f0;"></textarea></div>
-            <button id="btnPrintLabel" class="btn-success">🖨️ PRINT LABEL</button>
-        </div>
-    </div>
-
-    <!-- MENU EDIT DATA -->
-    <div id="menuEditData" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>✏️ EDIT DATA SUPPLIER</h2>
-            <div class="form-group"><label>Pilih Supplier</label><select id="editSupplierSelect"><option>-- Pilih --</option></select></div>
-            <div id="editForm" style="display:none;">
-                <div class="row"><div class="form-group"><label>No</label><input type="text" id="editNo"></div><div class="form-group"><label>Nama</label><input type="text" id="editNama"></div></div>
-                <div class="form-group"><label>Account Number</label><input type="text" id="editAccount"></div>
-                <div class="form-group"><label>Alamat</label><textarea id="editAlamat" rows="2"></textarea></div>
-                <div class="row"><div class="form-group"><label>Bank Name</label><input type="text" id="editBankName"></div><div class="form-group"><label>Swift</label><input type="text" id="editSwift"></div></div>
-                <button id="btnUpdateSupplier" class="btn-success">💾 UPDATE</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MENU RIWAYAT -->
-    <div id="menuRiwayat" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>📋 RIWAYAT</h2>
-            <div class="riwayat-tabs">
-                <button id="riwayatTransferBtn" class="riwayat-tab active">TRANSFER</button>
-                <button id="riwayatTTBtn" class="riwayat-tab">TANDA TERIMA</button>
-            </div>
-            <div id="riwayatTransferList"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
-            <div id="riwayatTTList" style="display:none;"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
-        </div>
-    </div>
-
-    <!-- MENU TUKAR FAKTUR -->
-    <div id="menuTukarFaktur" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>🔄 TUKAR FAKTUR</h2>
-            <div class="form-group"><label>No. Invoice</label><input type="text" id="fakturNo"></div>
-            <div class="form-group"><label>Pilih Supplier</label><select id="fakturSupplierSelect"><option>-- Pilih --</option></select></div>
-            <div class="row"><div class="form-group"><label>Tanggal</label><input type="date" id="fakturTgl"></div><div class="form-group"><label>Jatuh Tempo</label><input type="date" id="fakturJatuhTempo"></div></div>
-            <div class="row"><div class="form-group"><label>Nilai</label><input type="number" id="fakturNilai"></div><div class="form-group"><label>Currency</label><input type="text" id="fakturCurrency" readonly></div></div>
-            <button id="btnTukarFaktur" class="btn-success">PROSES</button>
-            <div id="fakturResult" class="info-note" style="display:none;"></div>
-        </div>
-    </div>
-
-    <!-- MENU LAYOUT EDITOR -->
-    <div id="menuLayoutEditor" class="menu-content" style="display:none;">
-        <button class="btn-back">← KEMBALI KE MENU</button>
-        <div class="card">
-            <h2>🎨 LAYOUT EDITOR</h2>
-            <div class="layout-tabs">
-                <button id="layoutPaninBtn" class="layout-tab active">BANK PANIN</button>
-                <button id="layoutBcaBtn" class="layout-tab">BANK BCA</button>
-            </div>
-            <div id="layoutPaninEditor" class="layout-editor">
-                <div class="layout-field"><label>Penerima:</label><select id="posNamaPanin"><option>Kiri Atas</option><option>Kanan Atas</option><option>Kiri Tengah</option><option>Bawah</option></select></div>
-                <div class="layout-field"><label>Jumlah:</label><select id="posJumlahPanin"><option>Kanan Atas</option><option>Tengah</option></select></div>
-                <div class="layout-field"><label>LOA:</label><select id="posLoaPanin"><option>Kanan Atas</option><option>Tidak</option></select></div>
-                <button id="previewPaninBtn" class="btn-secondary">Preview</button>
-            </div>
-            <div id="layoutBcaEditor" class="layout-editor" style="display:none;">
-                <div class="layout-field"><label>Penerima:</label><select id="posNamaBca"><option>Kanan</option><option>Kiri</option><option>Tengah</option></select></div>
-                <div class="layout-field"><label>Jumlah:</label><select id="posJumlahBca"><option>Tengah Besar</option><option>Kanan Atas</option></select></div>
-                <button id="previewBcaBtn" class="btn-secondary">Preview</button>
-            </div>
-            <div id="layoutPreview" style="display:none; margin-top:20px;">
-                <div id="previewContent" class="preview-box"></div>
-                <button id="saveLayoutBtn" class="btn-success">💾 SIMPAN</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PRINT AREAS -->
-    <div class="print-area" id="printAreaPanin"><div id="paninPrintContent"></div></div>
-    <div class="print-area" id="printAreaBca"><div id="bcaPrintContent"></div></div>
-    <div class="print-area" id="printAreaTT"><div id="ttPrintContent"></div></div>
-    <div class="print-area" id="printAreaLabel"><div id="labelPrintContent"></div></div>
 </div>
-<!-- Di bagian bawah, sebelum script.js -->
 <script src="config.js"></script>
 <script src="script.js"></script>
 </body>
