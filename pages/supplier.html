@@ -1,1 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL - Data Supplier</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Data Supplier</p>
+    </div>
 
+    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>📋 DATA SUPPLIER</h2>
+        <div style="overflow-x:auto;">
+            <table class="supplier-table">
+                <thead>
+                    <tr><th>No</th><th>Nama</th><th>Account</th><th>Currency</th><th>Bank</th><th>Swift</th><th>Country</th></tr>
+                </thead>
+                <tbody id="supplierTableBody"><tr><td colspan="7">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="../config.js"></script>
+<script src="../script.js"></script>
+</body>
+</html>
