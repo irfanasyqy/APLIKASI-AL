@@ -376,7 +376,8 @@ function setupMainMenu() {
                 cetakLabel: 'menuCetakLabel',
                 editData: 'menuEditData',
                 riwayat: 'menuRiwayat',
-                tukarFaktur: 'menuTukarFaktur'
+                tukarFaktur: 'menuTukarFaktur',
+                layoutEditor: 'menuLayoutEditor'
             };
             showMenu(menuMap[menu]);
         });
