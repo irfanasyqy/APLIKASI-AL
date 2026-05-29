@@ -1,84 +1,128 @@
+/* ========== RESET & GLOBAL ========== */
 * {
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     background: #eef2f7;
-    margin: 0;
-    padding: 16px;
+    padding: 20px;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 750px;
+    max-width: 800px;
     margin: 0 auto;
 }
 
-/* Header */
+/* ========== HEADER ========== */
 .app-header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
 .app-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: bold;
-    color: #1e3c72;
     background: white;
     display: inline-block;
-    padding: 10px 30px;
-    border-radius: 50px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 10px 35px;
+    border-radius: 60px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    color: #1e3c72;
 }
 
 .app-title span {
     color: #e67e22;
 }
 
-/* Card */
-.card {
+.subtitle {
+    color: #5a6e7c;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+/* ========== MAIN MENU GRID ========== */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.menu-card {
     background: white;
     border-radius: 24px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
+    padding: 20px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border: 1px solid #e2edf2;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+    border-color: #e67e22;
+}
+
+.menu-icon {
+    font-size: 2.8rem;
+    margin-bottom: 8px;
+}
+
+.menu-title {
+    font-weight: 800;
+    font-size: 1rem;
+    color: #1e3c72;
+    margin-bottom: 5px;
+}
+
+.menu-desc {
+    font-size: 0.7rem;
+    color: #7f8c8d;
+}
+
+/* ========== CARD & FORM ========== */
+.card {
+    background: white;
+    border-radius: 28px;
+    padding: 22px;
+    margin: 20px 0;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.05);
 }
 
 .card h2 {
-    margin-top: 0;
+    font-size: 1.4rem;
+    border-left: 5px solid #e67e22;
+    padding-left: 15px;
+    margin-bottom: 20px;
     color: #1e3c72;
-    font-size: 1.2rem;
-    border-left: 4px solid #e67e22;
-    padding-left: 12px;
-    margin-bottom: 16px;
-}
-
-.card h3 {
-    font-size: 1rem;
-    margin: 12px 0;
-    color: #2c3e50;
 }
 
 .form-group {
-    margin-bottom: 14px;
+    margin-bottom: 18px;
 }
 
 label {
     display: block;
     font-weight: 600;
-    margin-bottom: 5px;
-    color: #0b3b5f;
+    margin-bottom: 6px;
     font-size: 0.8rem;
+    color: #2c3e50;
 }
 
 input, select, textarea {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid #ccd7e4;
+    border-radius: 18px;
     font-size: 0.9rem;
     font-family: inherit;
+    background: #fff;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -89,15 +133,46 @@ input:focus, select:focus, textarea:focus {
 
 .row {
     display: flex;
-    gap: 12px;
+    gap: 15px;
     flex-wrap: wrap;
 }
 
 .row .form-group {
     flex: 1;
-    min-width: 120px;
 }
 
+hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* ========== BANK SELECTION ========== */
+.bank-option {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.bank-card {
+    flex: 1;
+    background: #f8fafc;
+    padding: 14px;
+    text-align: center;
+    border-radius: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1.5px solid #cbd5e1;
+    transition: 0.2s;
+}
+
+.bank-card.selected {
+    background: #1e3c72;
+    color: white;
+    border-color: #1e3c72;
+}
+
+/* ========== BUTTONS ========== */
 button {
     background: #1e3c72;
     color: white;
@@ -107,98 +182,91 @@ button {
     border-radius: 40px;
     cursor: pointer;
     font-weight: bold;
+    transition: 0.2s;
     width: 100%;
-    margin-top: 8px;
 }
 
 .btn-success {
     background: #27ae60;
 }
 
-/* Bank Selection */
-.bank-option {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
+.btn-back {
+    background: #7f8c8d;
+    width: auto;
+    padding: 8px 20px;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
 }
 
-.bank-card {
-    flex: 1;
-    padding: 12px;
-    border: 2px solid #cbd5e1;
-    border-radius: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.bank-card.selected {
-    border-color: #e67e22;
-    background: #fff8f0;
-}
-
-hr {
-    margin: 16px 0;
-    border: none;
-    border-top: 1px solid #e2e8f0;
-}
-
-.info-note {
-    background: #eef2f7;
-    padding: 10px;
-    border-radius: 12px;
+/* ========== TABLES ========== */
+.supplier-table, .data-table, .riwayat-table {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 0.75rem;
-    color: #555;
-    margin-top: 10px;
 }
 
+.supplier-table th, .data-table th, .riwayat-table th {
+    background: #e2e8f0;
+    padding: 8px;
+    text-align: left;
+}
+
+.supplier-table td, .data-table td, .riwayat-table td {
+    border-bottom: 1px solid #ddd;
+    padding: 8px;
+}
+
+/* ========== TABS (RIWAYAT) ========== */
+.riwayat-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.riwayat-tab {
+    background: #e2e8f0;
+    color: #2c3e50;
+    flex: 1;
+    margin: 0;
+}
+
+.riwayat-tab.active {
+    background: #1e3c72;
+    color: white;
+}
+
+/* ========== UTILITY ========== */
 .supplier-info {
-    background: #f0f9ff;
+    background: #eef2ff;
     padding: 12px;
-    border-radius: 12px;
-    margin-top: 10px;
-    font-size: 0.85rem;
-}
-
-/* Print Area */
-.print-area {
-    display: none;
-}
-
-.print-header {
-    text-align: center;
-    border-bottom: 2px solid #1e3c72;
-    padding-bottom: 10px;
+    border-radius: 18px;
+    font-size: 0.8rem;
     margin-bottom: 15px;
 }
 
-.print-section {
-    margin-top: 15px;
-    font-weight: bold;
+.info-note {
+    background: #fef9e3;
+    padding: 12px;
+    border-radius: 18px;
+    font-size: 0.8rem;
+    color: #7d6608;
 }
 
-.print-row {
-    margin-bottom: 8px;
-}
-
-.print-footer {
-    margin-top: 30px;
-    text-align: center;
-    font-size: 10px;
+/* ========== PRINT ========== */
+.print-area {
+    display: none;
 }
 
 @media print {
     body {
         background: white;
         padding: 0;
-        margin: 0;
     }
-    .app-header, .card, button, .bank-option, .info-note, .supplier-info {
+    .menu-grid, .btn-back, .card, .app-header, button, .riwayat-tabs, .bank-option, .info-note {
         display: none !important;
     }
     .print-area {
         display: block !important;
-        padding: 0.5cm;
-        margin: 0;
+        padding: 1cm;
     }
 }

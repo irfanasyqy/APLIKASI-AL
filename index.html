@@ -3,126 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>APLIKASI AL - Transfer Bank Luar Negeri</title>
+    <title>APLIKASI AL - Complete</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
     <div class="app-header">
         <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Transfer & Dokumentasi</p>
     </div>
 
-    <div class="card">
-        <h2>🏦 FORM TRANSFER BANK (LUAR NEGERI)</h2>
-        
-        <div class="form-group">
-            <label>Pilih Supplier Penerima</label>
-            <select id="supplierSelect">
-                <option value="">-- Loading data supplier... --</option>
-            </select>
+    <!-- MAIN MENU 7 BUTTON -->
+    <div class="menu-grid" id="mainMenu">
+        <div class="menu-card" data-menu="transfer">
+            <div class="menu-icon">🏦</div>
+            <div class="menu-title">TRANSFER BANK</div>
+            <div class="menu-desc">Transfer ke supplier luar negeri</div>
         </div>
-
-        <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
-
-        <div class="bank-option" id="bankOption">
-            <div class="bank-card" data-bank="PANIN">
-                <div>🏦</div>
-                <div><strong>BANK PANIN</strong></div>
-            </div>
-            <div class="bank-card" data-bank="BCA">
-                <div>🏦</div>
-                <div><strong>BANK BCA</strong></div>
-            </div>
+        <div class="menu-card" data-menu="supplier">
+            <div class="menu-icon">📦</div>
+            <div class="menu-title">SUPPLIER DATA</div>
+            <div class="menu-desc">Lihat data supplier</div>
         </div>
-        <input type="hidden" id="selectedBank" value="PANIN">
+        <div class="menu-card" data-menu="tandaTerima">
+            <div class="menu-icon">📄</div>
+            <div class="menu-title">TANDA TERIMA</div>
+            <div class="menu-desc">Buat tanda terima</div>
+        </div>
+        <div class="menu-card" data-menu="cetakLabel">
+            <div class="menu-icon">🏷️</div>
+            <div class="menu-title">CETAK LABEL</div>
+            <div class="menu-desc">Cetak label alamat</div>
+        </div>
+        <div class="menu-card" data-menu="editData">
+            <div class="menu-icon">✏️</div>
+            <div class="menu-title">EDIT DATA</div>
+            <div class="menu-desc">Edit supplier</div>
+        </div>
+        <div class="menu-card" data-menu="riwayat">
+            <div class="menu-icon">📋</div>
+            <div class="menu-title">RIWAYAT</div>
+            <div class="menu-desc">History transfer & tanda terima</div>
+        </div>
+        <div class="menu-card" data-menu="tukarFaktur">
+            <div class="menu-icon">🔄</div>
+            <div class="menu-title">TUKAR FAKTUR</div>
+            <div class="menu-desc">Tukar faktur/invoice</div>
+        </div>
+    </div>
 
-        <hr>
-
-        <h3>💵 Detail Transfer</h3>
-        <div class="row">
+    <!-- ========== MENU TRANSFER ========== -->
+    <div id="menuTransfer" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>🏦 FORM TRANSFER BANK</h2>
             <div class="form-group">
-                <label>Jumlah Transfer</label>
-                <input type="number" id="jumlahTransfer" step="100" placeholder="0" required>
+                <label>Pilih Supplier</label>
+                <select id="supplierSelect"><option>-- Loading --</option></select>
             </div>
-            <div class="form-group">
-                <label>Currency</label>
-                <input type="text" id="currencyDisplay" readonly style="background:#f0f0f0">
+            <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
+            <div class="bank-option">
+                <div class="bank-card" data-bank="PANIN">🏦 BANK PANIN</div>
+                <div class="bank-card" data-bank="BCA">🏦 BANK BCA</div>
+            </div>
+            <input type="hidden" id="selectedBank" value="PANIN">
+            <div class="row">
+                <div class="form-group"><label>Jumlah</label><input type="number" id="jumlahTransfer" step="100"></div>
+                <div class="form-group"><label>Currency</label><input type="text" id="currencyDisplay" readonly></div>
+            </div>
+            <div class="form-group"><label>Berita Transfer</label><textarea id="beritaTransfer" rows="2"></textarea></div>
+            <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1"></textarea></div>
+            <div class="form-group"><label>No CEK/LOA</label><input type="text" id="noCekLoa"></div>
+            <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
+        </div>
+    </div>
+
+    <!-- ========== MENU SUPPLIER DATA ========== -->
+    <div id="menuSupplier" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>📋 DATA SUPPLIER</h2>
+            <div id="supplierListView" style="overflow-x:auto;"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- ========== MENU TANDA TERIMA ========== -->
+    <div id="menuTandaTerima" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>📄 TANDA TERIMA</h2>
+            <div class="form-group"><label>Pilih Supplier</label><select id="ttSupplierSelect"><option>-- Pilih --</option></select></div>
+            <div class="row"><div class="form-group"><label>No. TT</label><input type="text" id="ttNo" placeholder="Auto"></div><div class="form-group"><label>Tanggal</label><input type="date" id="ttTanggal"></div></div>
+            <div class="form-group"><label>Dari (Pemberi)</label><input type="text" id="ttDari"></div>
+            <div class="form-group"><label>Kepada (Penerima)</label><input type="text" id="ttKepada" readonly></div>
+            <div class="form-group"><label>Alamat</label><textarea id="ttAlamat" rows="2" readonly></textarea></div>
+            <div class="row"><div class="form-group"><label>Jumlah</label><input type="number" id="ttJumlah" step="100"></div><div class="form-group"><label>Currency</label><input type="text" id="ttCurrency" readonly></div></div>
+            <div class="form-group"><label>Untuk</label><input type="text" id="ttUntuk"></div>
+            <div class="form-group"><label>Keterangan</label><textarea id="ttKeterangan" rows="2"></textarea></div>
+            <button id="btnPrintTT" class="btn-success">🖨️ PRINT TANDA TERIMA</button>
+        </div>
+    </div>
+
+    <!-- ========== MENU CETAK LABEL ========== -->
+    <div id="menuCetakLabel" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>🏷️ CETAK LABEL</h2>
+            <div class="form-group"><label>Pilih Supplier</label><select id="labelSupplierSelect"><option>-- Pilih --</option></select></div>
+            <div class="form-group"><label>Alamat</label><textarea id="labelAlamat" rows="5" readonly style="background:#f0f0f0;"></textarea></div>
+            <button id="btnPrintLabel" class="btn-success">🖨️ PRINT LABEL</button>
+        </div>
+    </div>
+
+    <!-- ========== MENU EDIT DATA ========== -->
+    <div id="menuEditData" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>✏️ EDIT DATA SUPPLIER</h2>
+            <div class="form-group"><label>Pilih Supplier</label><select id="editSupplierSelect"><option>-- Pilih --</option></select></div>
+            <div id="editForm" style="display:none;">
+                <div class="row"><div class="form-group"><label>No</label><input type="text" id="editNo"></div><div class="form-group"><label>Nama</label><input type="text" id="editNama"></div></div>
+                <div class="form-group"><label>Account Number</label><input type="text" id="editAccount"></div>
+                <div class="form-group"><label>Alamat</label><textarea id="editAlamat" rows="2"></textarea></div>
+                <div class="row"><div class="form-group"><label>Bank Name</label><input type="text" id="editBankName"></div><div class="form-group"><label>Swift</label><input type="text" id="editSwift"></div></div>
+                <div class="row"><div class="form-group"><label>Bank Alamat</label><input type="text" id="editBankAlamat"></div><div class="form-group"><label>Country</label><input type="text" id="editCountry"></div></div>
+                <button id="btnUpdateSupplier" class="btn-success">💾 UPDATE SUPPLIER</button>
             </div>
         </div>
+    </div>
 
-        <div class="form-group">
-            <label>Berita / Keterangan Transfer</label>
-            <textarea id="beritaTransfer" rows="2" placeholder="Contoh: Pembayaran invoice..."></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>Tujuan Transfer</label>
-            <textarea id="tujuanTransfer" rows="1" placeholder="Contoh: Pembayaran barang elektronik"></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>No CEK / LOA (Letter of Authorization)</label>
-            <input type="text" id="noCekLoa" placeholder="Contoh: LOA-2024-001">
-        </div>
-
-        <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT BUKTI TRANSFER</button>
-        
-        <div class="info-note">
-            ⚡ Data supplier diambil dari Google Sheets Anda. Transfer akan tersimpan di riwayat.
+    <!-- ========== MENU RIWAYAT ========== -->
+    <div id="menuRiwayat" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>📋 RIWAYAT</h2>
+            <div class="riwayat-tabs">
+                <button id="riwayatTransferBtn" class="riwayat-tab active">TRANSFER</button>
+                <button id="riwayatTTBtn" class="riwayat-tab">TANDA TERIMA</button>
+            </div>
+            <div id="riwayatTransferList" style="overflow-x:auto;"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
+            <div id="riwayatTTList" style="display:none; overflow-x:auto;"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
         </div>
     </div>
 
-    <!-- PRINT AREA BANK PANIN -->
-    <div class="print-area" id="printAreaPanin">
-        <div class="print-header">
-            <h2>APLIKASI AL</h2>
-            <h3>BANK PANIN - BUKTI TRANSFER INTERNASIONAL</h3>
-            <p>No LOA/CEK: <strong><span id="printLoa">-</span></strong></p>
+    <!-- ========== MENU TUKAR FAKTUR ========== -->
+    <div id="menuTukarFaktur" class="menu-content" style="display:none;">
+        <button class="btn-back">← KEMBALI KE MENU</button>
+        <div class="card">
+            <h2>🔄 TUKAR FAKTUR / INVOICE</h2>
+            <div class="form-group"><label>No. Invoice/FP</label><input type="text" id="fakturNo" placeholder="INV-2024-001"></div>
+            <div class="form-group"><label>Pilih Supplier</label><select id="fakturSupplierSelect"><option>-- Pilih --</option></select></div>
+            <div class="row"><div class="form-group"><label>Tanggal Invoice</label><input type="date" id="fakturTgl"></div><div class="form-group"><label>Jatuh Tempo</label><input type="date" id="fakturJatuhTempo"></div></div>
+            <div class="row"><div class="form-group"><label>Nilai (Rp/USD)</label><input type="number" id="fakturNilai" step="100"></div><div class="form-group"><label>Currency</label><input type="text" id="fakturCurrency" readonly></div></div>
+            <div class="form-group"><label>Keterangan</label><textarea id="fakturKeterangan" rows="2"></textarea></div>
+            <button id="btnTukarFaktur" class="btn-success">📝 PROSES TUKAR FAKTUR</button>
+            <div id="fakturResult" class="info-note" style="margin-top:10px; display:none;"></div>
         </div>
-        <div class="print-row"><strong>Tanggal:</strong> <span id="printTgl">-</span></div>
-        <div class="print-section"><strong>BENEFICIARY DETAILS:</strong></div>
-        <div class="print-row">Nama Penerima: <span id="printNama">-</span></div>
-        <div class="print-row">Alamat: <span id="printAlamat">-</span></div>
-        <div class="print-row">Account Number: <span id="printAccount">-</span></div>
-        <div class="print-row">Currency: <span id="printCurrency">-</span></div>
-        <div class="print-section"><strong>BANK DETAILS:</strong></div>
-        <div class="print-row">Bank Name: <span id="printBankName">-</span></div>
-        <div class="print-row">Bank Alamat: <span id="printBankAlamat">-</span></div>
-        <div class="print-row">SWIFT Code: <span id="printSwift">-</span></div>
-        <div class="print-row">Country: <span id="printCountry">-</span></div>
-        <div class="print-section"><strong>PAYMENT DETAILS:</strong></div>
-        <div class="print-row">Jumlah Transfer: <span id="printJumlah">0</span> <span id="printCurrSym">USD</span></div>
-        <div class="print-row">Berita Transfer: <span id="printBerita">-</span></div>
-        <div class="print-row">Tujuan Transfer: <span id="printTujuan">-</span></div>
-        <div class="print-footer">Dicetak dari APLIKASI AL - Bank Panin</div>
     </div>
 
-    <!-- PRINT AREA BANK BCA -->
-    <div class="print-area" id="printAreaBca">
-        <div class="print-header">
-            <h2>APLIKASI AL</h2>
-            <h3>BANK BCA - BUKTI TRANSFER INTERNASIONAL</h3>
-            <p>Referensi LOA: <strong><span id="printBcaLoa">-</span></strong></p>
-        </div>
-        <div class="print-row"><strong>Tanggal Transaksi:</strong> <span id="printBcaTgl">-</span></div>
-        <div class="print-section"><strong>BENEFICIARY DETAILS:</strong></div>
-        <div class="print-row">Beneficiary Name: <span id="printBcaNama">-</span></div>
-        <div class="print-row">Address: <span id="printBcaAlamat">-</span></div>
-        <div class="print-row">Account Number: <span id="printBcaAccount">-</span></div>
-        <div class="print-row">Currency: <span id="printBcaCurrency">-</span></div>
-        <div class="print-section"><strong>BANK DETAILS:</strong></div>
-        <div class="print-row">Bank Name: <span id="printBcaBankName">-</span></div>
-        <div class="print-row">Bank Address: <span id="printBcaBankAlamat">-</span></div>
-        <div class="print-row">SWIFT/BIC: <span id="printBcaSwift">-</span></div>
-        <div class="print-row">Country: <span id="printBcaCountry">-</span></div>
-        <div class="print-section"><strong>PAYMENT DETAILS:</strong></div>
-        <div class="print-row">Amount: <span id="printBcaJumlah">0</span> <span id="printBcaCurrSym">USD</span></div>
-        <div class="print-row">Narrative/Remark: <span id="printBcaBerita">-</span></div>
-        <div class="print-row">Purpose of Payment: <span id="printBcaTujuan">-</span></div>
-        <div class="print-footer">Dicetak dari APLIKASI AL - Bank BCA</div>
-    </div>
+    <!-- ========== PRINT AREA BANK ========== -->
+    <div class="print-area" id="printAreaPanin"><div style="text-align:center;"><h2>APLIKASI AL</h2><h3>BANK PANIN - TRANSFER INTERNASIONAL</h3></div><div id="paninPrintContent"></div></div>
+    <div class="print-area" id="printAreaBca"><div style="text-align:center;"><h2>APLIKASI AL</h2><h3>BANK BCA - TRANSFER INTERNASIONAL</h3></div><div id="bcaPrintContent"></div></div>
+    <div class="print-area" id="printAreaTT"><div style="text-align:center;"><h2>APLIKASI AL</h2><h3>TANDA TERIMA</h3></div><div id="ttPrintContent"></div><div style="margin-top:40px; text-align:right;">Penerima,<br><br><u>_________________</u></div></div>
+    <div class="print-area" id="printAreaLabel"><div id="labelPrintContent" style="border:1px solid #000; padding:10px; width:250px; font-size:11px;"></div></div>
 </div>
-
 <script src="script.js"></script>
 </body>
 </html>
