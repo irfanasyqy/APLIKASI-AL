@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL - Tanda Terima</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Tanda Terima</p>
+    </div>
 
+    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>📄 TANDA TERIMA</h2>
+        <div class="form-group"><label>Pilih Supplier</label><select id="ttSupplierSelect"><option>-- Pilih --</option></select></div>
+        <div class="row"><div class="form-group"><label>No. TT</label><input type="text" id="ttNo" placeholder="Auto"></div><div class="form-group"><label>Tanggal</label><input type="date" id="ttTanggal"></div></div>
+        <div class="form-group"><label>Dari (Pemberi)</label><input type="text" id="ttDari"></div>
+        <div class="form-group"><label>Kepada (Penerima)</label><input type="text" id="ttKepada" readonly></div>
+        <div class="form-group"><label>Alamat</label><textarea id="ttAlamat" rows="2" readonly></textarea></div>
+        <div class="row"><div class="form-group"><label>Jumlah</label><input type="number" id="ttJumlah" step="100"></div><div class="form-group"><label>Currency</label><input type="text" id="ttCurrency" readonly></div></div>
+        <div class="form-group"><label>Untuk</label><input type="text" id="ttUntuk"></div>
+        <div class="form-group"><label>Keterangan</label><textarea id="ttKeterangan" rows="2"></textarea></div>
+        <button id="btnPrintTT" class="btn-success">🖨️ PRINT TANDA TERIMA</button>
+    </div>
+
+    <div class="print-area" id="printAreaTT"><div id="ttPrintContent"></div></div>
+</div>
+<script src="../config.js"></script>
+<script src="../script.js"></script>
+</body>
+</html>
