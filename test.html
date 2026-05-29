@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API APLIKASI AL</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 800px; margin: auto; }
+        button { background: #1e3c72; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; }
+        pre { background: #f0f0f0; padding: 10px; border-radius: 8px; overflow-x: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🧪 TEST KONEKSI API APLIKASI AL</h1>
+    <p>URL Apps Script: <strong id="apiUrl">Loading...</strong></p>
+    <button onclick="testAPI()">🚀 TEST API</button>
+    <button onclick="testGetSuppliers()">📦 TEST getSuppliers</button>
+    <h3>Hasil:</h3>
+    <pre id="result">Klik tombol untuk testing...</pre>
+
+    <script>
+        // 🔴 GANTI DENGAN URL APPS SCRIPT ANDA 🔴
+        const API_URL = 'https://script.google.com/macros/s/AKfycby_7Vd2YsicPnqfd0ybqWnJQg-tbzAvjs2YiwF83rSm033_KFuHe_SPt28L0QUye5zwWw/exec'; // <-- GANTI INI!
+        
+        document.getElementById('apiUrl').innerText = API_URL;
+        
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = '⏳ Loading...';
+            try {
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                resultDiv.innerHTML = `✅ <span class="success">SUCCESS!</span>\n\nResponse:\n${text}`;
+            } catch (error) {
+                resultDiv.innerHTML = `❌ <span class="error">ERROR!</span>\n\n${error.message}`;
+            }
+        }
+        
+        async function testGetSuppliers() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerText = '⏳ Loading suppliers...';
+            try {
+                const response = await fetch(API_URL + '?type=getSuppliers');
+                const data = await response.json();
+                resultDiv.innerHTML = `✅ <span class="success">SUCCESS!</span>\n\nData:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `❌ <span class="error">ERROR!</span>\n\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
