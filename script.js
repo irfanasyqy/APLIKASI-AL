@@ -1,5 +1,5 @@
 // 🔴 GANTI DENGAN URL APPS SCRIPT ANDA NANTI 🔴
-const API_URL = 'https://script.google.com/macros/s/AKfycbztKZhaVWpIygZXHtVeImy38nPVZ_Rk5bbWJWIl13tiWf87YI0zJIlYvZVzPnEVyoXN/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycby_7Vd2YsicPnqfd0ybqWnJQg-tbzAvjs2YiwF83rSm033_KFuHe_SPt28L0QUye5zwWw/exec';
 
 let suppliers = [];
 let selectedSupplier = null;
