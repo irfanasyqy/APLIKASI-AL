@@ -107,18 +107,16 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async () 
     await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
     
     // Preview Print
-    const printContent = data.bankTujuan === 'PANIN' ? 
-        `<div>Bank: PANIN</div><div>Jumlah: ${jumlah} ${supplier.currency}</div><div>Penerima: ${supplier.nama}</div><div>LOA: ${data.noLoa}</div>` :
-        `<div>Bank: BCA</div><div>Amount: ${jumlah} ${supplier.currency}</div><div>Beneficiary: ${supplier.nama}</div><div>LOA: ${data.noLoa}</div>`;
-    
-    const printArea = data.bankTujuan === 'PANIN' ? 'printAreaPanin' : 'printAreaBca';
-    document.querySelector(`#${printArea} #${data.bankTujuan === 'PANIN' ? 'paninPrintContent' : 'bcaPrintContent'}`).innerHTML = printContent;
-    
-    const originalBody = document.body.innerHTML;
-    document.body.innerHTML = document.getElementById(printArea).innerHTML;
-    window.print();
-    document.body.innerHTML = originalBody;
-    location.reload();
+
+    if (data.bankTujuan === 'PANIN') {
+        // Buka file print-panin.html dengan data sebagai parameter
+        const url = `print-panin.html?nama=${encodeURIComponent(supplier.nama)}&account=${encodeURIComponent(supplier.account)}&loa=${encodeURIComponent(data.noLoa)}&jumlah=${jumlah}&currency=${supplier.currency}`;
+        window.open(url, '_blank');
+    } 
+    else {
+        const url = `print-bca.html?nama=${encodeURIComponent(supplier.nama)}&account=${encodeURIComponent(supplier.account)}&jumlah=${jumlah}&currency=${supplier.currency}`;
+        window.open(url, '_blank');
+    }
 });
 
 // ========== TANDA TERIMA ==========

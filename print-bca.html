@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Print Bank BCA</title>
+    <style>
+        body { font-family: 'Segoe UI'; padding: 20px; }
+        .header { text-align: center; background: #003d99; color: white; padding: 15px; }
+        .jumlah { font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0; }
+        .penerima { background: #e6f2ff; padding: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>BANK BCA</h2>
+    </div>
+    
+    <!-- SESUAIKAN POSISI FIELD DI SINI -->
+    <div class="jumlah">
+        <span id="jumlah"></span> <span id="currency"></span>
+    </div>
+    
+    <div class="penerima">
+        <strong>PENERIMA:</strong> <span id="nama"></span><br>
+        <strong>Account:</strong> <span id="account"></span>
+    </div>
+    
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('nama').innerText = params.get('nama');
+        document.getElementById('account').innerText = params.get('account');
+        document.getElementById('jumlah').innerText = params.get('jumlah');
+        document.getElementById('currency').innerText = params.get('currency');
+        
+        window.print();
+    </script>
+</body>
+</html>
