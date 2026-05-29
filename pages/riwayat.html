@@ -1,1 +1,31 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL - Riwayat</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Riwayat Transfer</p>
+    </div>
 
+    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>📋 RIWAYAT</h2>
+        <div class="riwayat-tabs">
+            <button id="riwayatTransferBtn" class="riwayat-tab active">TRANSFER</button>
+            <button id="riwayatTTBtn" class="riwayat-tab">TANDA TERIMA</button>
+        </div>
+        <div id="riwayatTransferList"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
+        <div id="riwayatTTList" style="display:none;"><table class="data-table"><tbody><tr><td>Loading...</td></tr></tbody></table></div>
+    </div>
+</div>
+<script src="../config.js"></script>
+<script src="../script.js"></script>
+</body>
+</html>
