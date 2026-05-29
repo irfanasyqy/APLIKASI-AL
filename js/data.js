@@ -6,7 +6,10 @@ async function loadSuppliers() {
         const res = await fetch(CONFIG.API_URL + '?type=getSuppliers');
         const result = await res.json();
         if (result.success) {
-            suppliers = result.data;
+            suppliers = result.data.map((s, index) => ({
+        id: index,
+        ...s
+    }));
             updateDropdowns();
             renderSupplierTable();
         } else {
