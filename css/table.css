@@ -32,3 +32,18 @@
     background: #1e3c72;
     color: white;
 }
+
+.btn-print-ulang {
+    background: #1e3c72;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: auto;
+}
+
+.btn-print-ulang:hover {
+    background: #e67e22;
+}
