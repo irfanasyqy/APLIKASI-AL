@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APLIKASI AL - Transfer Bank</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Transfer Bank</p>
+    </div>
+
+    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>🏦 FORM TRANSFER BANK</h2>
+        <div class="form-group">
+            <label>Pilih Supplier</label>
+            <select id="supplierSelect"><option>-- Loading --</option></select>
+        </div>
+        <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
+        <div class="bank-option">
+            <div class="bank-card" data-bank="PANIN">🏦 BANK PANIN</div>
+            <div class="bank-card" data-bank="BCA">🏦 BANK BCA</div>
+        </div>
+        <input type="hidden" id="selectedBank" value="PANIN">
+        <div class="row">
+            <div class="form-group"><label>Jumlah</label><input type="number" id="jumlahTransfer" step="100"></div>
+            <div class="form-group"><label>Currency</label><input type="text" id="currencyDisplay" readonly></div>
+        </div>
+        <div class="form-group"><label>Berita Transfer</label><textarea id="beritaTransfer" rows="2"></textarea></div>
+        <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1"></textarea></div>
+        <div class="form-group"><label>No CEK/LOA</label><input type="text" id="noCekLoa"></div>
+        <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
+    </div>
+
+    <!-- PRINT AREAS -->
+    <div class="print-area" id="printAreaPanin"><div id="paninPrintContent"></div></div>
+    <div class="print-area" id="printAreaBca"><div id="bcaPrintContent"></div></div>
+    <div class="print-area" id="printAreaTT"><div id="ttPrintContent"></div></div>
+    <div class="print-area" id="printAreaLabel"><div id="labelPrintContent"></div></div>
+</div>
+<script src="../config.js"></script>
+<script src="../script.js"></script>
+</body>
+</html>
