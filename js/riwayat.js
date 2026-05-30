@@ -156,6 +156,162 @@ async function loadRiwayatTT() {
     }
 }
 
+// ========== LOAD RIWAYAT VALAS ==========
+async function loadRiwayatValas() {
+    const tbody = document.getElementById('riwayatValasBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="8">Memuat data valas...</td><\/tr>';
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'getRiwayatValas' })
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.length > 0) {
+            let html = '';
+            for (let i = 0; i < result.data.length; i++) {
+                const row = result.data[i];
+                const tanggal = formatTanggal(row[1] || row[0]);
+                const noRef = row[2] || '-';
+                const dariRek = row[3] || '-';
+                const keRek = row[4] || '-';
+                const jumlahIDR = parseFloat(row[5]) || 0;
+                const kurs = parseFloat(row[6]) || 0;
+                const jumlahDapat = parseFloat(row[7]) || 0;
+                const mataUang = row[8] || '-';
+                
+                html += `
+                    <tr>
+                        <td>${tanggal}<\/td>
+                        <td>${noRef}<\/td>
+                        <td>${dariRek}<\/td>
+                        <td>${keRek}<\/td>
+                        <td>${jumlahIDR.toLocaleString('id-ID')}<\/td>
+                        <td>${kurs.toLocaleString('id-ID')}<\/td>
+                        <td>${jumlahDapat.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUang}<\/td>
+                        <td>
+                            <button class="btn-print-valas" data-index="${i}">🖨️ Print<\/button>
+                        <\/td>
+                    <\/tr>
+                `;
+            }
+            tbody.innerHTML = html;
+            
+            window.riwayatValasData = result.data;
+            
+            // Event untuk tombol print valas
+            document.querySelectorAll('.btn-print-valas').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = btn.getAttribute('data-index');
+                    if (window.riwayatValasData && window.riwayatValasData[index]) {
+                        printUlangValas(window.riwayatValasData[index]);
+                    }
+                });
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="8">Belum ada riwayat valas<\/td><\/tr>';
+        }
+    } catch (error) {
+        console.error("Gagal memuat riwayat valas:", error);
+        tbody.innerHTML = '<tr><td colspan="8">Gagal memuat data valas<\/td><\/tr>';
+    }
+}
+
+// ========== PRINT ULANG VALAS ==========
+function printUlangValas(rowData) {
+    const tanggal = rowData[1] || '-';
+    const noRef = rowData[2] || '-';
+    const dariRek = rowData[3] || '-';
+    const keRek = rowData[4] || '-';
+    const jumlahIDR = parseFloat(rowData[5]) || 0;
+    const kurs = parseFloat(rowData[6]) || 0;
+    const jumlahDapat = parseFloat(rowData[7]) || 0;
+    const mataUang = rowData[8] || '-';
+    const berita = rowData[9] || '-';
+    
+    const printContent = `
+        <div style="font-family: monospace; padding: 20px; width: 105mm; margin: 0 auto;">
+            <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px;">
+                <h2>APLIKASI AL</h2>
+                <h3>BUKTI PEMBELIAN VALAS</h3>
+            </div>
+            <div><strong>Tanggal:</strong> ${tanggal}</div>
+            <div><strong>No Ref:</strong> ${noRef}</div>
+            <div style="margin-top: 15px;"><strong>Detail Transaksi:</strong></div>
+            <div>Dari Rekening: ${dariRek}</div>
+            <div>Ke Rekening: ${keRek}</div>
+            <div>Jumlah Dibayar: IDR ${jumlahIDR.toLocaleString('id-ID')}</div>
+            <div>Kurs: 1 ${mataUang} = IDR ${kurs.toLocaleString('id-ID')}</div>
+            <div style="font-size: 14pt; font-weight: bold; margin: 10px 0;">
+                Jumlah Dapat: ${jumlahDapat.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUang}
+            </div>
+            <div><strong>Berita:</strong> ${berita}</div>
+            <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
+                Dicetak dari APLIKASI AL
+            </div>
+        </div>
+    `;
+    
+    const originalBody = document.body.innerHTML;
+    document.body.innerHTML = printContent;
+    window.print();
+    document.body.innerHTML = originalBody;
+    location.reload();
+}
+
+// ========== UPDATE TAB NAVIGATION ==========
+// Override event listener untuk tabs (tambahkan valas)
+const riwayatTransferBtn = document.getElementById('riwayatTransferBtn');
+const riwayatTTBtn = document.getElementById('riwayatTTBtn');
+const riwayatValasBtn = document.getElementById('riwayatValasBtn');
+const riwayatTransferList = document.getElementById('riwayatTransferList');
+const riwayatTTList = document.getElementById('riwayatTTList');
+const riwayatValasList = document.getElementById('riwayatValasList');
+
+if (riwayatTransferBtn) {
+    riwayatTransferBtn.addEventListener('click', () => {
+        riwayatTransferBtn.classList.add('active');
+        riwayatTTBtn.classList.remove('active');
+        riwayatValasBtn.classList.remove('active');
+        riwayatTransferList.style.display = 'block';
+        riwayatTTList.style.display = 'none';
+        riwayatValasList.style.display = 'none';
+        loadRiwayatTransfer();
+    });
+}
+
+if (riwayatTTBtn) {
+    riwayatTTBtn.addEventListener('click', () => {
+        riwayatTTBtn.classList.add('active');
+        riwayatTransferBtn.classList.remove('active');
+        riwayatValasBtn.classList.remove('active');
+        riwayatTransferList.style.display = 'none';
+        riwayatTTList.style.display = 'block';
+        riwayatValasList.style.display = 'none';
+        loadRiwayatTT();
+    });
+}
+
+if (riwayatValasBtn) {
+    riwayatValasBtn.addEventListener('click', () => {
+        riwayatValasBtn.classList.add('active');
+        riwayatTransferBtn.classList.remove('active');
+        riwayatTTBtn.classList.remove('active');
+        riwayatTransferList.style.display = 'none';
+        riwayatTTList.style.display = 'none';
+        riwayatValasList.style.display = 'block';
+        loadRiwayatValas();
+    });
+}
+
+// Load awal (transfer)
+if (document.getElementById('riwayatTransferBtn')) {
+    loadRiwayatTransfer();
+}
+
 // ========== HAPUS RIWAYAT TRANSFER ==========
 async function hapusRiwayatTransfer(index) {
     const rowData = window.riwayatTransferData[index];

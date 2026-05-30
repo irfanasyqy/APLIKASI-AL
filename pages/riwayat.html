@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>APLIKASI AL - Riwayat</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -10,7 +10,7 @@
 <div class="container">
     <div class="app-header">
         <div class="app-title">APLIKASI <span>AL</span></div>
-        <p class="subtitle">Riwayat Transfer</p>
+        <p class="subtitle">Riwayat Transaksi</p>
     </div>
 
     <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
@@ -20,9 +20,10 @@
         <div class="riwayat-tabs">
             <button id="riwayatTransferBtn" class="riwayat-tab active">TRANSFER</button>
             <button id="riwayatTTBtn" class="riwayat-tab">TANDA TERIMA</button>
+            <button id="riwayatValasBtn" class="riwayat-tab">VALAS</button>
         </div>
         
-        <!-- TABEL RIWAYAT TRANSFER (dengan kolom Aksi) -->
+        <!-- TABEL RIWAYAT TRANSFER -->
         <div id="riwayatTransferList" style="overflow-x:auto;">
             <table class="data-table">
                 <thead>
@@ -37,12 +38,12 @@
                     </tr>
                 </thead>
                 <tbody id="riwayatTransferBody">
-                    <tr><td colspan="7">Loading...</td></tr>
+                    <tr><td colspan="7">Loading...</td><\/tr>
                 </tbody>
             </table>
         </div>
         
-        <!-- TABEL RIWAYAT TANDA TERIMA (dengan kolom Aksi) -->
+        <!-- TABEL RIWAYAT TANDA TERIMA -->
         <div id="riwayatTTList" style="display:none; overflow-x:auto;">
             <table class="data-table">
                 <thead>
@@ -57,12 +58,34 @@
                     </tr>
                 </thead>
                 <tbody id="riwayatTTBody">
-                    <tr><td colspan="7">Loading...</td></tr>
+                    <tr><td colspan="7">Loading...</td><\/tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- TABEL RIWAYAT VALAS -->
+        <div id="riwayatValasList" style="display:none; overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>No Referensi</th>
+                        <th>Dari Rekening</th>
+                        <th>Ke Rekening</th>
+                        <th>Jumlah (IDR)</th>
+                        <th>Kurs</th>
+                        <th>Jumlah Dapat</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="riwayatValasBody">
+                    <tr><td colspan="8">Loading...</td><\/tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
 <script src="../config.js"></script>
 <script src="../js/data.js"></script>
 <script src="../js/ui.js"></script>

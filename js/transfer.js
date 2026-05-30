@@ -230,6 +230,25 @@ if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
 
 // ========== PRINT PEMBELIAN VALAS ==========
 document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
+    // Simpan ke riwayat valas
+    const valasData = {
+        type: 'saveValas',
+        tanggal: new Date().toLocaleDateString('id-ID'),
+        noRef: noRef,
+        dariRekening: dariText,
+        keRekening: keText,
+        jumlahIDR: jumlahIDRVal,
+        kurs: kurs,
+        jumlahDapat: jumlahDapatVal,
+        mataUang: mataUangTujuan,
+        berita: berita
+    };
+
+    await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(valasData)
+    });
     const dariSelect = document.getElementById('dariRekening');
     const keSelect = document.getElementById('keRekening');
     
