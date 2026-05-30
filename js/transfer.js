@@ -42,12 +42,6 @@ async function loadRekening() {
 
 // ========== HITUNG BIAYA TELEX ==========
 const valueDateType = document.getElementById('valueDateType');
-const valueDateCustom = document.getElementById('valueDateCustom');
-const biayaTelexDisplay = document.getElementById('biayaTelexDisplay');
-const biayaTelexInput = document.getElementById('biayaTelex');
-
-// ========== HITUNG BIAYA TELEX (TANPA CUSTOM) ==========
-const valueDateType = document.getElementById('valueDateType');
 const biayaTelexDisplay = document.getElementById('biayaTelexDisplay');
 const biayaTelexInput = document.getElementById('biayaTelex');
 
@@ -72,52 +66,17 @@ function hitungBiayaTelex() {
     if (biayaTelexInput) biayaTelexInput.value = biaya;
 }
 
-// Event listener
 if (valueDateType) {
     valueDateType.addEventListener('change', hitungBiayaTelex);
-}
-
-// Set default
-if (valueDateType) {
     hitungBiayaTelex();
 }
 
-// Fungsi get value date string
 function getValueDateString() {
     const type = valueDateType?.value;
     if (type === 'TODAY') return 'TODAY';
     if (type === 'TOM') return 'TOM (Tomorrow)';
     if (type === 'SPOT') return 'SPOT (2 hari kerja)';
     return '-';
-}
-
-function toggleCustomDate() {
-    if (valueDateType?.value === 'CUSTOM') {
-        if (valueDateCustom) valueDateCustom.style.display = 'block';
-    } else {
-        if (valueDateCustom) valueDateCustom.style.display = 'none';
-        hitungBiayaTelex();
-    }
-}
-
-if (valueDateType) {
-    valueDateType.addEventListener('change', () => {
-        toggleCustomDate();
-        hitungBiayaTelex();
-    });
-}
-
-if (valueDateCustom) {
-    valueDateCustom.addEventListener('change', () => {
-        const today = new Date().toISOString().slice(0,10);
-        if (valueDateCustom.value === today) {
-            if (biayaTelexInput) biayaTelexInput.value = 50000;
-            if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 50.000';
-        } else {
-            if (biayaTelexInput) biayaTelexInput.value = 35000;
-            if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 35.000';
-        }
-    });
 }
 
 // ========== HITUNG BIAYA FULL AMOUNT ==========
@@ -135,9 +94,11 @@ function hitungFullAmountBiaya(currency, country) {
 
 function updateFullAmountInfo() {
     const metode = metodeTransfer?.value;
+    const supplierSelect = document.getElementById('supplierSelect');
+    const idx = supplierSelect?.value;
+    
     if (metode === 'FULL_AMOUNT') {
         if (fullAmountDetail) fullAmountDetail.style.display = 'block';
-        const idx = document.getElementById('supplierSelect')?.value;
         if (idx !== "" && suppliers && suppliers[idx]) {
             const supplier = suppliers[idx];
             const biaya = hitungFullAmountBiaya(supplier.currency, supplier.country);
@@ -182,6 +143,7 @@ if (tabSupplier && tabValas) {
         tabSupplier.classList.remove('active');
         if (formSupplier) formSupplier.style.display = 'none';
         if (formValas) formValas.style.display = 'block';
+        if (typeof loadRekening === 'function') loadRekening();
     });
 }
 
@@ -208,16 +170,6 @@ function hitungJumlahDapat() {
 if (jumlahIDR) jumlahIDR.addEventListener('input', hitungJumlahDapat);
 if (kursValas) kursValas.addEventListener('input', hitungJumlahDapat);
 if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
-
-// ========== GET VALUE DATE STRING ==========
-function getValueDateString() {
-    const type = valueDateType?.value;
-    if (type === 'TODAY') return 'TODAY';
-    if (type === 'TOM') return 'TOM (Tomorrow)';
-    if (type === 'SPOT') return 'SPOT (2 hari kerja)';
-    if (type === 'CUSTOM') return valueDateCustom?.value || '';
-    return '-';
-}
 
 // ========== PRINT TRANSFER KE SUPPLIER ==========
 document.getElementById('btnPrintTransfer')?.addEventListener('click', async function() {
@@ -450,7 +402,6 @@ if (document.getElementById('rekeningAsalTransfer')) {
 // Set default
 if (valueDateType) {
     hitungBiayaTelex();
-    toggleCustomDate();
 }
 
 // Supplier change update full amount
