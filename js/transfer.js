@@ -46,21 +46,49 @@ const valueDateCustom = document.getElementById('valueDateCustom');
 const biayaTelexDisplay = document.getElementById('biayaTelexDisplay');
 const biayaTelexInput = document.getElementById('biayaTelex');
 
+// ========== HITUNG BIAYA TELEX (TANPA CUSTOM) ==========
+const valueDateType = document.getElementById('valueDateType');
+const biayaTelexDisplay = document.getElementById('biayaTelexDisplay');
+const biayaTelexInput = document.getElementById('biayaTelex');
+
 function hitungBiayaTelex() {
     const type = valueDateType?.value;
     let biaya = 35000;
     
     if (type === 'TODAY') {
         biaya = 50000;
-        if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 50.000';
-        if (biayaTelexDisplay) biayaTelexDisplay.style.color = '#e74c3c';
+        if (biayaTelexDisplay) {
+            biayaTelexDisplay.textContent = 'Rp 50.000';
+            biayaTelexDisplay.style.color = '#e74c3c';
+        }
     } else {
         biaya = 35000;
-        if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 35.000';
-        if (biayaTelexDisplay) biayaTelexDisplay.style.color = '#27ae60';
+        if (biayaTelexDisplay) {
+            biayaTelexDisplay.textContent = 'Rp 35.000';
+            biayaTelexDisplay.style.color = '#27ae60';
+        }
     }
     
     if (biayaTelexInput) biayaTelexInput.value = biaya;
+}
+
+// Event listener
+if (valueDateType) {
+    valueDateType.addEventListener('change', hitungBiayaTelex);
+}
+
+// Set default
+if (valueDateType) {
+    hitungBiayaTelex();
+}
+
+// Fungsi get value date string
+function getValueDateString() {
+    const type = valueDateType?.value;
+    if (type === 'TODAY') return 'TODAY';
+    if (type === 'TOM') return 'TOM (Tomorrow)';
+    if (type === 'SPOT') return 'SPOT (2 hari kerja)';
+    return '-';
 }
 
 function toggleCustomDate() {
