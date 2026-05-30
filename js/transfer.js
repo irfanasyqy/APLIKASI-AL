@@ -17,65 +17,178 @@ async function loadRekening() {
             
             const dariRekening = document.getElementById('dariRekening');
             const keRekening = document.getElementById('keRekening');
+            const rekeningAsalTransfer = document.getElementById('rekeningAsalTransfer');
             
-            if (dariRekening) {
-                dariRekening.innerHTML = '<option value="">-- Pilih Rekening Asal --</option>';
-                const rekeningIDR = daftarRekening.filter(r => r.mataUang === 'IDR');
-                rekeningIDR.forEach(rek => {
-                    const option = document.createElement('option');
-                    option.value = `${rek.mataUang} - ${rek.noRekening}`;
-                    option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
-                    dariRekening.appendChild(option);
-                });
-            }
+            const semuaRekening = (selectEl) => {
+                if (selectEl) {
+                    selectEl.innerHTML = '<option value="">-- Pilih Rekening --</option>';
+                    daftarRekening.forEach(rek => {
+                        const option = document.createElement('option');
+                        option.value = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                        option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                        selectEl.appendChild(option);
+                    });
+                }
+            };
             
-            if (keRekening) {
-                keRekening.innerHTML = '<option value="">-- Pilih Rekening Tujuan --</option>';
-                const rekeningValas = daftarRekening.filter(r => r.mataUang !== 'IDR');
-                rekeningValas.forEach(rek => {
-                    const option = document.createElement('option');
-                    option.value = `${rek.mataUang} - ${rek.noRekening}`;
-                    option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
-                    keRekening.appendChild(option);
-                });
-            }
+            semuaRekening(dariRekening);
+            semuaRekening(keRekening);
+            semuaRekening(rekeningAsalTransfer);
         }
     } catch(e) {
         console.error('Error load rekening:', e);
     }
 }
 
-// ========== LOAD REKENING ASAL UNTUK TRANSFER KE SUPPLIER ==========
-async function loadRekeningAsalTransfer() {
-    try {
-        const response = await fetch(CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'getRekening' })
-        });
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            const rekeningSelect = document.getElementById('rekeningAsalTransfer');
-            if (rekeningSelect) {
-                rekeningSelect.innerHTML = '<option value="">-- Pilih Rekening Asal --</option>';
-                // Tampilkan semua rekening (IDR dan Valas)
-                result.data.forEach(rek => {
-                    const option = document.createElement('option');
-                    option.value = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
-                    option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
-                    rekeningSelect.appendChild(option);
-                });
-            }
-        }
-    } catch(e) {
-        console.error('Error load rekening asal transfer:', e);
+// ========== HITUNG BIAYA TELEX ==========
+const valueDateType = document.getElementById('valueDateType');
+const valueDateCustom = document.getElementById('valueDateCustom');
+const biayaTelexDisplay = document.getElementById('biayaTelexDisplay');
+const biayaTelexInput = document.getElementById('biayaTelex');
+
+function hitungBiayaTelex() {
+    const type = valueDateType?.value;
+    let biaya = 35000;
+    
+    if (type === 'TODAY') {
+        biaya = 50000;
+        if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 50.000';
+        if (biayaTelexDisplay) biayaTelexDisplay.style.color = '#e74c3c';
+    } else {
+        biaya = 35000;
+        if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 35.000';
+        if (biayaTelexDisplay) biayaTelexDisplay.style.color = '#27ae60';
+    }
+    
+    if (biayaTelexInput) biayaTelexInput.value = biaya;
+}
+
+function toggleCustomDate() {
+    if (valueDateType?.value === 'CUSTOM') {
+        if (valueDateCustom) valueDateCustom.style.display = 'block';
+    } else {
+        if (valueDateCustom) valueDateCustom.style.display = 'none';
+        hitungBiayaTelex();
     }
 }
 
-// Panggil fungsi ini di window.onload atau setelah loadSuppliers
-if (document.getElementById('rekeningAsalTransfer')) {
-    loadRekeningAsalTransfer();
+if (valueDateType) {
+    valueDateType.addEventListener('change', () => {
+        toggleCustomDate();
+        hitungBiayaTelex();
+    });
+}
+
+if (valueDateCustom) {
+    valueDateCustom.addEventListener('change', () => {
+        const today = new Date().toISOString().slice(0,10);
+        if (valueDateCustom.value === today) {
+            if (biayaTelexInput) biayaTelexInput.value = 50000;
+            if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 50.000';
+        } else {
+            if (biayaTelexInput) biayaTelexInput.value = 35000;
+            if (biayaTelexDisplay) biayaTelexDisplay.textContent = 'Rp 35.000';
+        }
+    });
+}
+
+// ========== HITUNG BIAYA FULL AMOUNT ==========
+const metodeTransfer = document.getElementById('metodeTransfer');
+const fullAmountDetail = document.getElementById('fullAmountDetail');
+const fullAmountText = document.getElementById('fullAmountText');
+const fullAmountBiaya = document.getElementById('fullAmountBiaya');
+
+function hitungFullAmountBiaya(currency, country) {
+    if (currency === 'USD' && country === 'USA') return 15;
+    if (currency === 'USD') return 26;
+    if (currency === 'EUR') return 25;
+    return 0;
+}
+
+function updateFullAmountInfo() {
+    const metode = metodeTransfer?.value;
+    if (metode === 'FULL_AMOUNT') {
+        if (fullAmountDetail) fullAmountDetail.style.display = 'block';
+        const idx = document.getElementById('supplierSelect')?.value;
+        if (idx !== "" && suppliers && suppliers[idx]) {
+            const supplier = suppliers[idx];
+            const biaya = hitungFullAmountBiaya(supplier.currency, supplier.country);
+            if (fullAmountBiaya) fullAmountBiaya.value = biaya;
+            if (fullAmountText) {
+                fullAmountText.innerHTML = `
+                    <strong>Biaya Full Amount:</strong> ${biaya} ${supplier.currency}<br>
+                    <small>${supplier.currency === 'USD' && supplier.country === 'USA' ? 'Transfer ke USA (USD)' : 
+                              supplier.currency === 'USD' ? 'Transfer USD ke luar USA' : 
+                              'Transfer EUR'}</small>
+                `;
+            }
+        } else if (fullAmountText) {
+            fullAmountText.innerHTML = 'Silakan pilih supplier terlebih dahulu';
+        }
+    } else {
+        if (fullAmountDetail) fullAmountDetail.style.display = 'none';
+        if (fullAmountBiaya) fullAmountBiaya.value = 0;
+    }
+}
+
+if (metodeTransfer) {
+    metodeTransfer.addEventListener('change', updateFullAmountInfo);
+}
+
+// ========== TAB NAVIGATION ==========
+const tabSupplier = document.getElementById('tabSupplier');
+const tabValas = document.getElementById('tabValas');
+const formSupplier = document.getElementById('formSupplier');
+const formValas = document.getElementById('formValas');
+
+if (tabSupplier && tabValas) {
+    tabSupplier.addEventListener('click', () => {
+        tabSupplier.classList.add('active');
+        tabValas.classList.remove('active');
+        if (formSupplier) formSupplier.style.display = 'block';
+        if (formValas) formValas.style.display = 'none';
+    });
+    
+    tabValas.addEventListener('click', () => {
+        tabValas.classList.add('active');
+        tabSupplier.classList.remove('active');
+        if (formSupplier) formSupplier.style.display = 'none';
+        if (formValas) formValas.style.display = 'block';
+    });
+}
+
+// ========== HITUNG JUMLAH DAPAT VALAS ==========
+const jumlahIDR = document.getElementById('jumlahIDR');
+const kursValas = document.getElementById('kursValas');
+const keRekening = document.getElementById('keRekening');
+const jumlahDapat = document.getElementById('jumlahDapat');
+
+function hitungJumlahDapat() {
+    const idr = parseFloat(jumlahIDR?.value) || 0;
+    const kurs = parseFloat(kursValas?.value) || 0;
+    const selectedOption = keRekening?.options[keRekening.selectedIndex];
+    const mataUang = selectedOption ? selectedOption.text.split(' ')[0] : 'USD';
+    
+    if (kurs > 0 && idr > 0) {
+        const hasil = idr / kurs;
+        if (jumlahDapat) jumlahDapat.value = hasil.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ' + mataUang;
+    } else {
+        if (jumlahDapat) jumlahDapat.value = '';
+    }
+}
+
+if (jumlahIDR) jumlahIDR.addEventListener('input', hitungJumlahDapat);
+if (kursValas) kursValas.addEventListener('input', hitungJumlahDapat);
+if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
+
+// ========== GET VALUE DATE STRING ==========
+function getValueDateString() {
+    const type = valueDateType?.value;
+    if (type === 'TODAY') return 'TODAY';
+    if (type === 'TOM') return 'TOM (Tomorrow)';
+    if (type === 'SPOT') return 'SPOT (2 hari kerja)';
+    if (type === 'CUSTOM') return valueDateCustom?.value || '';
+    return '-';
 }
 
 // ========== PRINT TRANSFER KE SUPPLIER ==========
@@ -87,6 +200,11 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     if (!jumlah) { alert('Masukkan jumlah'); return; }
     
     let bank = document.getElementById('selectedBank').value;
+    let biayaTelexVal = parseInt(document.getElementById('biayaTelex')?.value) || 35000;
+    let metodeTransferVal = document.getElementById('metodeTransfer')?.value || 'SHARE';
+    let biayaFullAmountVal = parseFloat(document.getElementById('fullAmountBiaya')?.value) || 0;
+    let totalBiaya = biayaTelexVal + (metodeTransferVal === 'FULL_AMOUNT' ? biayaFullAmountVal : 0);
+    
     let data = {
         type: 'saveTransfer',
         tanggal: new Date().toLocaleDateString(),
@@ -98,7 +216,12 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
         jumlah: jumlah,
         berita: document.getElementById('beritaTransfer').value,
         tujuan: document.getElementById('tujuanTransfer').value,
-        rekeningAsal: document.getElementById('rekeningAsalTransfer')?.value || ''
+        rekeningAsal: document.getElementById('rekeningAsalTransfer')?.value || '',
+        valueDate: getValueDateString(),
+        biayaTelex: biayaTelexVal,
+        metodeTransfer: metodeTransferVal,
+        biayaFullAmount: biayaFullAmountVal,
+        totalBiaya: totalBiaya
     };
     
     await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
@@ -106,12 +229,10 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     let printContent = '';
     
     if (bank === 'PANIN') {
-        // ========== FUNGSI TERBILANG ==========
         function terbilangAngka(angka) {
             const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
             const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
             const puluhan = ['', '', 'DUA PULUH', 'TIGA PULUH', 'EMPAT PULUH', 'LIMA PULUH', 'ENAM PULUH', 'TUJUH PULUH', 'DELAPAN PULUH', 'SEMBILAN PULUH'];
-            
             function convert(n) {
                 if (n === 0) return '';
                 if (n < 10) return satuan[n];
@@ -133,15 +254,11 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
                 }
                 return n.toString();
             }
-            
             let bulat = Math.floor(angka);
             let pecahan = Math.round((angka - bulat) * 100);
             let hasil = convert(bulat);
-            
             if (hasil === '') hasil = 'NOL';
-            if (pecahan > 0) {
-                hasil += ` KOMA ${convert(pecahan)}`;
-            }
+            if (pecahan > 0) hasil += ` KOMA ${convert(pecahan)}`;
             return hasil + ' ' + supplier.currency;
         }
         
@@ -150,14 +267,9 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
         printContent = `
             <div style="font-family: 'Courier New', monospace; font-size: 10pt; width: 100%;">
                 <div style="margin-bottom: 10px;">
-                    <div style="font-size: 14pt; font-weight: bold;">
-                        ${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}
-                    </div>
-                    <div style="font-size: 9pt; border-bottom: 1px dashed #ccc; padding-bottom: 8px;">
-                        ${terbilang}
-                    </div>
+                    <div style="font-size: 14pt; font-weight: bold;">${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div style="font-size: 9pt; border-bottom: 1px dashed #ccc; padding-bottom: 8px;">${terbilang}</div>
                 </div>
-                
                 <div style="display: flex; gap: 30px; justify-content: space-between;">
                     <div style="flex: 2;">
                         <div style="font-weight: bold;">${supplier.nama}</div>
@@ -179,13 +291,15 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
                             <span style="margin-left: 10px;">${data.noLoa || '0796000665'}</span>
                             <span style="margin-left: 10px;">${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
                         </div>
-                        <div style="font-size: 13pt; font-weight: bold; margin-bottom: 15px;">
-                            ${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}
-                        </div>
-                        <div>
-                            <div>${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-                            <div>${supplier.currency} 25</div>
-                            <div>IDR. 50,000</div>
+                        <div style="font-size: 13pt; font-weight: bold; margin-bottom: 15px;">${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                        <div>${supplier.currency} ${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                        <div>${supplier.currency} 25</div>
+                        <div>IDR. 50,000</div>
+                        <div style="margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px;">
+                            <div>Value Date: ${data.valueDate}</div>
+                            <div>Biaya Telex: IDR ${data.biayaTelex.toLocaleString('id-ID')}</div>
+                            ${data.metodeTransfer === 'FULL_AMOUNT' ? `<div>Biaya Full Amount: ${data.biayaFullAmount} ${supplier.currency}</div>` : '<div>Metode: SHARE</div>'}
+                            <div><strong>Total Biaya: IDR ${data.totalBiaya.toLocaleString('id-ID')}</strong></div>
                         </div>
                     </div>
                 </div>
@@ -194,15 +308,20 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     } else {
         printContent = `
             <div style="font-family: 'Courier New', monospace; text-align: center; padding: 20px;">
-                <h2 style="margin-bottom: 20px;">BANK BCA</h2>
-                <div style="font-size: 20pt; font-weight: bold; margin: 20px 0;">${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})} ${supplier.currency}</div>
-                <div style="margin: 10px 0;"><strong>Beneficiary:</strong> ${supplier.nama}</div>
-                <div style="margin: 10px 0;"><strong>Account:</strong> ${supplier.account}</div>
-                <div style="margin: 10px 0;"><strong>Bank:</strong> ${supplier.bankName}</div>
-                <div style="margin: 10px 0;"><strong>SWIFT:</strong> ${supplier.swift}</div>
-                <div style="margin: 10px 0;"><strong>LOA Ref:</strong> ${data.noLoa || '-'}</div>
-                <div style="margin: 10px 0;"><strong>Remark:</strong> ${data.berita || '-'}</div>
-                <div style="margin: 10px 0;"><strong>Tujuan:</strong> ${data.tujuan || '-'}</div>
+                <h2>BANK BCA</h2>
+                <div style="font-size: 18pt; font-weight: bold;">${jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})} ${supplier.currency}</div>
+                <div><strong>Penerima:</strong> ${supplier.nama}</div>
+                <div><strong>Account:</strong> ${supplier.account}</div>
+                <div><strong>Bank:</strong> ${supplier.bankName}</div>
+                <div><strong>SWIFT:</strong> ${supplier.swift}</div>
+                <div><strong>LOA:</strong> ${data.noLoa || '-'}</div>
+                <div><strong>Berita:</strong> ${data.berita || '-'}</div>
+                <div><strong>Tujuan:</strong> ${data.tujuan || '-'}</div>
+                <div style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 5px;">
+                    <div>Value Date: ${data.valueDate}</div>
+                    <div>Biaya Telex: IDR ${data.biayaTelex.toLocaleString('id-ID')}</div>
+                    ${data.metodeTransfer === 'FULL_AMOUNT' ? `<div>Biaya Full Amount: ${data.biayaFullAmount} ${supplier.currency}</div>` : '<div>Metode: SHARE</div>'}
+                </div>
             </div>
         `;
     }
@@ -215,52 +334,6 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     document.body.innerHTML = original;
     location.reload();
 });
-
-// ========== TAB NAVIGATION ==========
-const tabSupplier = document.getElementById('tabSupplier');
-const tabValas = document.getElementById('tabValas');
-const formSupplier = document.getElementById('formSupplier');
-const formValas = document.getElementById('formValas');
-
-if (tabSupplier && tabValas) {
-    tabSupplier.addEventListener('click', () => {
-        tabSupplier.classList.add('active');
-        tabValas.classList.remove('active');
-        formSupplier.style.display = 'block';
-        formValas.style.display = 'none';
-    });
-    
-    tabValas.addEventListener('click', () => {
-        tabValas.classList.add('active');
-        tabSupplier.classList.remove('active');
-        formSupplier.style.display = 'none';
-        formValas.style.display = 'block';
-    });
-}
-
-// ========== HITUNG JUMLAH DAPAT VALAS ==========
-const jumlahIDR = document.getElementById('jumlahIDR');
-const kursValas = document.getElementById('kursValas');
-const keRekening = document.getElementById('keRekening');
-const jumlahDapat = document.getElementById('jumlahDapat');
-
-function hitungJumlahDapat() {
-    const idr = parseFloat(jumlahIDR?.value) || 0;
-    const kurs = parseFloat(kursValas?.value) || 0;
-    const selectedOption = keRekening?.options[keRekening.selectedIndex];
-    const mataUang = selectedOption ? selectedOption.text.split(' ')[0] : 'USD';
-    
-    if (kurs > 0 && idr > 0) {
-        const hasil = idr / kurs;
-        jumlahDapat.value = hasil.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ' + mataUang;
-    } else {
-        jumlahDapat.value = '';
-    }
-}
-
-if (jumlahIDR) jumlahIDR.addEventListener('input', hitungJumlahDapat);
-if (kursValas) kursValas.addEventListener('input', hitungJumlahDapat);
-if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
 
 // ========== PRINT PEMBELIAN VALAS ==========
 document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
@@ -281,7 +354,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     const kurs = parseFloat(document.getElementById('kursValas')?.value) || 0;
     const jumlahDapatVal = jumlahIDRVal / kurs;
     const berita = document.getElementById('beritaValas')?.value || '-';
-    const tujuan = document.getElementById('tujuanValas')?.value || '-';  // TAMBAHKAN
+    const tujuan = document.getElementById('tujuanValas')?.value || '-';
     const infoTambahan = document.getElementById('infoTambahanValas')?.value || '-';
     const noRef = document.getElementById('noRefValas')?.value || 'REF-' + new Date().toISOString().slice(0,10).replace(/-/g,'');
     
@@ -290,7 +363,6 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         return;
     }
     
-    // Simpan ke riwayat valas
     const valasData = {
         type: 'saveValas',
         tanggal: new Date().toLocaleDateString('id-ID'),
@@ -302,7 +374,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         jumlahDapat: jumlahDapatVal,
         mataUang: mataUangTujuan,
         berita: berita,
-        tujuan: tujuan,  // TAMBAHKAN
+        tujuan: tujuan,
         infoTambahan: infoTambahan
     };
     
@@ -331,9 +403,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
             <div><strong>Berita:</strong> ${berita}</div>
             ${tujuan !== '-' ? `<div><strong>Tujuan Transfer:</strong> ${tujuan}</div>` : ''}
             ${infoTambahan !== '-' ? `<div><strong>Info Tambahan:</strong> ${infoTambahan}</div>` : ''}
-            <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
-                Dicetak dari APLIKASI AL
-            </div>
+            <div style="margin-top: 20px; text-align: center; font-size: 9pt;">Dicetak dari APLIKASI AL</div>
         </div>
     `;
     
@@ -344,24 +414,23 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     location.reload();
 });
 
-// ========== PANGGIL LOAD REKENING SAAT HALAMAN SIAP ==========
-if (document.getElementById('formValas')) {
+// ========== LOAD REKENING ASAL UNTUK TRANSFER ==========
+if (document.getElementById('rekeningAsalTransfer')) {
     loadRekening();
 }
-// Otomatis isi perusahaan berdasarkan rekening yang dipilih
-function updatePerusahaan() {
-    const dariSelect = document.getElementById('dariRekening');
-    const keSelect = document.getElementById('keRekening');
-    const perusahaanSelect = document.getElementById('perusahaanSelect');
-    
-    if (dariSelect?.value && perusahaanSelect) {
-        const selectedText = dariSelect.options[dariSelect.selectedIndex]?.text || '';
-        const namaPerusahaan = selectedText.split(' - ')[0];
-        perusahaanSelect.value = namaPerusahaan;
-    }
+
+// Set default
+if (valueDateType) {
+    hitungBiayaTelex();
+    toggleCustomDate();
 }
 
-if (document.getElementById('dariRekening')) {
-    document.getElementById('dariRekening').addEventListener('change', updatePerusahaan);
-    document.getElementById('keRekening').addEventListener('change', updatePerusahaan);
+// Supplier change update full amount
+const supplierSelect = document.getElementById('supplierSelect');
+if (supplierSelect) {
+    supplierSelect.addEventListener('change', () => {
+        if (metodeTransfer?.value === 'FULL_AMOUNT') {
+            updateFullAmountInfo();
+        }
+    });
 }
