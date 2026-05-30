@@ -55,70 +55,57 @@
             <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
         </div>
         
-        <!-- ========== FORM PEMBELIAN VALAS ========== -->
-        <div id="formValas" class="transfer-form" style="display: none;">
-            <div class="form-group">
-                <label>Pilih Perusahaan</label>
-                <select id="perusahaanSelect">
-                    <option value="PT SINAR CAHAYA CEMERLANG">PT SINAR CAHAYA CEMERLANG</option>
-                    <option value="PT. SINAR CAHAYA CEMERLANG">PT. SINAR CAHAYA CEMERLANG</option>
-                    <option value="PT AL">PT AL</option>
-                </select>
-            </div>
-            
-            <div class="row">
-                <div class="form-group">
-                    <label>Dari Rekening</label>
-                    <select id="dariRekening">
-                        <option value="IDR">Rekening Rupiah (IDR)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Ke Rekening</label>
-                    <select id="keRekening">
-                        <option value="USD">Rekening USD</option>
-                        <option value="EUR">Rekening EUR</option>
-                        <option value="SGD">Rekening SGD</option>
-                        <option value="JPY">Rekening JPY</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="form-group">
-                    <label>Jumlah (IDR)</label>
-                    <input type="number" id="jumlahIDR" step="1000" placeholder="Jumlah dalam Rupiah">
-                </div>
-                <div class="form-group">
-                    <label>Kurs</label>
-                    <input type="number" id="kursValas" step="10" placeholder="Kurs (1 USD/EUR = ? IDR)">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Jumlah Dapat</label>
-                <input type="text" id="jumlahDapat" readonly style="background:#f0f0f0; font-weight: bold; color: #27ae60;">
-            </div>
-            
-            <div class="form-group">
-                <label>Berita / Keterangan</label>
-                <textarea id="beritaValas" rows="2" placeholder="Tujuan pembelian valas..."></textarea>
-            </div>
-            
-            <div class="form-group">
-                <label>No Referensi</label>
-                <input type="text" id="noRefValas" placeholder="No referensi internal (opsional)">
-            </div>
-            
-            <button id="btnPrintValas" class="btn-success">🖨️ PRINT BUKTI VALAS</button>
+\<!-- ========== FORM PEMBELIAN VALAS ========== -->
+<div id="formValas" class="transfer-form" style="display: none;">
+    <div class="form-group">
+        <label>Pilih Perusahaan</label>
+        <select id="perusahaanSelect">
+            <option value="">-- Pilih Perusahaan --</option>
+        </select>
+    </div>
+    
+    <div class="row">
+        <div class="form-group">
+            <label>Dari Rekening (Sumber)</label>
+            <select id="dariRekening">
+                <option value="">-- Pilih Rekening Asal --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Ke Rekening (Tujuan)</label>
+            <select id="keRekening">
+                <option value="">-- Pilih Rekening Tujuan --</option>
+            </select>
         </div>
     </div>
-
-    <!-- PRINT AREAS -->
-    <div class="print-area" id="printAreaPanin"><div id="paninPrintContent"></div></div>
-    <div class="print-area" id="printAreaBca"><div id="bcaPrintContent"></div></div>
-    <div class="print-area" id="printAreaTT"><div id="ttPrintContent"></div></div>
-    <div class="print-area" id="printAreaLabel"><div id="labelPrintContent"></div></div>
+    
+    <div class="row">
+        <div class="form-group">
+            <label>Jumlah (IDR)</label>
+            <input type="number" id="jumlahIDR" step="1000" placeholder="Jumlah dalam Rupiah">
+        </div>
+        <div class="form-group">
+            <label>Kurs</label>
+            <input type="number" id="kursValas" step="10" placeholder="Kurs (1 USD/EUR = ? IDR)">
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label>Jumlah Dapat</label>
+        <input type="text" id="jumlahDapat" readonly style="background:#f0f0f0; font-weight: bold; color: #27ae60;">
+    </div>
+    
+    <div class="form-group">
+        <label>Berita / Keterangan</label>
+        <textarea id="beritaValas" rows="2" placeholder="Tujuan pembelian valas..."></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>No Referensi</label>
+        <input type="text" id="noRefValas" placeholder="No referensi internal (opsional)">
+    </div>
+    
+    <button id="btnPrintValas" class="btn-success">🖨️ PRINT BUKTI VALAS</button>
 </div>
 
 <script src="../config.js"></script>
