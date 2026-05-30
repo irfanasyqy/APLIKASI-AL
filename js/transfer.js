@@ -45,6 +45,39 @@ async function loadRekening() {
     }
 }
 
+// ========== LOAD REKENING ASAL UNTUK TRANSFER KE SUPPLIER ==========
+async function loadRekeningAsalTransfer() {
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'getRekening' })
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const rekeningSelect = document.getElementById('rekeningAsalTransfer');
+            if (rekeningSelect) {
+                rekeningSelect.innerHTML = '<option value="">-- Pilih Rekening Asal --</option>';
+                // Tampilkan semua rekening (IDR dan Valas)
+                result.data.forEach(rek => {
+                    const option = document.createElement('option');
+                    option.value = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                    option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                    rekeningSelect.appendChild(option);
+                });
+            }
+        }
+    } catch(e) {
+        console.error('Error load rekening asal transfer:', e);
+    }
+}
+
+// Panggil fungsi ini di window.onload atau setelah loadSuppliers
+if (document.getElementById('rekeningAsalTransfer')) {
+    loadRekeningAsalTransfer();
+}
+
 // ========== PRINT TRANSFER KE SUPPLIER ==========
 document.getElementById('btnPrintTransfer')?.addEventListener('click', async function() {
     let idx = document.getElementById('supplierSelect').value;
@@ -64,7 +97,8 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
         currency: supplier.currency,
         jumlah: jumlah,
         berita: document.getElementById('beritaTransfer').value,
-        tujuan: document.getElementById('tujuanTransfer').value
+        tujuan: document.getElementById('tujuanTransfer').value,
+        rekeningAsal: document.getElementById('rekeningAsalTransfer')?.value || ''
     };
     
     await fetch(CONFIG.API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
@@ -230,25 +264,6 @@ if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
 
 // ========== PRINT PEMBELIAN VALAS ==========
 document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
-    // Simpan ke riwayat valas
-    const valasData = {
-        type: 'saveValas',
-        tanggal: new Date().toLocaleDateString('id-ID'),
-        noRef: noRef,
-        dariRekening: dariText,
-        keRekening: keText,
-        jumlahIDR: jumlahIDRVal,
-        kurs: kurs,
-        jumlahDapat: jumlahDapatVal,
-        mataUang: mataUangTujuan,
-        berita: berita
-    };
-
-    await fetch(CONFIG.API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(valasData)
-    });
     const dariSelect = document.getElementById('dariRekening');
     const keSelect = document.getElementById('keRekening');
     
@@ -266,12 +281,36 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     const kurs = parseFloat(document.getElementById('kursValas')?.value) || 0;
     const jumlahDapatVal = jumlahIDRVal / kurs;
     const berita = document.getElementById('beritaValas')?.value || '-';
+    const tujuan = document.getElementById('tujuanValas')?.value || '-';  // TAMBAHKAN
+    const infoTambahan = document.getElementById('infoTambahanValas')?.value || '-';
     const noRef = document.getElementById('noRefValas')?.value || 'REF-' + new Date().toISOString().slice(0,10).replace(/-/g,'');
     
     if (jumlahIDRVal <= 0 || kurs <= 0) {
         alert('Masukkan jumlah IDR dan Kurs dengan benar!');
         return;
     }
+    
+    // Simpan ke riwayat valas
+    const valasData = {
+        type: 'saveValas',
+        tanggal: new Date().toLocaleDateString('id-ID'),
+        noRef: noRef,
+        dariRekening: dariText,
+        keRekening: keText,
+        jumlahIDR: jumlahIDRVal,
+        kurs: kurs,
+        jumlahDapat: jumlahDapatVal,
+        mataUang: mataUangTujuan,
+        berita: berita,
+        tujuan: tujuan,  // TAMBAHKAN
+        infoTambahan: infoTambahan
+    };
+    
+    await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(valasData)
+    });
     
     const printContent = `
         <div style="font-family: monospace; padding: 20px; width: 105mm; margin: 0 auto;">
@@ -290,6 +329,8 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
                 Jumlah Dapat: ${jumlahDapatVal.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUangTujuan}
             </div>
             <div><strong>Berita:</strong> ${berita}</div>
+            ${tujuan !== '-' ? `<div><strong>Tujuan Transfer:</strong> ${tujuan}</div>` : ''}
+            ${infoTambahan !== '-' ? `<div><strong>Info Tambahan:</strong> ${infoTambahan}</div>` : ''}
             <div style="margin-top: 20px; text-align: center; font-size: 9pt;">
                 Dicetak dari APLIKASI AL
             </div>

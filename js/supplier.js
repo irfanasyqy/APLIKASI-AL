@@ -14,25 +14,25 @@ function renderSupplierTable() {
     let tbody = document.getElementById('supplierTableBody');
     if (!tbody) return;
     if (suppliers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">Tidak ada data supplier</td><\/tr>';
+        tbody.innerHTML = '<tr><td colspan="8">Tidak ada data supplier</td></tr>';
         return;
     }
     let html = '';
     for (let i = 0; i < suppliers.length; i++) {
         let s = suppliers[i];
         html += '<tr>';
-        html += '<td>' + (s.no || '-') + '<\/td>';
-        html += '<td>' + (s.nama || '-') + '<\/td>';
-        html += '<td>' + (s.account || '-') + '<\/td>';
-        html += '<td>' + (s.currency || '-') + '<\/td>';
-        html += '<td>' + (s.bankName || '-') + '<\/td>';
-        html += '<td>' + (s.swift || '-') + '<\/td>';
-        html += '<td>' + (s.country || '-') + '<\/td>';
+        html += '<td>' + (s.no || '-') + '</td>';
+        html += '<td>' + (s.nama || '-') + '</td>';
+        html += '<td>' + (s.account || '-') + '</td>';
+        html += '<td>' + (s.currency || '-') + '</td>';
+        html += '<td>' + (s.bankName || '-') + '</td>';
+        html += '<td>' + (s.swift || '-') + '</td>';
+        html += '<td>' + (s.country || '-') + '</td>';
         html += '<td>';
-        html += '<button class="btn-edit" data-id="' + i + '">✏️ Edit<\/button> ';
-        html += '<button class="btn-delete" data-id="' + i + '">🗑️ Hapus<\/button>';
-        html += '<\/td>';
-        html += '<\/tr>';
+        html += '<button class="btn-edit" data-id="' + i + '">✏️ Edit</button> ';
+        html += '<button class="btn-delete" data-id="' + i + '">🗑️ Hapus</button>';
+        html += '</td>';
+        html += '</tr>';
     }
     tbody.innerHTML = html;
     

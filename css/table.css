@@ -62,3 +62,34 @@
 .btn-hapus:hover {
     background: #c0392b;
 }
+
+.btn-edit {
+    background: #f39c12;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: auto;
+    margin-right: 5px;
+}
+
+.btn-edit:hover {
+    background: #e67e22;
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    width: auto;
+}
+
+.btn-delete:hover {
+    background: #c0392b;
+}

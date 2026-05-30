@@ -34,6 +34,14 @@
                 <input type="text" id="searchSupplier" placeholder="🔍 Cari supplier (nama, account, bank)..." style="margin-top: 8px; width: 100%; padding: 10px 12px; border-radius: 18px;">
                 <div id="supplierSearchResult" style="font-size: 0.7rem; color: #666; margin-top: 4px;"></div>
             </div>
+            
+            <!-- Rekening Asal -->
+            <div class="form-group">
+                <label>Rekening Asal (Perusahaan)</label>
+                <select id="rekeningAsalTransfer">
+                    <option value="">-- Pilih Rekening Asal --</option>
+                </select>
+            </div>
 
             <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
             
@@ -90,7 +98,19 @@
             
             <div class="form-group">
                 <label>Berita / Keterangan</label>
-                <textarea id="beritaValas" rows="2" placeholder="Tujuan pembelian valas..."></textarea>
+                <textarea id="beritaValas" rows="2" placeholder="Berita transfer..."></textarea>
+            </div>
+            
+            <!-- TAMBAHKAN TUJUAN TRANSFER -->
+            <div class="form-group">
+                <label>Tujuan Transfer</label>
+                <textarea id="tujuanValas" rows="1" placeholder="Tujuan transfer (opsional)..."></textarea>
+            </div>
+            
+            <!-- Informasi Tambahan (Opsional) -->
+            <div class="form-group">
+                <label>Informasi Tambahan (Opsional)</label>
+                <textarea id="infoTambahanValas" rows="2" placeholder="Informasi tambahan..."></textarea>
             </div>
             
             <div class="form-group">
@@ -100,7 +120,6 @@
             
             <button id="btnPrintValas" class="btn-success">🖨️ PRINT BUKTI VALAS</button>
         </div>
-    </div>
 
     <!-- PRINT AREAS -->
     <div class="print-area" id="printAreaPanin"><div id="paninPrintContent"></div></div>
