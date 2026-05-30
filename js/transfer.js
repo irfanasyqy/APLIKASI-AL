@@ -288,3 +288,20 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
 if (document.getElementById('formValas')) {
     loadRekening();
 }
+// Otomatis isi perusahaan berdasarkan rekening yang dipilih
+function updatePerusahaan() {
+    const dariSelect = document.getElementById('dariRekening');
+    const keSelect = document.getElementById('keRekening');
+    const perusahaanSelect = document.getElementById('perusahaanSelect');
+    
+    if (dariSelect?.value && perusahaanSelect) {
+        const selectedText = dariSelect.options[dariSelect.selectedIndex]?.text || '';
+        const namaPerusahaan = selectedText.split(' - ')[0];
+        perusahaanSelect.value = namaPerusahaan;
+    }
+}
+
+if (document.getElementById('dariRekening')) {
+    document.getElementById('dariRekening').addEventListener('change', updatePerusahaan);
+    document.getElementById('keRekening').addEventListener('change', updatePerusahaan);
+}
