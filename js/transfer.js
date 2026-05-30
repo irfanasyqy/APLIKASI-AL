@@ -405,11 +405,9 @@ if (valueDateType) {
 }
 
 // Supplier change update full amount
-const supplierSelect = document.getElementById('supplierSelect');
-if (supplierSelect) {
-    supplierSelect.addEventListener('change', () => {
-        if (metodeTransfer?.value === 'FULL_AMOUNT') {
-            updateFullAmountInfo();
-        }
-    });
-}
+// Supplier change update full amount
+document.getElementById('supplierSelect')?.addEventListener('change', () => {
+    if (metodeTransfer?.value === 'FULL_AMOUNT') {
+        updateFullAmountInfo();
+    }
+});
