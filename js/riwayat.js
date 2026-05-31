@@ -430,22 +430,8 @@ function printUlangTransfer(rowData) {
         `;
     }
     
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Print Ulang - ${bank}</title>
-            <style>
-                body { margin: 0; padding: 0; }
-                @media print {
-                    body { margin: 0; padding: 0; }
-                }
-            </style>
-        </head>
-        <body>${printContent}</body>
-        </html>
-    `);
+    const printWindow = window.open('', '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    printWindow.document.write(`...`);
     printWindow.document.close();
     printWindow.print();
 }
@@ -479,22 +465,8 @@ function printUlangTT(rowData) {
         </div>
     `;
     
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Print Ulang - Tanda Terima ${noTT}</title>
-            <style>
-                body { font-family: monospace; margin: 0; padding: 0; }
-                @media print {
-                    body { margin: 0; padding: 0; }
-                }
-            </style>
-        </head>
-        <body>${printContent}</body>
-        </html>
-    `);
+    const printWindow = window.open('', '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    printWindow.document.write(`...`);
     printWindow.document.close();
     printWindow.print();
 }
