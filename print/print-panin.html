@@ -271,12 +271,18 @@
         
         document.getElementById('printContainer').innerHTML = html;
         
-        window.onload = function() {
-            setTimeout(() => {
-                window.print();
-                setTimeout(() => window.close(), 500);
-            }, 300);
-        };
     </script>
+
+    <script>
+    // Auto print setelah halaman selesai dimuat
+    window.onload = function() {
+        setTimeout(function() {
+            window.print();
+            // Optional: tutup window otomatis setelah print atau cancel
+            // window.onafterprint = function() { window.close(); };
+        }, 500);
+    };
+</script>
+
 </body>
 </html>
