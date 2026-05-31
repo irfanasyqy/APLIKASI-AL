@@ -306,13 +306,32 @@ function printUlangTransfer(rowData) {
         valueDate: valueDate
     }).toString();
     
+<<<<<<< HEAD
     const printWindow = window.open(
         bank === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`,
         '_blank',
         'width=450,height=650,scrollbars=yes,resizable=yes'
     );
+=======
+    const printWindow = window.open('', '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Print Valas</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Courier New', monospace; margin: 0; padding: 0; }
+                @media print { @page { size: A4; margin: 0; } }
+            </style>
+        </head>
+        <body>${printContent}</body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+>>>>>>> 9010752e90b170660256e00ef50fbb3f3567a3f1
 }
-
 // ========== PRINT ULANG TANDA TERIMA ==========
 function printUlangTT(rowData) {
     const noTT = rowData[1] || '-';
