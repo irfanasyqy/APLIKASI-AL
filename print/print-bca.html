@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Bank BCA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            width: 105mm;
+            margin: 0 auto;
+            padding: 10mm;
+            text-align: center;
+        }
+        
+        .header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 5mm;
+            margin-bottom: 10mm;
+        }
+        
+        .jumlah {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 10mm 0;
+        }
+        
+        .detail {
+            text-align: left;
+            margin: 5mm 0;
+        }
+        
+        .detail p {
+            margin: 3mm 0;
+        }
+        
+        .footer {
+            margin-top: 15mm;
+            font-size: 8pt;
+            border-top: 1px solid #ccc;
+            padding-top: 5mm;
+        }
+        
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="printContainer"></div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const data = {
+            currency: urlParams.get('currency') || 'USD',
+            jumlah: parseFloat(urlParams.get('jumlah')) || 0,
+            nama: urlParams.get('nama') || '-',
+            account: urlParams.get('account') || '-',
+            bankName: urlParams.get('bankName') || '-',
+            swift: urlParams.get('swift') || '-',
+            berita: urlParams.get('berita') || '-',
+            tujuan: urlParams.get('tujuan') || '-',
+            noLoa: urlParams.get('noLoa') || '-',
+            biayaTelex: urlParams.get('biayaTelex') || 0
+        };
+        
+        const html = `
+            <div class="header">
+                <h2>BANK BCA</h2>
+                <p>BUKTI TRANSFER INTERNASIONAL</p>
+            </div>
+            
+            <div class="jumlah">
+                ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})} ${data.currency}
+            </div>
+            
+            <div class="detail">
+                <p><strong>Penerima:</strong> ${data.nama}</p>
+                <p><strong>Account:</strong> ${data.account}</p>
+                <p><strong>Bank:</strong> ${data.bankName}</p>
+                <p><strong>SWIFT:</strong> ${data.swift}</p>
+                <p><strong>LOA/REF:</strong> ${data.noLoa}</p>
+                <p><strong>Berita:</strong> ${data.berita}</p>
+                <p><strong>Tujuan:</strong> ${data.tujuan}</p>
+                <p><strong>Biaya Telex:</strong> IDR ${data.biayaTelex.toLocaleString('id-ID')}</p>
+            </div>
+            
+            <div class="footer">
+                Dicetak dari APLIKASI AL - Bank BCA<br>
+                ${new Date().toLocaleDateString('id-ID')}
+            </div>
+        `;
+        
+        document.getElementById('printContainer').innerHTML = html;
+        
+        window.onload = function() {
+            setTimeout(() => window.print(), 500);
+        };
+    </script>
+</body>
+</html>

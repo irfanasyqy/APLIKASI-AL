@@ -1,18 +1,4 @@
 // ========== UI.JS ==========
-// Fungsi setup bank selection
-function setupBankSelection() {
-    let cards = document.querySelectorAll('.bank-card');
-    for (let i = 0; i < cards.length; i++) {
-        cards[i].addEventListener('click', function() {
-            for (let j = 0; j < cards.length; j++) {
-                cards[j].classList.remove('selected');
-            }
-            this.classList.add('selected');
-            document.getElementById('selectedBank').value = this.getAttribute('data-bank');
-        });
-    }
-}
-
 // ========== SUPPLIER INFO ==========
 document.getElementById('supplierSelect')?.addEventListener('change', function(e) {
     let idx = e.target.value;

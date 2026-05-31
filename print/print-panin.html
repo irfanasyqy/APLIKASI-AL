@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Bank Panin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', 'Lucida Console', monospace;
+            font-size: 10pt;
+            width: 105mm;
+            margin: 0 auto;
+            padding: 5mm;
+        }
+        
+        .print-container {
+            position: relative;
+            width: 100%;
+            min-height: 140mm;
+        }
+        
+        /* ========== POSISI ABSOLUTE ========== */
+        .jumlah-angka {
+            position: absolute;
+            top: 5mm;
+            left: 5mm;
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        
+        .terbilang {
+            position: absolute;
+            top: 12mm;
+            left: 5mm;
+            font-size: 9pt;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 2px;
+            width: 90%;
+        }
+        
+        .nama-penerima {
+            position: absolute;
+            top: 25mm;
+            left: 5mm;
+            font-weight: bold;
+        }
+        
+        .account {
+            position: absolute;
+            top: 32mm;
+            left: 5mm;
+        }
+        
+        .alamat {
+            position: absolute;
+            top: 39mm;
+            left: 5mm;
+        }
+        
+        .bank-name {
+            position: absolute;
+            top: 50mm;
+            left: 5mm;
+            font-weight: bold;
+        }
+        
+        .negara {
+            position: absolute;
+            top: 57mm;
+            left: 5mm;
+        }
+        
+        .berita {
+            position: absolute;
+            top: 68mm;
+            left: 5mm;
+        }
+        
+        .tujuan {
+            position: absolute;
+            top: 75mm;
+            left: 5mm;
+        }
+        
+        .pengirim {
+            position: absolute;
+            top: 90mm;
+            left: 5mm;
+            font-weight: bold;
+        }
+        
+        .deretan-angka {
+            position: absolute;
+            top: 97mm;
+            left: 5mm;
+            letter-spacing: 5px;
+        }
+        
+        /* Kolom kanan */
+        .ref-kode {
+            position: absolute;
+            top: 25mm;
+            right: 5mm;
+            text-align: right;
+        }
+        
+        .ref-nomor {
+            position: absolute;
+            top: 32mm;
+            right: 5mm;
+            text-align: right;
+        }
+        
+        .ref-jumlah {
+            position: absolute;
+            top: 39mm;
+            right: 5mm;
+            text-align: right;
+        }
+        
+        .jumlah-tengah {
+            position: absolute;
+            top: 50mm;
+            right: 5mm;
+            text-align: right;
+            font-size: 13pt;
+            font-weight: bold;
+        }
+        
+        .biaya-item {
+            position: absolute;
+            top: 60mm;
+            right: 5mm;
+            text-align: right;
+        }
+        
+        .total-biaya {
+            position: absolute;
+            top: 80mm;
+            right: 5mm;
+            text-align: right;
+            border-top: 1px dashed #ccc;
+            padding-top: 3px;
+            font-weight: bold;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-container" id="printContainer">
+        <!-- Data akan diisi oleh JavaScript -->
+    </div>
+    <script>
+        // Ambil data dari URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const data = {
+            currency: urlParams.get('currency') || 'EUR',
+            jumlah: parseFloat(urlParams.get('jumlah')) || 0,
+            terbilang: urlParams.get('terbilang') || '',
+            nama: urlParams.get('nama') || '-',
+            account: urlParams.get('account') || '-',
+            alamat: urlParams.get('alamat') || '-',
+            bankName: urlParams.get('bankName') || '-',
+            country: urlParams.get('country') || '-',
+            berita: urlParams.get('berita') || '-',
+            tujuan: urlParams.get('tujuan') || '-',
+            noLoa: urlParams.get('noLoa') || '-',
+            biayaTelex: urlParams.get('biayaTelex') || 0,
+            metodeTransfer: urlParams.get('metodeTransfer') || 'SHARE',
+            biayaFullAmount: urlParams.get('biayaFullAmount') || 0,
+            totalBiaya: urlParams.get('totalBiaya') || 0,
+            pengirim: urlParams.get('pengirim') || 'PT. SINAR CAHAYA CEMERLANG',
+            deretanAngka: urlParams.get('deretanAngka') || '0 7 9 6 0 0 0 6 6 5'
+        };
+        
+        const html = `
+            <div class="jumlah-angka">${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+            <div class="terbilang">${data.terbilang}</div>
+            
+            <div class="nama-penerima">${data.nama}</div>
+            <div class="account">${data.account}</div>
+            <div class="alamat">${data.alamat}</div>
+            
+            <div class="bank-name">${data.bankName}</div>
+            <div class="negara">${data.country}</div>
+            
+            <div class="berita">${data.berita}</div>
+            <div class="tujuan">${data.tujuan}</div>
+            
+            <div class="pengirim">${data.pengirim}</div>
+            <div class="deretan-angka">${data.deretanAngka}</div>
+            
+            <div class="ref-kode">B084235</div>
+            <div class="ref-nomor">${data.noLoa}</div>
+            <div class="ref-jumlah">${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+            
+            <div class="jumlah-tengah">${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+            
+            <div class="biaya-item">
+                ${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
+                ${data.currency} 25<br>
+                IDR. 50,000
+            </div>
+            
+            <div class="total-biaya">
+                Biaya Telex: IDR ${data.biayaTelex.toLocaleString('id-ID')}<br>
+                ${data.metodeTransfer === 'FULL_AMOUNT' ? `Biaya Full Amount: ${data.biayaFullAmount} ${data.currency}<br>` : ''}
+                <strong>Total: IDR ${data.totalBiaya.toLocaleString('id-ID')}</strong>
+            </div>
+        `;
+        
+        document.getElementById('printContainer').innerHTML = html;
+        
+        // Auto print
+        window.onload = function() {
+            setTimeout(() => window.print(), 500);
+        };
+    </script>
+</body>
+</html>
