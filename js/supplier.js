@@ -1,7 +1,6 @@
 // ========== SUPPLIER.JS ==========
 // Halaman Data Supplier dengan Edit & Hapus
 
-const modal = document.getElementById('supplierModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalEditId = document.getElementById('modalEditId');
 const btnAddSupplier = document.getElementById('btnAddSupplier');
