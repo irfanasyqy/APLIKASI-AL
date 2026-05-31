@@ -319,9 +319,9 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     }).toString();
     
     if (bank === 'PANIN') {
-        window.open(`print/print-panin.html?${params}`, '_blank');
+        window.open(`../print/print-panin.html?${params}`, '_blank');
     } else {
-        window.open(`print/print-bca.html?${params}`, '_blank');
+        window.open(`../print/print-bca.html?${params}`, '_blank');
     }
     
     location.reload();
@@ -406,9 +406,9 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     }).toString();
     
     if (bankAsal === 'PANIN') {
-        window.open(`print/print-panin.html?${params}`, '_blank');
+        window.open(`../print/print-panin.html?${params}`, '_blank');
     } else {
-        window.open(`print/print-bca.html?${params}`, '_blank');
+        window.open(`../print/print-bca.html?${params}`, '_blank');
     }
     
     location.reload();

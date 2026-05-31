@@ -307,7 +307,7 @@ function printUlangTransfer(rowData) {
     }).toString();
     
     const printWindow = window.open(
-        bank === 'PANIN' ? `print/print-panin.html?${params}` : `print/print-bca.html?${params}`,
+        bank === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`,
         '_blank',
         'width=450,height=650,scrollbars=yes,resizable=yes'
     );
