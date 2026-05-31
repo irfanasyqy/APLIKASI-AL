@@ -148,29 +148,72 @@ if (tabSupplier && tabValas) {
 }
 
 // ========== HITUNG JUMLAH DAPAT VALAS ==========
-const jumlahIDR = document.getElementById('jumlahIDR');
-const kursValas = document.getElementById('kursValas');
-const keRekening = document.getElementById('keRekening');
-const jumlahDapat = document.getElementById('jumlahDapat');
+const keRekeningValas = document.getElementById('keRekening');
+const jumlahValas = document.getElementById('jumlahValas');
+const kursValasInput = document.getElementById('kursValas');
+const jumlahDibayarIDR = document.getElementById('jumlahDibayarIDR');
+const mataUangDisplay = document.getElementById('mataUangDisplay');
 
-function hitungJumlahDapat() {
-    const idr = parseFloat(jumlahIDR?.value) || 0;
-    const kurs = parseFloat(kursValas?.value) || 0;
-    const selectedOption = keRekening?.options[keRekening.selectedIndex];
-    const mataUang = selectedOption ? selectedOption.text.split(' ')[0] : 'USD';
+function updateMataUangDisplay() {
+    const selectedOption = keRekeningValas?.options[keRekeningValas.selectedIndex];
+    let mataUang = '';
+    if (selectedOption) {
+        const text = selectedOption.text;
+        // Ambil mata uang dari teks (misal "USD - 1234" atau "PT ABC - VALAS (USD)")
+        if (text.includes('USD')) mataUang = 'USD';
+        else if (text.includes('EUR')) mataUang = 'EUR';
+        else if (text.includes('JPY')) mataUang = 'JPY';
+        else if (text.includes('SGD')) mataUang = 'SGD';
+        else mataUang = text.split(' ')[0];
+    }
     
-    if (kurs > 0 && idr > 0) {
-        const hasil = idr / kurs;
-        if (jumlahDapat) jumlahDapat.value = hasil.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ' + mataUang;
+    if (mataUang && mataUangDisplay) {
+        mataUangDisplay.textContent = `Jumlah dalam ${mataUang}`;
+    } else if (mataUangDisplay) {
+        mataUangDisplay.textContent = 'Pilih rekening tujuan terlebih dahulu';
+    }
+    
+    // Hitung ulang jumlah dibayar
+    hitungJumlahDibayar();
+}
+
+function hitungJumlahDibayar() {
+    const jumlah = parseFloat(jumlahValas?.value) || 0;
+    const kurs = parseFloat(kursValasInput?.value) || 0;
+    
+    if (kurs > 0 && jumlah > 0) {
+        const hasil = jumlah * kurs;
+        if (jumlahDibayarIDR) {
+            jumlahDibayarIDR.value = 'Rp ' + hasil.toLocaleString('id-ID');
+        }
     } else {
-        if (jumlahDapat) jumlahDapat.value = '';
+        if (jumlahDibayarIDR) {
+            jumlahDibayarIDR.value = '';
+        }
     }
 }
 
-if (jumlahIDR) jumlahIDR.addEventListener('input', hitungJumlahDapat);
-if (kursValas) kursValas.addEventListener('input', hitungJumlahDapat);
-if (keRekening) keRekening.addEventListener('change', hitungJumlahDapat);
+// Event listeners
+if (keRekeningValas) {
+    keRekeningValas.addEventListener('change', () => {
+        updateMataUangDisplay();
+    });
+}
 
+if (jumlahValas) {
+    jumlahValas.addEventListener('input', hitungJumlahDibayar);
+}
+
+if (kursValasInput) {
+    kursValasInput.addEventListener('input', hitungJumlahDibayar);
+}
+
+// Inisialisasi saat halaman load
+if (keRekeningValas && keRekeningValas.value) {
+    updateMataUangDisplay();
+} else if (mataUangDisplay) {
+    mataUangDisplay.textContent = 'Pilih rekening tujuan terlebih dahulu';
+}
 // ========== PRINT TRANSFER KE SUPPLIER ==========
 document.getElementById('btnPrintTransfer')?.addEventListener('click', async function() {
     let idx = document.getElementById('supplierSelect').value;
