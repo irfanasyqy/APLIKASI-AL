@@ -306,11 +306,7 @@ function printUlangTransfer(rowData) {
         valueDate: valueDate
     }).toString();
     
-    const printWindow = window.open(
-        bank === 'PANIN' ? `print/print-panin.html?${params}` : `print/print-bca.html?${params}`,
-        '_blank',
-        'width=450,height=650,scrollbars=yes,resizable=yes'
-    );
+    const printWindow = window.open(`print/cetak-panin.html?${params}`, '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
 }
 
 // ========== PRINT ULANG TANDA TERIMA ==========
