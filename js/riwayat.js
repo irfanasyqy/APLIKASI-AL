@@ -219,32 +219,34 @@ async function loadRiwayatValas() {
     }
 }
 
-// ========== PRINT ULANG TRANSFER (pakai template print-panin/print-bca) ==========
 function printUlangTransfer(rowData) {
-    const bank = rowData[3] || '-';
-    const penerima = rowData[4] || '-';
-    const account = rowData[5] || '-';
-    const currency = rowData[6] || 'USD';
-    const jumlah = parseFloat(rowData[7]) || 0;
-    const berita = rowData[10] || '-';
-    const tujuan = rowData[11] || '-';
-    const noLoa = rowData[2] || '-';
-    const rekeningAsal = rowData[12] || '';
-    const valueDate = rowData[13] || '-';
-    const biayaTelex = rowData[14] || 0;
-    const metodeTransfer = rowData[15] || 'SHARE';
-    const biayaFullAmount = rowData[16] || 0;
-    const totalBiaya = rowData[17] || 0;
+    // Ambil data berdasarkan indeks Google Sheet yang benar
+    const bank = rowData[3] || '-';           // Bank tujuan
+    const penerima = rowData[4] || '-';       // Nama penerima
+    const account = rowData[5] || '-';        // Account number
+    const currency = rowData[6] || 'USD';     // Currency
+    const jumlah = parseFloat(rowData[7]) || 0; // Jumlah
+    const berita = rowData[8] || '-';         // Berita
+    const tujuan = rowData[9] || '-';         // Tujuan
+    const noLoa = rowData[2] || '-';          // No LOA
+    const rekeningAsal = rowData[10] || '';   // Rekening asal (kolom 10)
+    const status = rowData[11] || '-';        // Status
     
+    // Parse rekening asal (format: "Nama Perusahaan - No Rekening")
     let pengirimNama = 'PT SINAR CAHAYA CEMERLANG';
     let norekPengirim = '';
+    
     if (rekeningAsal) {
         const parts = rekeningAsal.split(' - ');
-        pengirimNama = parts[0] || pengirimNama;
-        norekPengirim = parts[2] || '';
+        if (parts[0] && parts[0].trim()) {
+            pengirimNama = parts[0].trim();
+        }
+        if (parts[1] && parts[1].trim()) {
+            norekPengirim = parts[1].trim();
+        }
     }
     
-    // Fungsi terbilang
+    // Fungsi terbilang (sama seperti sebelumnya)
     function terbilangAngka(angka, curr) {
         const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
         const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
@@ -281,7 +283,6 @@ function printUlangTransfer(rowData) {
     }
     
     const terbilang = terbilangAngka(jumlah, currency);
-    const formattedJumlah = jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
     
     const params = new URLSearchParams({
         currency: currency,
@@ -299,38 +300,27 @@ function printUlangTransfer(rowData) {
         noLoa: noLoa,
         norekPengirim: norekPengirim,
         pengirim: pengirimNama,
-        biayaTelex: biayaTelex,
-        metodeTransfer: metodeTransfer,
-        biayaFullAmount: biayaFullAmount,
-        totalBiaya: totalBiaya,
-        valueDate: valueDate
+        valueDate: rowData[1] || '-',  // Tanggal transfer
+        biayaTelex: 0,
+        metodeTransfer: 'SHARE',
+        biayaFullAmount: 0,
+        totalBiaya: 0
     }).toString();
     
-<<<<<<< HEAD
-    const printWindow = window.open(
-        bank === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`,
-        '_blank',
-        'width=450,height=650,scrollbars=yes,resizable=yes'
-    );
-=======
-    const printWindow = window.open('', '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Print Valas</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Courier New', monospace; margin: 0; padding: 0; }
-                @media print { @page { size: A4; margin: 0; } }
-            </style>
-        </head>
-        <body>${printContent}</body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
->>>>>>> 9010752e90b170660256e00ef50fbb3f3567a3f1
+    // Tentukan path print
+    let printUrl;
+    if (bank.toUpperCase() === 'PANIN') {
+        printUrl = `../print/print-panin.html?${params}`;
+    } else {
+        printUrl = `../print/print-bca.html?${params}`;
+    }
+    
+    // Buka window print
+    const printWindow = window.open(printUrl, '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    
+    if (!printWindow) {
+        alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+    }
 }
 // ========== PRINT ULANG TANDA TERIMA ==========
 function printUlangTT(rowData) {
