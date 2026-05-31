@@ -316,30 +316,29 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
 });
 
 // ========== PRINT PEMBELIAN VALAS ==========
-document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
+    document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
     const dariSelect = document.getElementById('dariRekening');
     const keSelect = document.getElementById('keRekening');
     
     const dariText = dariSelect?.options[dariSelect.selectedIndex]?.text || '';
     const keText = keSelect?.options[keSelect.selectedIndex]?.text || '';
-    const keValue = keSelect?.value || '';
     
     if (!dariSelect?.value || !keSelect?.value) {
         alert('Pilih rekening asal dan tujuan!');
         return;
     }
     
-    const mataUangTujuan = keValue.split(' - ')[0] || 'USD';
-    const jumlahIDRVal = parseFloat(document.getElementById('jumlahIDR')?.value) || 0;
+    const mataUangTujuan = keText.split(' ')[0] || 'USD';
+    const jumlahValasVal = parseFloat(document.getElementById('jumlahValas')?.value) || 0;
     const kurs = parseFloat(document.getElementById('kursValas')?.value) || 0;
-    const jumlahDapatVal = jumlahIDRVal / kurs;
+    const jumlahIDRVal = jumlahValasVal * kurs;
     const berita = document.getElementById('beritaValas')?.value || '-';
     const tujuan = document.getElementById('tujuanValas')?.value || '-';
     const infoTambahan = document.getElementById('infoTambahanValas')?.value || '-';
     const noRef = document.getElementById('noRefValas')?.value || 'REF-' + new Date().toISOString().slice(0,10).replace(/-/g,'');
     
-    if (jumlahIDRVal <= 0 || kurs <= 0) {
-        alert('Masukkan jumlah IDR dan Kurs dengan benar!');
+    if (jumlahValasVal <= 0 || kurs <= 0) {
+        alert('Masukkan jumlah valas dan kurs dengan benar!');
         return;
     }
     
@@ -349,10 +348,10 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         noRef: noRef,
         dariRekening: dariText,
         keRekening: keText,
-        jumlahIDR: jumlahIDRVal,
-        kurs: kurs,
-        jumlahDapat: jumlahDapatVal,
+        jumlahValas: jumlahValasVal,
         mataUang: mataUangTujuan,
+        kurs: kurs,
+        jumlahIDR: jumlahIDRVal,
         berita: berita,
         tujuan: tujuan,
         infoTambahan: infoTambahan
@@ -375,10 +374,10 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
             <div style="margin-top: 15px;"><strong>Detail Transaksi:</strong></div>
             <div>Dari Rekening: ${dariText}</div>
             <div>Ke Rekening: ${keText}</div>
-            <div>Jumlah Dibayar: IDR ${jumlahIDRVal.toLocaleString('id-ID')}</div>
+            <div>Jumlah Valas: ${jumlahValasVal.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUangTujuan}</div>
             <div>Kurs: 1 ${mataUangTujuan} = IDR ${kurs.toLocaleString('id-ID')}</div>
-            <div style="font-size: 14pt; font-weight: bold; margin: 10px 0;">
-                Jumlah Dapat: ${jumlahDapatVal.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUangTujuan}
+            <div style="font-size: 13pt; font-weight: bold; margin: 10px 0;">
+                Total Dibayar: IDR ${jumlahIDRVal.toLocaleString('id-ID')}
             </div>
             <div><strong>Berita:</strong> ${berita}</div>
             ${tujuan !== '-' ? `<div><strong>Tujuan Transfer:</strong> ${tujuan}</div>` : ''}
