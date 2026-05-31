@@ -52,7 +52,7 @@
             
             <div class="form-group"><label>Berita Transfer</label><textarea id="beritaTransfer" rows="2"></textarea></div>
             <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1"></textarea></div>
-            <div class="form-group"><label id="labelNoRefTransfer">No LOA</label><input type="text" id="noRefTransfer" placeholder="Nomor LOA (Letter of Authorization)"></div>
+            <div class="form-group"><label id="labelNoRefTransfer">No LOA</label><input type="text" id="noRefTransfer" placeholder="Nomor LOA (Letter of Authorization)" required></div>
             
             <!-- VALUE DATE & BIAYA TELEX -->
             <div class="row">
@@ -122,6 +122,11 @@
         <label>Jumlah Dibayar (IDR)</label>
         <input type="text" id="jumlahDibayarIDR" readonly style="background:#f0f0f0; font-weight: bold; color: #27ae60;">
     </div>
+
+    <div class="form-group">
+        <label>No CEK/LOA</label>
+        <input type="text" id="noRefValas" placeholder="Nomor CEK/LOA" required>
+    </div>
     
     <div class="form-group">
         <label>Berita / Keterangan</label>
@@ -136,12 +141,6 @@
     <div class="form-group">
         <label>Informasi Tambahan (Opsional)</label>
         <textarea id="infoTambahanValas" rows="2" placeholder="Informasi tambahan..."></textarea>
-    </div>
-    
-    <!-- GANTI No Referensi menjadi No CEK/LOA -->
-    <div class="form-group">
-        <label>No CEK/LOA</label>
-        <input type="text" id="noRefValas" placeholder="Nomor CEK/LOA (opsional)">
     </div>
     
     <button id="btnPrintValas" class="btn-success">🖨️ PRINT BUKTI VALAS</button>

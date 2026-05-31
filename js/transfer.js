@@ -252,6 +252,8 @@ function terbilangAngka(angka, currency) {
 document.getElementById('btnPrintTransfer')?.addEventListener('click', async function() {
     const idx = document.getElementById('supplierSelect').value;
     if (!idx) { alert('Pilih supplier'); return; }
+    const noLoa = document.getElementById('noRefTransfer')?.value.trim();
+    if (!noLoa) { alert('No LOA wajib diisi!'); return; }
     const supplier = suppliers[idx];
     const jumlah = parseFloat(document.getElementById('jumlahTransfer').value);
     if (!jumlah) { alert('Masukkan jumlah'); return; }
@@ -329,7 +331,8 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
 document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
     const dariSelect = document.getElementById('dariRekening');
     const keSelect = document.getElementById('keRekening');
-    
+    const noRef = document.getElementById('noRefValas')?.value.trim();
+    if (!noRef) { alert('No CEK/LOA wajib diisi!'); return; }
     const dariText = dariSelect?.options[dariSelect.selectedIndex]?.text || '';
     const keText = keSelect?.options[keSelect.selectedIndex]?.text || '';
     
