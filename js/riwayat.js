@@ -306,9 +306,24 @@ function printUlangTransfer(rowData) {
         valueDate: valueDate
     }).toString();
     
-    const printWindow = window.open(`print/cetak-panin.html?${params}`, '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    const printWindow = window.open('', '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Print Valas</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Courier New', monospace; margin: 0; padding: 0; }
+                @media print { @page { size: A4; margin: 0; } }
+            </style>
+        </head>
+        <body>${printContent}</body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
 }
-
 // ========== PRINT ULANG TANDA TERIMA ==========
 function printUlangTT(rowData) {
     const noTT = rowData[1] || '-';
