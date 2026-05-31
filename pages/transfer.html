@@ -52,7 +52,7 @@
             
             <div class="form-group"><label>Berita Transfer</label><textarea id="beritaTransfer" rows="2"></textarea></div>
             <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1"></textarea></div>
-            <div class="form-group"><label>No CEK/LOA</label><input type="text" id="noCekLoa"></div>
+            <div class="form-group"><label id="labelNoRefTransfer">No LOA</label><input type="text" id="noRefTransfer" placeholder="Nomor LOA (Letter of Authorization)"></div>
             
             <!-- VALUE DATE & BIAYA TELEX -->
             <div class="row">
@@ -89,7 +89,7 @@
             <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
         </div>
         
-       <!-- ========== FORM PEMBELIAN VALAS ========== -->
+<!-- ========== FORM PEMBELIAN VALAS ========== -->
 <div id="formValas" class="transfer-form" style="display: none;">
     <div class="row">
         <div class="form-group">
@@ -138,9 +138,10 @@
         <textarea id="infoTambahanValas" rows="2" placeholder="Informasi tambahan..."></textarea>
     </div>
     
+    <!-- GANTI No Referensi menjadi No CEK/LOA -->
     <div class="form-group">
-        <label>No Referensi</label>
-        <input type="text" id="noRefValas" placeholder="No referensi internal (opsional)">
+        <label>No CEK/LOA</label>
+        <input type="text" id="noRefValas" placeholder="Nomor CEK/LOA (opsional)">
     </div>
     
     <button id="btnPrintValas" class="btn-success">🖨️ PRINT BUKTI VALAS</button>

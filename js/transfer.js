@@ -130,12 +130,19 @@ const tabValas = document.getElementById('tabValas');
 const formSupplier = document.getElementById('formSupplier');
 const formValas = document.getElementById('formValas');
 
+// Label untuk No Referensi
+const labelNoRefTransfer = document.getElementById('labelNoRefTransfer');
+const labelNoRefValas = document.getElementById('labelNoRefValas');
+
 if (tabSupplier && tabValas) {
     tabSupplier.addEventListener('click', () => {
         tabSupplier.classList.add('active');
         tabValas.classList.remove('active');
         if (formSupplier) formSupplier.style.display = 'block';
         if (formValas) formValas.style.display = 'none';
+        
+        // Ubah label Transfer Supplier menjadi "No LOA"
+        if (labelNoRefTransfer) labelNoRefTransfer.innerText = 'No LOA';
     });
     
     tabValas.addEventListener('click', () => {
@@ -143,6 +150,10 @@ if (tabSupplier && tabValas) {
         tabSupplier.classList.remove('active');
         if (formSupplier) formSupplier.style.display = 'none';
         if (formValas) formValas.style.display = 'block';
+        
+        // Ubah label Valas menjadi "No CEK"
+        if (labelNoRefValas) labelNoRefValas.innerText = 'No CEK/LOA';
+        
         if (typeof loadRekening === 'function') loadRekening();
     });
 }
@@ -266,7 +277,7 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     const data = {
         type: 'saveTransfer',
         tanggal: new Date().toLocaleDateString(),
-        noLoa: document.getElementById('noCekLoa').value,
+        noLoa: document.getElementById('noRefTransfer')?.value || '',
         bankTujuan: bank,
         namaPenerima: supplier.nama,
         accountNumber: supplier.account,
