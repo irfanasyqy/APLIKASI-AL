@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Cetak Bank Panin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            width: 105mm;
+            margin: 0 auto;
+            padding: 5mm;
+        }
+        .print-container { position: relative; width: 100%; min-height: 140mm; }
+        .jumlah-angka { position: absolute; top: 5mm; left: 5mm; font-size: 13pt; font-weight: bold; }
+        .terbilang { position: absolute; top: 12mm; left: 5mm; font-size: 9pt; }
+        .nama-penerima { position: absolute; top: 22mm; left: 5mm; font-weight: bold; }
+        .account { position: absolute; top: 29mm; left: 5mm; }
+        .alamat { position: absolute; top: 36mm; left: 5mm; }
+        .bank-name { position: absolute; top: 47mm; left: 5mm; font-weight: bold; }
+        .negara { position: absolute; top: 54mm; left: 5mm; }
+        .berita { position: absolute; top: 65mm; left: 5mm; }
+        .tujuan { position: absolute; top: 72mm; left: 5mm; }
+        .pengirim { position: absolute; top: 85mm; left: 5mm; font-weight: bold; }
+        .deretan-angka { position: absolute; top: 92mm; left: 5mm; letter-spacing: 5px; }
+        .ref-no-cek { position: absolute; top: 22mm; right: 5mm; text-align: right; }
+        .ref-jumlah { position: absolute; top: 29mm; right: 5mm; text-align: right; }
+        .jumlah-akhir { position: absolute; top: 42mm; right: 5mm; text-align: right; font-size: 13pt; font-weight: bold; }
+        .biaya-item { position: absolute; top: 55mm; right: 5mm; text-align: right; }
+        @media print { @page { size: A4; margin: 0; } }
+    </style>
+</head>
+<body>
+    <div id="printContainer"></div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const data = {
+            currency: urlParams.get('currency') || 'EUR',
+            jumlah: parseFloat(urlParams.get('jumlah')) || 0,
+            terbilang: urlParams.get('terbilang') || '',
+            nama: urlParams.get('nama') || '-',
+            account: urlParams.get('account') || '-',
+            alamat: urlParams.get('alamat') || '-',
+            bankName: urlParams.get('bankName') || '-',
+            country: urlParams.get('country') || '-',
+            berita: urlParams.get('berita') || '-',
+            tujuan: urlParams.get('tujuan') || '-',
+            noLoa: urlParams.get('noLoa') || '-',
+            norekPengirim: urlParams.get('norekPengirim') || '',
+            pengirim: urlParams.get('pengirim') || '',
+            biayaTelex: parseFloat(urlParams.get('biayaTelex')) || 0
+        };
+        
+        const formattedJumlah = data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
+        const norekFormat = data.norekPengirim.split('').join(' ');
+        const biayaTelexText = data.biayaTelex === 50000 ? 'Rp 50.000' : 'Rp 35.000';
+        
+        const html = `
+            <div class="print-container">
+                <div class="jumlah-angka">${data.currency} ${formattedJumlah}</div>
+                <div class="terbilang">${data.terbilang}</div>
+                <div class="nama-penerima">${data.nama}</div>
+                <div class="account">${data.account}</div>
+                <div class="alamat">${data.alamat}</div>
+                <div class="bank-name">${data.bankName}</div>
+                <div class="negara">${data.country}</div>
+                <div class="berita">${data.berita}</div>
+                <div class="tujuan">${data.tujuan}</div>
+                <div class="pengirim">${data.pengirim}</div>
+                <div class="deretan-angka">${norekFormat}</div>
+                <div class="ref-no-cek">${data.noLoa}</div>
+                <div class="ref-jumlah">${data.currency} ${formattedJumlah}</div>
+                <div class="jumlah-akhir">${data.currency} ${formattedJumlah}</div>
+                <div class="biaya-item">
+                    <div>${data.currency} ${formattedJumlah}</div>
+                    <div>${data.currency} 25</div>
+                    <div>${biayaTelexText}</div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('printContainer').innerHTML = html;
+        window.onload = () => setTimeout(() => window.print(), 300);
+    </script>
+</body>
+</html>
