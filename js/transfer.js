@@ -331,8 +331,14 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
 document.getElementById('btnPrintValas')?.addEventListener('click', async () => {
     const dariSelect = document.getElementById('dariRekening');
     const keSelect = document.getElementById('keRekening');
+    
+    // Validasi No CEK/LOA wajib
     const noRef = document.getElementById('noRefValas')?.value.trim();
-    if (!noRef) { alert('No CEK/LOA wajib diisi!'); return; }
+    if (!noRef) {
+        alert('No CEK/LOA wajib diisi!');
+        return;
+    }
+    
     const dariText = dariSelect?.options[dariSelect.selectedIndex]?.text || '';
     const keText = keSelect?.options[keSelect.selectedIndex]?.text || '';
     
@@ -353,7 +359,6 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     const berita = document.getElementById('beritaValas')?.value || '-';
     const tujuan = document.getElementById('tujuanValas')?.value || '-';
     const infoTambahan = document.getElementById('infoTambahanValas')?.value || '-';
-    const noRef = document.getElementById('noRefValas')?.value || 'REF-' + new Date().toISOString().slice(0,10).replace(/-/g,'');
     
     if (jumlahValasVal <= 0 || kurs <= 0) {
         alert('Masukkan jumlah valas dan kurs dengan benar!');
