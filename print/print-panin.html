@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print Bank Panin</title>
     <style>
         * {
@@ -12,7 +11,7 @@
         }
         
         body {
-            font-family: 'Courier New', 'Lucida Console', monospace;
+            font-family: 'Courier New', monospace;
             font-size: 10pt;
             width: 105mm;
             margin: 0 auto;
@@ -25,7 +24,7 @@
             min-height: 140mm;
         }
         
-        /* ========== POSISI ABSOLUTE ========== */
+        /* ========== KIRI ========== */
         .jumlah-angka {
             position: absolute;
             top: 5mm;
@@ -39,92 +38,101 @@
             top: 12mm;
             left: 5mm;
             font-size: 9pt;
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 2px;
-            width: 90%;
         }
         
         .nama-penerima {
             position: absolute;
-            top: 25mm;
+            top: 22mm;
             left: 5mm;
             font-weight: bold;
         }
         
         .account {
             position: absolute;
-            top: 32mm;
+            top: 29mm;
             left: 5mm;
         }
         
         .alamat {
             position: absolute;
-            top: 39mm;
+            top: 36mm;
             left: 5mm;
         }
         
         .bank-name {
             position: absolute;
-            top: 50mm;
+            top: 47mm;
             left: 5mm;
             font-weight: bold;
         }
         
-        .negara {
+        .bank-alamat {
             position: absolute;
-            top: 57mm;
+            top: 54mm;
             left: 5mm;
         }
         
-        .berita {
+        .swift {
+            position: absolute;
+            top: 61mm;
+            left: 5mm;
+        }
+        
+        .negara {
             position: absolute;
             top: 68mm;
             left: 5mm;
         }
         
+        .berita {
+            position: absolute;
+            top: 79mm;
+            left: 5mm;
+        }
+        
         .tujuan {
             position: absolute;
-            top: 75mm;
+            top: 86mm;
             left: 5mm;
         }
         
         .pengirim {
             position: absolute;
-            top: 90mm;
+            top: 97mm;
             left: 5mm;
             font-weight: bold;
         }
         
         .deretan-angka {
             position: absolute;
-            top: 97mm;
+            top: 104mm;
             left: 5mm;
             letter-spacing: 5px;
         }
         
-        /* Kolom kanan */
-        .ref-kode {
+        /* ========== KANAN ========== */
+        .ref-no-cek {
             position: absolute;
-            top: 25mm;
+            top: 22mm;
             right: 5mm;
             text-align: right;
         }
         
-        .ref-nomor {
+        .ref-norek-pengirim {
             position: absolute;
-            top: 32mm;
+            top: 29mm;
             right: 5mm;
             text-align: right;
         }
         
         .ref-jumlah {
             position: absolute;
-            top: 39mm;
+            top: 36mm;
             right: 5mm;
             text-align: right;
         }
         
-        .jumlah-tengah {
+        .jumlah-akhir {
             position: absolute;
             top: 50mm;
             right: 5mm;
@@ -133,21 +141,19 @@
             font-weight: bold;
         }
         
-        .biaya-item {
+        /* Detail Valas (khusus pembelian valas) */
+        .detail-valas {
             position: absolute;
-            top: 60mm;
+            top: 62mm;
             right: 5mm;
             text-align: right;
         }
         
-        .total-biaya {
+        .biaya-item {
             position: absolute;
-            top: 80mm;
+            top: 85mm;
             right: 5mm;
             text-align: right;
-            border-top: 1px dashed #ccc;
-            padding-top: 3px;
-            font-weight: bold;
         }
         
         @media print {
@@ -163,74 +169,113 @@
     </style>
 </head>
 <body>
-    <div class="print-container" id="printContainer">
-        <!-- Data akan diisi oleh JavaScript -->
-    </div>
+    <div id="printContainer"></div>
     <script>
-        // Ambil data dari URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
         
         const data = {
-            currency: urlParams.get('currency') || 'EUR',
-            jumlah: parseFloat(urlParams.get('jumlah')) || 0,
-            terbilang: urlParams.get('terbilang') || '',
-            nama: urlParams.get('nama') || '-',
-            account: urlParams.get('account') || '-',
-            alamat: urlParams.get('alamat') || '-',
-            bankName: urlParams.get('bankName') || '-',
-            country: urlParams.get('country') || '-',
-            berita: urlParams.get('berita') || '-',
-            tujuan: urlParams.get('tujuan') || '-',
-            noLoa: urlParams.get('noLoa') || '-',
-            biayaTelex: urlParams.get('biayaTelex') || 0,
-            metodeTransfer: urlParams.get('metodeTransfer') || 'SHARE',
-            biayaFullAmount: urlParams.get('biayaFullAmount') || 0,
-            totalBiaya: urlParams.get('totalBiaya') || 0,
-            pengirim: urlParams.get('pengirim') || 'PT. SINAR CAHAYA CEMERLANG',
-            deretanAngka: urlParams.get('deretanAngka') || '0 7 9 6 0 0 0 6 6 5'
+            currency: params.get('currency') || 'EUR',
+            jumlah: parseFloat(params.get('jumlah')) || 0,
+            terbilang: params.get('terbilang') || '',
+            nama: params.get('nama') || '-',
+            account: params.get('account') || '-',
+            alamat: params.get('alamat') || '-',
+            bankName: params.get('bankName') || '-',
+            bankAlamat: params.get('bankAlamat') || '-',
+            swift: params.get('swift') || '-',
+            country: params.get('country') || '-',
+            berita: params.get('berita') || '-',
+            tujuan: params.get('tujuan') || '-',
+            noLoa: params.get('noLoa') || '-',
+            norekPengirim: params.get('norekPengirim') || '',
+            pengirim: params.get('pengirim') || '',
+            biayaTelex: parseFloat(params.get('biayaTelex')) || 0,
+            metodeTransfer: params.get('metodeTransfer') || 'SHARE',
+            biayaFullAmount: parseFloat(params.get('biayaFullAmount')) || 0,
+            jenis: params.get('jenis') || 'transfer',
+            kurs: parseFloat(params.get('kurs')) || 0,
+            jumlahIDR: parseFloat(params.get('jumlahIDR')) || 0
         };
         
+        const formattedJumlah = data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
+        const norekFormat = data.norekPengirim.split('').join(' ');
+        
+        // FULL AMOUNT & BIAYA TELEX
+        let barisFullAmount = '';
+        if (data.metodeTransfer === 'FULL_AMOUNT') {
+            barisFullAmount = `<div>${data.currency} ${data.biayaFullAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>`;
+        } else {
+            barisFullAmount = `<div>&nbsp;</div>`;
+        }
+        
+        let biayaTelexText = '';
+        if (data.biayaTelex === 50000) {
+            biayaTelexText = 'Rp 50.000';
+        } else {
+            biayaTelexText = 'Rp 35.000';
+        }
+        
+        const biayaItems = `
+            <div>${data.currency} ${formattedJumlah}</div>
+            ${barisFullAmount}
+            <div>${biayaTelexText}</div>
+        `;
+        
+        // DETAIL VALAS (dengan IDR)
+        let detailValasHtml = '';
+        if (data.jenis === 'valas') {
+            const formattedJumlahValas = data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
+            const formattedKurs = data.kurs.toLocaleString('id-ID');
+            const formattedJumlahIDR = data.jumlahIDR.toLocaleString('id-ID');
+            
+            detailValasHtml = `
+                <div>${data.currency} ${formattedJumlahValas}</div>
+                <div>IDR ${formattedKurs}</div>
+                <div><strong>IDR ${formattedJumlahIDR}</strong></div>
+            `;
+        }
+        
         const html = `
-            <div class="jumlah-angka">${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-            <div class="terbilang">${data.terbilang}</div>
-            
-            <div class="nama-penerima">${data.nama}</div>
-            <div class="account">${data.account}</div>
-            <div class="alamat">${data.alamat}</div>
-            
-            <div class="bank-name">${data.bankName}</div>
-            <div class="negara">${data.country}</div>
-            
-            <div class="berita">${data.berita}</div>
-            <div class="tujuan">${data.tujuan}</div>
-            
-            <div class="pengirim">${data.pengirim}</div>
-            <div class="deretan-angka">${data.deretanAngka}</div>
-            
-            <div class="ref-kode">B084235</div>
-            <div class="ref-nomor">${data.noLoa}</div>
-            <div class="ref-jumlah">${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-            
-            <div class="jumlah-tengah">${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-            
-            <div class="biaya-item">
-                ${data.currency} ${data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
-                ${data.currency} 25<br>
-                IDR. 50,000
-            </div>
-            
-            <div class="total-biaya">
-                Biaya Telex: IDR ${data.biayaTelex.toLocaleString('id-ID')}<br>
-                ${data.metodeTransfer === 'FULL_AMOUNT' ? `Biaya Full Amount: ${data.biayaFullAmount} ${data.currency}<br>` : ''}
-                <strong>Total: IDR ${data.totalBiaya.toLocaleString('id-ID')}</strong>
+            <div class="print-container">
+                <!-- KIRI -->
+                <div class="jumlah-angka">${data.currency} ${formattedJumlah}</div>
+                <div class="terbilang">${data.terbilang}</div>
+                
+                <div class="nama-penerima">${data.nama}</div>
+                <div class="account">${data.account}</div>
+                <div class="alamat">${data.alamat}</div>
+                
+                <div class="bank-name">${data.bankName}</div>
+                <div class="bank-alamat">${data.bankAlamat}</div>
+                <div class="swift">${data.swift}</div>
+                <div class="negara">${data.country}</div>
+                
+                <div class="berita">${data.berita}</div>
+                <div class="tujuan">${data.tujuan}</div>
+                
+                <div class="pengirim">${data.pengirim}</div>
+                <div class="deretan-angka">${norekFormat}</div>
+                
+                <!-- KANAN -->
+                <div class="ref-no-cek">${data.noLoa}</div>
+                <div class="ref-norek-pengirim">${data.norekPengirim}</div>
+                <div class="ref-jumlah">${data.currency} ${formattedJumlah}</div>
+                
+                <div class="jumlah-akhir">${data.currency} ${formattedJumlah}</div>
+                
+                ${data.jenis === 'valas' ? `<div class="detail-valas">${detailValasHtml}</div>` : ''}
+                
+                <div class="biaya-item">${biayaItems}</div>
             </div>
         `;
         
         document.getElementById('printContainer').innerHTML = html;
         
-        // Auto print
         window.onload = function() {
-            setTimeout(() => window.print(), 500);
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => window.close(), 500);
+            }, 300);
         };
     </script>
 </body>
