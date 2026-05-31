@@ -17,7 +17,7 @@ async function loadRiwayatTransfer() {
     const tbody = document.getElementById('riwayatTransferBody');
     if (!tbody) return;
     
-    tbody.innerHTML = '<tr><td colspan="7">Memuat data transfer...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9">Memuat data transfer......</td></tr>';
     try {
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
@@ -36,6 +36,8 @@ async function loadRiwayatTransfer() {
                 const penerima = row[4] || '-';
                 const jumlah = parseFloat(row[7]) || 0;
                 const currency = row[6] || '-';
+                const metode = row[12] || 'SHARE';  // Kolom 12: Metode Transfer
+                const biayaFull = parseFloat(row[13]) || 0; // Kolom 13: Biaya Full Amount
                 
                 html += `
                     <tr>
@@ -45,6 +47,8 @@ async function loadRiwayatTransfer() {
                         <td>${penerima}</td>
                         <td>${jumlah.toLocaleString('id-ID')}</td>
                         <td>${currency}</td>
+                        <td>${metode}</td>
+                        <td>${biayaFull.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                         <td>
                             <button class="btn-print-ulang" data-index="${i}" data-type="transfer">🖨️ Print</button>
                             <button class="btn-hapus" data-index="${i}" data-type="transfer">🗑️ Hapus</button>
@@ -77,11 +81,11 @@ async function loadRiwayatTransfer() {
                 });
             });
         } else {
-            tbody.innerHTML = '</table><td colspan="7">Belum ada riwayat transfer</td><tr>';
+            tbody.innerHTML = '<tr><td colspan="9">Belum ada riwayat transfer</td></tr>';
         }
     } catch (error) {
         console.error("Gagal:", error);
-        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat数据</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9">Gagal memuat data</td></tr>';
     }
 }
 
@@ -219,34 +223,51 @@ async function loadRiwayatValas() {
     }
 }
 
+// ========== PRINT ULANG TRANSFER (dengan semua data dari Google Sheet) ==========
 function printUlangTransfer(rowData) {
-    // Ambil data berdasarkan indeks Google Sheet yang benar
-    const bank = rowData[3] || '-';           // Bank tujuan
-    const penerima = rowData[4] || '-';       // Nama penerima
-    const account = rowData[5] || '-';        // Account number
-    const currency = rowData[6] || 'USD';     // Currency
-    const jumlah = parseFloat(rowData[7]) || 0; // Jumlah
-    const berita = rowData[8] || '-';         // Berita
-    const tujuan = rowData[9] || '-';         // Tujuan
-    const noLoa = rowData[2] || '-';          // No LOA
-    const rekeningAsal = rowData[10] || '';   // Rekening asal (kolom 10)
-    const status = rowData[11] || '-';        // Status
+    // Ambil data berdasarkan indeks Google Sheet
+    // Pastikan kolom sesuai dengan yang disimpan di transfer.js
+    const bank = rowData[3] || '-';                    // Bank tujuan
+    const penerima = rowData[4] || '-';                // Nama penerima
+    const account = rowData[5] || '-';                 // Account number
+    const currency = rowData[6] || 'USD';              // Currency
+    const jumlah = parseFloat(rowData[7]) || 0;        // Jumlah
+    const berita = rowData[8] || '-';                  // Berita
+    const tujuan = rowData[9] || '-';                  // Tujuan
+    const noLoa = rowData[2] || '-';                   // No LOA
+    const rekeningAsal = rowData[10] || '';            // Rekening asal
+    const status = rowData[11] || '-';                 // Status
+    const valueDate = rowData[14] || '-';              // Value Date (kolom 14 jika ada)
     
-    // Parse rekening asal (format: "Nama Perusahaan - No Rekening")
+    // ===== DATA BARU (kolom 12-16) =====
+    const metodeTransfer = rowData[12] || 'SHARE';              // Metode Transfer
+    const biayaFullAmount = parseFloat(rowData[13]) || 0;       // Biaya Full Amount
+    const biayaTelex = parseFloat(rowData[14]) || 0;            // Biaya Telex
+    const kurs = parseFloat(rowData[15]) || 0;                  // Kurs (untuk valas)
+    const jumlahIDR = parseFloat(rowData[16]) || 0;             // Jumlah dalam IDR
+    
+    // Parse rekening asal (format: "Nama Perusahaan - jenis (MataUang) - No Rek - Bank")
     let pengirimNama = 'PT SINAR CAHAYA CEMERLANG';
     let norekPengirim = '';
+    let mataUangRekeningAsal = 'IDR';
     
     if (rekeningAsal) {
         const parts = rekeningAsal.split(' - ');
         if (parts[0] && parts[0].trim()) {
             pengirimNama = parts[0].trim();
         }
-        if (parts[1] && parts[1].trim()) {
-            norekPengirim = parts[1].trim();
+        // Cari mata uang dari teks (misal: "(USD)")
+        const matchCurrency = rekeningAsal.match(/\(([A-Z]{3})\)/);
+        if (matchCurrency) {
+            mataUangRekeningAsal = matchCurrency[1];
+        }
+        // Ambil no rekening (biasanya di bagian ke-3 dari belakang)
+        if (parts.length >= 3) {
+            norekPengirim = parts[parts.length - 2]?.trim() || '';
         }
     }
     
-    // Fungsi terbilang (sama seperti sebelumnya)
+    // Fungsi terbilang
     function terbilangAngka(angka, curr) {
         const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
         const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
@@ -284,14 +305,26 @@ function printUlangTransfer(rowData) {
     
     const terbilang = terbilangAngka(jumlah, currency);
     
+    // Hitung total biaya untuk full amount
+    let totalBiaya = biayaTelex;
+    if (metodeTransfer === 'FULL_AMOUNT') {
+        totalBiaya = biayaTelex + biayaFullAmount;
+    }
+    
+    // Tentukan jenis transaksi (transfer biasa atau valas)
+    let jenisTransaksi = 'transfer';
+    if (mataUangRekeningAsal === 'IDR' && currency !== 'IDR') {
+        jenisTransaksi = 'valas';
+    }
+    
     const params = new URLSearchParams({
         currency: currency,
         jumlah: jumlah,
         terbilang: terbilang,
         nama: penerima,
         account: account,
-        alamat: '-',
-        bankName: '-',
+        alamat: rowData[5] || '-',
+        bankName: rowData[4] || '-',
         bankAlamat: '-',
         swift: '-',
         country: '-',
@@ -300,16 +333,20 @@ function printUlangTransfer(rowData) {
         noLoa: noLoa,
         norekPengirim: norekPengirim,
         pengirim: pengirimNama,
-        valueDate: rowData[1] || '-',  // Tanggal transfer
-        biayaTelex: 0,
-        metodeTransfer: 'SHARE',
-        biayaFullAmount: 0,
-        totalBiaya: 0
+        valueDate: valueDate,
+        biayaTelex: biayaTelex,
+        metodeTransfer: metodeTransfer,
+        biayaFullAmount: biayaFullAmount,
+        totalBiaya: totalBiaya,
+        kurs: kurs,
+        jumlahIDR: jumlahIDR,
+        jenis: jenisTransaksi
     }).toString();
     
     // Tentukan path print
     let printUrl;
-    if (bank.toUpperCase() === 'PANIN') {
+    const bankUpper = (bank || '').toUpperCase();
+    if (bankUpper === 'PANIN') {
         printUrl = `../print/print-panin.html?${params}`;
     } else {
         printUrl = `../print/print-bca.html?${params}`;
@@ -322,6 +359,7 @@ function printUlangTransfer(rowData) {
         alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
     }
 }
+
 // ========== PRINT ULANG TANDA TERIMA ==========
 function printUlangTT(rowData) {
     const noTT = rowData[1] || '-';
@@ -386,44 +424,47 @@ function printUlangValas(rowData) {
     const mataUang = rowData[8] || '-';
     const berita = rowData[9] || '-';
     
-    const printContent = `
-        <div style="font-family: monospace; padding: 20px; width: 105mm; margin: 0 auto;">
-            <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px;">
-                <h2>APLIKASI AL</h2>
-                <h3>BUKTI PEMBELIAN VALAS</h3>
-            </div>
-            <div><strong>Tanggal:</strong> ${tanggal}</div>
-            <div><strong>No Ref:</strong> ${noRef}</div>
-            <div style="margin-top: 15px;"><strong>Detail Transaksi:</strong></div>
-            <div>Dari Rekening: ${dariRek}</div>
-            <div>Ke Rekening: ${keRek}</div>
-            <div>Jumlah Dibayar: IDR ${jumlahIDR.toLocaleString('id-ID')}</div>
-            <div>Kurs: 1 ${mataUang} = IDR ${kurs.toLocaleString('id-ID')}</div>
-            <div style="font-size: 14pt; font-weight: bold; margin: 10px 0;">
-                Jumlah Dapat: ${jumlahDapat.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUang}
-            </div>
-            <div><strong>Berita:</strong> ${berita}</div>
-            <div style="margin-top: 20px; text-align: center; font-size: 9pt;">Dicetak dari APLIKASI AL</div>
-        </div>
-    `;
+    // Ekstrak mata uang dari rekening asal
+    let mataUangRekeningAsal = 'IDR';
+    if (dariRek) {
+        const match = dariRek.match(/\(([A-Z]{3})\)/);
+        if (match) mataUangRekeningAsal = match[1];
+    }
     
-    const printWindow = window.open('', '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Print Valas</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: 'Courier New', monospace; margin: 0; padding: 0; }
-                @media print { @page { size: A4; margin: 0; } }
-            </style>
-        </head>
-        <body>${printContent}</body>
-        </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+    const terbilang = `${jumlahDapat.toLocaleString('en-US', {minimumFractionDigits: 2})} ${mataUang}`;
+    
+    const params = new URLSearchParams({
+        currency: mataUang,
+        jumlah: jumlahDapat,
+        terbilang: terbilang,
+        nama: 'PEMBELIAN VALAS',
+        account: keRek,
+        alamat: '-',
+        bankName: '-',
+        bankAlamat: '-',
+        swift: '-',
+        country: '-',
+        berita: berita,
+        tujuan: '-',
+        noLoa: noRef,
+        norekPengirim: dariRek,
+        pengirim: dariRek.split(' - ')[0] || 'PT SINAR CAHAYA CEMERLANG',
+        valueDate: tanggal,
+        biayaTelex: 0,
+        metodeTransfer: 'SHARE',
+        biayaFullAmount: 0,
+        totalBiaya: 0,
+        kurs: kurs,
+        jumlahIDR: jumlahIDR,
+        jenis: 'valas'
+    }).toString();
+    
+    const printUrl = `../print/print-panin.html?${params}`;
+    const printWindow = window.open(printUrl, '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
+    
+    if (!printWindow) {
+        alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+    }
 }
 
 // ========== HAPUS RIWAYAT TRANSFER ==========
