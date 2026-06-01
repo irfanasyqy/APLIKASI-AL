@@ -502,7 +502,7 @@ function printUlangTransfer(rowData) {
         totalBiaya: totalBiaya,
         kurs: kurs,
         jumlahIDR: jumlahIDR,
-        jenis: jenisTransaksi
+        jenis: 'transfer'
     }).toString();
 
         // DEBUG - Cek parameter yang dikirim

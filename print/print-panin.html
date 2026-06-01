@@ -82,10 +82,10 @@
         
         const mataUangRekeningAsal = getCurrencyFromRekening(data.norekPengirim);
         
-        // ========== 3 KONDISI ==========
-        const isPembelianValas = data.jenis === 'valas';
-        const isTransferValas = (mataUangRekeningAsal === 'IDR' && data.currency !== 'IDR') && !isPembelianValas;
-        const isTransferBiasa = !isPembelianValas && !isTransferValas;
+                // ========== 3 KONDISI ==========
+        const isPembelianValas = (data.jenis === 'valas');
+        const isTransferValas = (!isPembelianValas && data.currency !== 'IDR');
+        const isTransferBiasa = (!isPembelianValas && data.currency === 'IDR');
         
         // Hitung jumlah akhir
         let jumlahAkhir = data.jumlah;
