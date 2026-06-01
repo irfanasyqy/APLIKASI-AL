@@ -36,7 +36,6 @@
         .rincian-biaya .total-row { border-top: 1px dashed #000; font-weight: bold; }
         .rincian-biaya .telex-row td:first-child { text-align: left; }
         
-        .jumlah-akhir { position: absolute; top: 110mm; right: 5mm; text-align: right; font-size: 13pt; font-weight: bold; display: none; } /* Sembunyikan, karena total sudah di ref-total */
         .keterangan-biaya { position: absolute; top: 118mm; right: 5mm; text-align: right; font-size: 7pt; color: #666; }
         
         @media print { body { background: white; margin: 0; padding: 0; box-shadow: none; } .print-container { box-shadow: none; padding: 0; } @page { size: A4; margin: 0; } }
@@ -71,6 +70,7 @@
             jumlahIDR: parseFloat(params.get('jumlahIDR')) || 0
         };
         
+        // ========== FUNGSI CEK MATA UANG REKENING ASAL ==========
         function getCurrencyFromRekening(norek) {
             if (!norek) return 'IDR';
             const upper = norek.toUpperCase();
@@ -81,9 +81,13 @@
         }
         
         const mataUangRekeningAsal = getCurrencyFromRekening(data.norekPengirim);
-        const isTransaksiValas = (mataUangRekeningAsal === 'IDR' && data.currency !== 'IDR') || data.jenis === 'valas';
-        const isPembelianValas = data.jenis === 'valas';
         
+        // ========== 3 KONDISI ==========
+        const isPembelianValas = data.jenis === 'valas';
+        const isTransferValas = (mataUangRekeningAsal === 'IDR' && data.currency !== 'IDR') && !isPembelianValas;
+        const isTransferBiasa = !isPembelianValas && !isTransferValas;
+        
+        // Hitung jumlah akhir
         let jumlahAkhir = data.jumlah;
         let showBiayaFull = false;
         if (data.metodeTransfer === 'FULL_AMOUNT') {
@@ -91,11 +95,12 @@
             showBiayaFull = true;
         }
         
+        // ========== FORMAT ANGKA ==========
         const formatAngka = (angka, curr) => {
             if (curr === 'IDR') {
                 return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
             } else {
-                return angka.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                return angka.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
         };
         
@@ -113,30 +118,35 @@
         if (data.kurs > 0 && showBiayaFull) {
             formattedBiayaFullIDR = formatAngka(data.biayaFullAmount * data.kurs, 'IDR');
         }
-        if (isTransaksiValas && data.kurs > 0) {
+        if (isTransferValas && data.kurs > 0) {
             formattedJumlahAkhirIDR = formatAngka(jumlahAkhir * data.kurs, 'IDR');
-        }
-        
-        // Tentukan total display untuk ref-total
-        let totalDisplay = '';
-        if (isPembelianValas) {
-            totalDisplay = `IDR ${formattedJumlahIDR}`;
-        } else if (isTransaksiValas) {
-            totalDisplay = `IDR ${formattedJumlahAkhirIDR}`;
-        } else {
-            totalDisplay = `${data.currency} ${formattedJumlahAkhir}`;
         }
         
         const norekFormat = data.norekPengirim.split('').join(' ');
         
-        // ========== TABEL 3 BARIS 3 KOLOM ==========
+        // Total untuk ref-total
+        let totalDisplay = '';
+        if (isPembelianValas) {
+            totalDisplay = `IDR ${formattedJumlahIDR}`;
+        } else if (isTransferValas) {
+            if (data.kurs > 0) {
+                totalDisplay = `IDR ${formattedJumlahAkhirIDR}`;
+            } else {
+                totalDisplay = `${data.currency} ${formattedJumlahAkhir}`;
+            }
+        } else {
+            totalDisplay = `${data.currency} ${formattedJumlahAkhir}`;
+        }
+        
+        // ========== BUILD RINCIAN BIAYA ==========
         let rincianHtml = '';
         let keteranganBiaya = '';
         
         if (isPembelianValas) {
+            // KONDISI 1: Pembelian Valas - Hanya 1 baris
             rincianHtml = `
                 <table style="margin-left: auto;">
-                    <thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th><tr></thead>
+                    <thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead>
                     <tbody>
                         <tr><td class="currency-col">${data.currency} ${formattedJumlah}</td>
                             <td class="kurs-col">${formattedKurs}</td>
@@ -147,29 +157,58 @@
             `;
             keteranganBiaya = `Pembelian valas | 1 ${data.currency} = IDR ${formattedKurs}`;
             
-        } else if (isTransaksiValas) {
-            let rows = `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedJumlahIDR}</td></tr>`;
-            if (showBiayaFull) {
-                rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedBiayaFullIDR}</td></tr>`;
+        } else if (isTransferValas) {
+            // KONDISI 2: Transfer Valas IDR → USD/EUR
+            let rows = '';
+            
+            // Baris 1: Jumlah Transfer
+            if (data.kurs > 0 && data.jumlahIDR !== 0) {
+                rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedJumlahIDR}</td></tr>`;
+            } else {
+                rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}</td></tr>`;
             }
+            
+            // Baris 2: Full Amount
+            if (showBiayaFull) {
+                if (data.kurs > 0 && data.biayaFullAmount > 0) {
+                    rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedBiayaFullIDR}</td></tr>`;
+                } else {
+                    rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
+                }
+            }
+            
+            // Baris 3: Biaya Telex
             if (data.biayaTelex > 0) {
                 rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
             }
-            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>IDR ${formattedJumlahAkhirIDR}</strong></td></tr>`;
+            
+            // Total
+            let totalValue = '';
+            if (data.kurs > 0 && formattedJumlahAkhirIDR !== '0') {
+                totalValue = `IDR ${formattedJumlahAkhirIDR}`;
+            } else {
+                totalValue = `${data.currency} ${formattedJumlahAkhir}`;
+            }
+            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
             rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></table>`;
-            keteranganBiaya = `Transfer valas IDR → ${data.currency} | 1 ${data.currency} = IDR ${formattedKurs}`;
+            keteranganBiaya = `Transfer valas IDR → ${data.currency}`;
+            if (data.kurs > 0) keteranganBiaya += ` | 1 ${data.currency} = IDR ${formattedKurs}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
             if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex}`;
             
         } else {
+            // KONDISI 3: Transfer Biasa USD→USD, EUR→EUR
             let rows = `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}</td></tr>`;
+            
             if (showBiayaFull) {
                 rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
             }
+            
             if (data.biayaTelex > 0 && mataUangRekeningAsal === 'IDR') {
                 rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
             }
+            
             if (showBiayaFull) {
                 rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${data.currency} ${formattedJumlahAkhir}</strong></td></tr>`;
             }
