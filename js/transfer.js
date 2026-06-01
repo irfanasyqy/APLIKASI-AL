@@ -344,10 +344,6 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
             return;
         }
         jumlahIDR = jumlah * kurs;
-        
-        if (metodeTransferVal === 'FULL_AMOUNT') {
-            jumlahIDR = jumlahIDR + (biayaFullAmountVal * kurs);
-        }
     }
     
     const data = {

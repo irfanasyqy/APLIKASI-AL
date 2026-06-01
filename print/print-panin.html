@@ -151,9 +151,10 @@
             let totalNilaiEkuivalen = 0;
             let rows = '';
             
-            // BARIS 1: Jumlah Transfer (hanya jumlah × kurs)
-            let baris1Nilai = data.jumlahIDR;  // Langsung dari database
-            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedJumlahIDR}</td></tr>`;
+            // BARIS 1: Jumlah Transfer (hitung ulang: jumlah × kurs)
+            let baris1Nilai = data.jumlah * data.kurs;
+            let formattedBaris1Nilai = formatAngka(baris1Nilai, 'IDR');
+            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedBaris1Nilai}</td></tr>`;
             totalNilaiEkuivalen += baris1Nilai;
             
             // BARIS 2: Full Amount (biayaFullAmount × kurs)
