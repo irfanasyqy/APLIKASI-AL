@@ -473,11 +473,11 @@ function printUlangTransfer(rowData) {
         terbilang: terbilang,
         nama: penerima,
         account: account,
-        alamat: '-',
-        bankName: '-',
-        bankAlamat: '-',
-        swift: '-',
-        country: '-',
+        alamat: supplierData.alamat,        // ← dari supplier
+        bankName: supplierData.bankName,    // ← dari supplier
+        bankAlamat: supplierData.bankAlamat, // ← dari supplier
+        swift: supplierData.swift,          // ← dari supplier
+        country: supplierData.country,      // ← dari supplier
         berita: berita,
         tujuan: tujuan,
         noLoa: noLoa,
