@@ -504,6 +504,13 @@ function printUlangTransfer(rowData) {
         jumlahIDR: jumlahIDR,
         jenis: jenisTransaksi
     }).toString();
+
+        // DEBUG - Cek parameter yang dikirim
+    console.log('=== PARAMETER YANG DIKIRIM KE PRINT ===');
+    console.log('biayaTelex:', biayaTelex);
+    console.log('biayaFullAmount:', biayaFullAmount);
+    console.log('metodeTransfer:', metodeTransfer);
+    console.log('URL params:', params);
     
     // Tentukan print URL
     let printUrl;
@@ -620,13 +627,7 @@ function printUlangValas(rowData) {
         jumlahIDR: jumlahIDR,
         jenis: 'valas'
     }).toString();
-
-        // DEBUG - Cek parameter yang dikirim
-    console.log('=== PARAMETER YANG DIKIRIM KE PRINT ===');
-    console.log('biayaTelex:', biayaTelex);
-    console.log('biayaFullAmount:', biayaFullAmount);
-    console.log('metodeTransfer:', metodeTransfer);
-    console.log('URL params:', params);
+    
     
     const printUrl = `../print/print-panin.html?${params}`;
     const printWindow = window.open(printUrl, '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
