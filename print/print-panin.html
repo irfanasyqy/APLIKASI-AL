@@ -30,7 +30,7 @@
         .ref-total { position: absolute; top: 58mm; right: 5mm; text-align: right; font-size: 11pt; font-weight: bold; color: #000; }
         
         .rincian-biaya { position: absolute; top: 68mm; right: 5mm; text-align: right; font-size: 9pt; }
-        .rincian-biaya table { width: auto; min-width: 160px; text-align: right; border-collapse: collapse; margin-left: auto; }
+        .rincian-biaya table { width: auto; min-width: 180px; text-align: right; border-collapse: collapse; margin-left: auto; }
         .rincian-biaya th { border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; }
         .rincian-biaya td { padding: 2px 4px; white-space: nowrap; }
         .rincian-biaya .total-row { border-top: 1px dashed #000; font-weight: bold; }
@@ -70,32 +70,7 @@
             jumlahIDR: parseFloat(params.get('jumlahIDR')) || 0
         };
         
-        // ========== FUNGSI CEK MATA UANG REKENING ASAL ==========
-        function getCurrencyFromRekening(norek) {
-            if (!norek) return 'IDR';
-            const upper = norek.toUpperCase();
-            if (upper.includes('USD')) return 'USD';
-            if (upper.includes('EUR')) return 'EUR';
-            if (upper.includes('IDR')) return 'IDR';
-            return 'IDR';
-        }
-        
-        const mataUangRekeningAsal = getCurrencyFromRekening(data.norekPengirim);
-        
-                // ========== 3 KONDISI ==========
-        const isPembelianValas = (data.jenis === 'valas');
-        const isTransferValas = (!isPembelianValas && data.currency !== 'IDR');
-        const isTransferBiasa = (!isPembelianValas && data.currency === 'IDR');
-        
-        // Hitung jumlah akhir
-        let jumlahAkhir = data.jumlah;
-        let showBiayaFull = false;
-        if (data.metodeTransfer === 'FULL_AMOUNT') {
-            jumlahAkhir = data.jumlah + data.biayaFullAmount;
-            showBiayaFull = true;
-        }
-        
-        // ========== FORMAT ANGKA ==========
+        // Format angka dengan desimal untuk USD/EUR
         const formatAngka = (angka, curr) => {
             if (curr === 'IDR') {
                 return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
@@ -107,116 +82,158 @@
         const formatKurs = (k) => k.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
         
         const formattedJumlah = formatAngka(data.jumlah, data.currency);
-        const formattedJumlahAkhir = formatAngka(jumlahAkhir, data.currency);
         const formattedBiayaFull = formatAngka(data.biayaFullAmount, data.currency);
         const formattedBiayaTelex = data.biayaTelex.toLocaleString('id-ID', {minimumFractionDigits: 0});
         const formattedKurs = formatKurs(data.kurs);
         const formattedJumlahIDR = formatAngka(data.jumlahIDR, 'IDR');
         
+        // Hitung nilai IDR untuk full amount jika ada kurs
         let formattedBiayaFullIDR = '0';
-        let formattedJumlahAkhirIDR = '0';
-        if (data.kurs > 0 && showBiayaFull) {
-            formattedBiayaFullIDR = formatAngka(data.biayaFullAmount * data.kurs, 'IDR');
+        let biayaFullIDRValue = 0;
+        if (data.kurs > 0 && data.biayaFullAmount > 0) {
+            biayaFullIDRValue = data.biayaFullAmount * data.kurs;
+            formattedBiayaFullIDR = formatAngka(biayaFullIDRValue, 'IDR');
         }
-        if (isTransferValas && data.kurs > 0) {
-            formattedJumlahAkhirIDR = formatAngka(jumlahAkhir * data.kurs, 'IDR');
+        
+        // Hitung jumlah akhir (untuk total)
+        let jumlahAkhir = data.jumlah;
+        let showBiayaFull = false;
+        if (data.metodeTransfer === 'FULL_AMOUNT') {
+            jumlahAkhir = data.jumlah + data.biayaFullAmount;
+            showBiayaFull = true;
         }
         
         const norekFormat = data.norekPengirim.split('').join(' ');
         
-        // Total untuk ref-total
-        let totalDisplay = '';
-        if (isPembelianValas) {
-            totalDisplay = `IDR ${formattedJumlahIDR}`;
-        } else if (isTransferValas) {
-            if (data.kurs > 0) {
-                totalDisplay = `IDR ${formattedJumlahAkhirIDR}`;
-            } else {
-                totalDisplay = `${data.currency} ${formattedJumlahAkhir}`;
-            }
-        } else {
-            totalDisplay = `${data.currency} ${formattedJumlahAkhir}`;
-        }
+        // ========== 3 KONDISI ==========
+        const isPembelianValas = (data.jenis === 'valas');
+        const isTransferValas = (!isPembelianValas && data.currency !== 'IDR');
+        const isTransferBiasa = (!isPembelianValas && data.currency === 'IDR');
         
-        // ========== BUILD RINCIAN BIAYA ==========
+        // Debug
+        console.log('=== 3 KONDISI ===');
+        console.log('isPembelianValas:', isPembelianValas);
+        console.log('isTransferValas:', isTransferValas);
+        console.log('isTransferBiasa:', isTransferBiasa);
+        console.log('kurs:', data.kurs);
+        console.log('jumlahIDR:', data.jumlahIDR);
+        
+        // Variabel untuk total
+        let totalDisplay = '';
         let rincianHtml = '';
         let keteranganBiaya = '';
         
+        // ========== KONDISI 1: PEMBELIAN VALAS ==========
         if (isPembelianValas) {
-            // KONDISI 1: Pembelian Valas - Hanya 1 baris
+            let nilaiEkuivalen = data.jumlahIDR;
+            let totalNilai = nilaiEkuivalen;
+            
             rincianHtml = `
                 <table style="margin-left: auto;">
-                    <thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead>
+                    <thead>
+                        <tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr>
+                    </thead>
                     <tbody>
-                        <tr><td class="currency-col">${data.currency} ${formattedJumlah}</td>
+                        <tr>
+                            <td class="currency-col">${data.currency} ${formattedJumlah}</td>
                             <td class="kurs-col">${formattedKurs}</td>
-                            <td class="jumlah-col">IDR ${formattedJumlahIDR}</td>
+                            <td class="jumlah-col">IDR ${formatAngka(nilaiEkuivalen, 'IDR')}</td>
                         </tr>
                     </tbody>
                 </table>
             `;
+            totalDisplay = `IDR ${formatAngka(totalNilai, 'IDR')}`;
             keteranganBiaya = `Pembelian valas | 1 ${data.currency} = IDR ${formattedKurs}`;
-            
-        } else if (isTransferValas) {
-            // KONDISI 2: Transfer Valas IDR → USD/EUR
+        }
+        
+        // ========== KONDISI 2: TRANSFER VALAS (IDR → USD/EUR) ==========
+        else if (isTransferValas) {
+            let totalNilaiEkuivalen = 0;
             let rows = '';
             
             // Baris 1: Jumlah Transfer
+            let baris1Valuta = `${data.currency} ${formattedJumlah}`;
+            let baris1Kurs = (data.kurs > 0) ? formattedKurs : '-';
+            let baris1Nilai = '';
+            
             if (data.kurs > 0 && data.jumlahIDR !== 0) {
-                rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedJumlahIDR}</td></tr>`;
+                baris1Nilai = `IDR ${formattedJumlahIDR}`;
+                totalNilaiEkuivalen += data.jumlahIDR;
             } else {
-                rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}</td></tr>`;
+                baris1Nilai = `${data.currency} ${formattedJumlah}`;
+                totalNilaiEkuivalen += data.jumlah;
             }
+            rows += `<tr><td class="currency-col">${baris1Valuta}</td><td class="kurs-col">${baris1Kurs}</td><td class="jumlah-col">${baris1Nilai}</td></tr>`;
             
             // Baris 2: Full Amount
             if (showBiayaFull) {
+                let baris2Valuta = `${data.currency} ${formattedBiayaFull}`;
+                let baris2Kurs = (data.kurs > 0) ? formattedKurs : '-';
+                let baris2Nilai = '';
+                
                 if (data.kurs > 0 && data.biayaFullAmount > 0) {
-                    rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedBiayaFullIDR}</td></tr>`;
+                    baris2Nilai = `IDR ${formattedBiayaFullIDR}`;
+                    totalNilaiEkuivalen += biayaFullIDRValue;
                 } else {
-                    rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
+                    baris2Nilai = `${data.currency} ${formattedBiayaFull}`;
+                    totalNilaiEkuivalen += data.biayaFullAmount;
                 }
+                rows += `<tr><td class="currency-col">${baris2Valuta}</td><td class="kurs-col">${baris2Kurs}</td><td class="jumlah-col">${baris2Nilai}</td></tr>`;
             }
             
             // Baris 3: Biaya Telex
             if (data.biayaTelex > 0) {
                 rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
+                totalNilaiEkuivalen += data.biayaTelex;
             }
             
             // Total
             let totalValue = '';
-            if (data.kurs > 0 && formattedJumlahAkhirIDR !== '0') {
-                totalValue = `IDR ${formattedJumlahAkhirIDR}`;
+            if (data.kurs > 0) {
+                totalValue = `IDR ${totalNilaiEkuivalen.toLocaleString('id-ID', {minimumFractionDigits: 0})}`;
             } else {
-                totalValue = `${data.currency} ${formattedJumlahAkhir}`;
+                totalValue = `${data.currency} ${totalNilaiEkuivalen.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
             }
             rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
             rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></table>`;
+            totalDisplay = totalValue;
             keteranganBiaya = `Transfer valas IDR → ${data.currency}`;
             if (data.kurs > 0) keteranganBiaya += ` | 1 ${data.currency} = IDR ${formattedKurs}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
             if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex}`;
+        }
+        
+        // ========== KONDISI 3: TRANSFER BIASA (USD→USD, EUR→EUR) ==========
+        else {
+            let totalNilaiEkuivalen = 0;
+            let rows = '';
             
-        } else {
-            // KONDISI 3: Transfer Biasa USD→USD, EUR→EUR
-            let rows = `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}</td></tr>`;
+            // Baris 1: Jumlah Transfer
+            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}</td></tr>`;
+            totalNilaiEkuivalen += data.jumlah;
             
+            // Baris 2: Full Amount
             if (showBiayaFull) {
                 rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
+                totalNilaiEkuivalen += data.biayaFullAmount;
             }
             
-            if (data.biayaTelex > 0 && mataUangRekeningAsal === 'IDR') {
+            // Baris 3: Biaya Telex (jika ada)
+            if (data.biayaTelex > 0) {
                 rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
+                // Biaya telex tidak dimasukkan ke total karena beda mata uang
             }
             
-            if (showBiayaFull) {
-                rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${data.currency} ${formattedJumlahAkhir}</strong></td></tr>`;
-            }
+            // Total (hanya untuk USD/EUR)
+            let totalValue = `${data.currency} ${totalNilaiEkuivalen.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
             rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></table>`;
-            keteranganBiaya = `Transfer ${mataUangRekeningAsal} → ${data.currency}`;
+            totalDisplay = totalValue;
+            keteranganBiaya = `Transfer ${data.currency} → ${data.currency}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
-            if (data.biayaTelex > 0 && mataUangRekeningAsal === 'IDR') keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex} (terpisah)`;
+            if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex} (terpisah)`;
         }
         
         const html = `
