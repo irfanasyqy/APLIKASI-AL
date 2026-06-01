@@ -192,3 +192,23 @@ button {
     font-size: 0.85rem;
     margin-top: 8px;
 }
+
+/* Untuk row dengan 3 kolom */
+.row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.row .form-group {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .row {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

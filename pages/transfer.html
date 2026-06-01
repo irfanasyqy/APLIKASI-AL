@@ -25,69 +25,94 @@
         </div>
         
         <!-- ========== FORM TRANSFER KE SUPPLIER ========== -->
-        <div id="formSupplier" class="transfer-form">
-            <div class="form-group">
-                <label>Pilih Supplier</label>
-                <select id="supplierSelect" style="width: 100%; padding: 12px 14px; border-radius: 18px;">
-                    <option value="">-- Pilih Supplier --</option>
-                </select>
-                <input type="text" id="searchSupplier" placeholder="🔍 Cari supplier (nama, account, bank)..." style="margin-top: 8px; width: 100%; padding: 10px 12px; border-radius: 18px;">
-                <div id="supplierSearchResult" style="font-size: 0.7rem; color: #666; margin-top: 4px;"></div>
-            </div>
-            
-            <!-- Rekening Asal -->
-            <div class="form-group">
-                <label>Rekening Asal (Perusahaan)</label>
-                <select id="rekeningAsalTransfer">
-                    <option value="">-- Pilih Rekening Asal --</option>
-                </select>
-            </div>
+<div id="formSupplier" class="transfer-form">
+    <div class="form-group">
+        <label>Pilih Supplier</label>
+        <select id="supplierSelect" style="width: 100%; padding: 12px 14px; border-radius: 18px;">
+            <option value="">-- Pilih Supplier --</option>
+        </select>
+        <input type="text" id="searchSupplier" placeholder="🔍 Cari supplier (nama, account, bank)..." style="margin-top: 8px; width: 100%; padding: 10px 12px; border-radius: 18px;">
+        <div id="supplierSearchResult" style="font-size: 0.7rem; color: #666; margin-top: 4px;"></div>
+    </div>
+    
+    <!-- Rekening Asal -->
+    <div class="form-group">
+        <label>Rekening Asal (Perusahaan)</label>
+        <select id="rekeningAsalTransfer">
+            <option value="">-- Pilih Rekening Asal --</option>
+        </select>
+    </div>
 
-            <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
-            
-            <div class="row">
-                <div class="form-group"><label>Jumlah</label><input type="number" id="jumlahTransfer" step="100"></div>
-                <div class="form-group"><label>Currency</label><input type="text" id="currencyDisplay" readonly></div>
-            </div>
-            
-            <div class="form-group"><label>Berita Transfer</label><textarea id="beritaTransfer" rows="2"></textarea></div>
-            <div class="form-group"><label>Tujuan Transfer</label><textarea id="tujuanTransfer" rows="1"></textarea></div>
-            <div class="form-group"><label id="labelNoRefTransfer">No LOA</label><input type="text" id="noRefTransfer" placeholder="Nomor LOA (Letter of Authorization)" required></div>
-            
-            <!-- VALUE DATE & BIAYA TELEX -->
-            <div class="row">
-                <div class="form-group">
-                    <label>Value Date</label>
-                    <select id="valueDateType">
-                        <option value="TODAY">TODAY (Hari ini) - Biaya Rp 50.000</option>
-                        <option value="SPOT">SPOT (2 hari kerja) - Biaya Rp 35.000</option>
-                        <option value="TOM">TOM (Besok) - Biaya Rp 35.000</option>
-                    </select>
-                    <small style="font-size: 0.7rem; color: #666;">Biaya Telex: <span id="biayaTelexDisplay">Rp 50.000</span></small>
-                </div>
-                <div class="form-group">
-                    <label>Metode Transfer</label>
-                    <select id="metodeTransfer">
-                        <option value="SHARE">SHARE (Biaya dibagi)</option>
-                        <option value="FULL_AMOUNT">FULL AMOUNT (Biaya ditanggung pengirim)</option>
-                    </select>
-                </div>
-            </div>
-            <input type="hidden" id="biayaTelex" value="50000">
-            
-            <!-- Detail Full Amount -->
-            <div id="fullAmountDetail" style="display: none;">
-                <div class="form-group">
-                    <label>Biaya Full Amount</label>
-                    <div id="fullAmountInfo" style="background: #f0f0f0; padding: 10px; border-radius: 12px;">
-                        <p id="fullAmountText">Pilih metode FULL AMOUNT untuk melihat biaya</p>
-                    </div>
-                    <input type="hidden" id="fullAmountBiaya" value="0">
-                </div>
-            </div>
-            
-            <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
+    <div id="supplierInfo" class="supplier-info" style="display:none;"></div>
+    
+    <!-- BARIS 1: Jumlah + Kurs + Currency -->
+    <div class="row">
+        <div class="form-group">
+            <label>Jumlah Transfer</label>
+            <input type="number" id="jumlahTransfer" step="100" placeholder="Masukkan jumlah">
         </div>
+        
+        <div class="form-group" id="kursTransferGroup" style="display: none;">
+            <label>Kurs (IDR → <span id="kursCurrencyTarget">USD</span>)</label>
+            <input type="number" id="kursTransfer" step="0.01" placeholder="Contoh: 15000">
+            <small style="font-size: 0.65rem; color: #666;">Wajib diisi jika rekening asal IDR</small>
+        </div>
+        
+        <div class="form-group">
+            <label>Currency</label>
+            <input type="text" id="currencyDisplay" readonly style="background:#f0f0f0;">
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label>Berita Transfer</label>
+        <textarea id="beritaTransfer" rows="2"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label>Tujuan Transfer</label>
+        <textarea id="tujuanTransfer" rows="1"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label id="labelNoRefTransfer">No LOA</label>
+        <input type="text" id="noRefTransfer" placeholder="Nomor LOA (Letter of Authorization)" required>
+    </div>
+    
+    <!-- VALUE DATE & BIAYA TELEX -->
+    <div class="row">
+        <div class="form-group">
+            <label>Value Date</label>
+            <select id="valueDateType">
+                <option value="TODAY">TODAY (Hari ini) - Biaya Rp 50.000</option>
+                <option value="SPOT">SPOT (2 hari kerja) - Biaya Rp 35.000</option>
+                <option value="TOM">TOM (Besok) - Biaya Rp 35.000</option>
+            </select>
+            <small style="font-size: 0.7rem; color: #666;">Biaya Telex: <span id="biayaTelexDisplay">Rp 50.000</span></small>
+        </div>
+        <div class="form-group">
+            <label>Metode Transfer</label>
+            <select id="metodeTransfer">
+                <option value="SHARE">SHARE (Biaya dibagi)</option>
+                <option value="FULL_AMOUNT">FULL AMOUNT (Biaya ditanggung pengirim)</option>
+            </select>
+        </div>
+    </div>
+    <input type="hidden" id="biayaTelex" value="50000">
+    
+    <!-- Detail Full Amount -->
+    <div id="fullAmountDetail" style="display: none;">
+        <div class="form-group">
+            <label>Biaya Full Amount</label>
+            <div id="fullAmountInfo" style="background: #f0f0f0; padding: 10px; border-radius: 12px;">
+                <p id="fullAmountText">Pilih metode FULL AMOUNT untuk melihat biaya</p>
+            </div>
+            <input type="hidden" id="fullAmountBiaya" value="0">
+        </div>
+    </div>
+    
+    <button id="btnPrintTransfer" class="btn-success">🖨️ SUBMIT & PRINT</button>
+</div>
         
 <!-- ========== FORM PEMBELIAN VALAS ========== -->
 <div id="formValas" class="transfer-form" style="display: none;">

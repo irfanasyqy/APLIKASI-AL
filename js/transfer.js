@@ -40,6 +40,41 @@ async function loadRekening() {
     }
 }
 
+// ========== CEK APAKAH PERLU KURS (UNTUK TRANSFER VALAS) ==========
+function checkNeedKurs() {
+    const supplierSelect = document.getElementById('supplierSelect');
+    const rekeningAsalSelect = document.getElementById('rekeningAsalTransfer');
+    const kursGroup = document.getElementById('kursTransferGroup');
+    const kursCurrencyTarget = document.getElementById('kursCurrencyTarget');
+    const currencyDisplay = document.getElementById('currencyDisplay');
+    
+    if (!supplierSelect?.value || !rekeningAsalSelect?.value) {
+        if (kursGroup) kursGroup.style.display = 'none';
+        return;
+    }
+    
+    const idx = supplierSelect.value;
+    const supplier = suppliers[idx];
+    const rekeningAsalText = rekeningAsalSelect.options[rekeningAsalSelect.selectedIndex]?.text || '';
+    
+    // Ambil mata uang dari rekening asal (format: "... (USD) ...")
+    let mataUangRekeningAsal = 'IDR';
+    const matchCurrency = rekeningAsalText.match(/\(([A-Z]{3})\)/);
+    if (matchCurrency) mataUangRekeningAsal = matchCurrency[1];
+    
+    const needKurs = (mataUangRekeningAsal === 'IDR' && supplier.currency !== 'IDR');
+    
+    if (kursGroup) {
+        kursGroup.style.display = needKurs ? 'flex' : 'none';
+    }
+    if (kursCurrencyTarget && supplier) {
+        kursCurrencyTarget.innerText = supplier.currency;
+    }
+    if (currencyDisplay && supplier) {
+        currencyDisplay.value = supplier.currency;
+    }
+}
+
 // ========== HITUNG BIAYA TELEX ==========
 const valueDateType = document.getElementById('valueDateType');
 const biayaTelexDisplay = document.getElementById('biayaTelexDisplay');
@@ -141,7 +176,6 @@ if (tabSupplier && tabValas) {
         if (formSupplier) formSupplier.style.display = 'block';
         if (formValas) formValas.style.display = 'none';
         
-        // Ubah label Transfer Supplier menjadi "No LOA"
         if (labelNoRefTransfer) labelNoRefTransfer.innerText = 'No LOA';
     });
     
@@ -151,7 +185,6 @@ if (tabSupplier && tabValas) {
         if (formSupplier) formSupplier.style.display = 'none';
         if (formValas) formValas.style.display = 'block';
         
-        // Ubah label Valas menjadi "No CEK"
         if (labelNoRefValas) labelNoRefValas.innerText = 'No CEK/LOA';
         
         if (typeof loadRekening === 'function') loadRekening();
@@ -225,17 +258,22 @@ function terbilangAngka(angka, currency) {
         if (n < 100) {
             let puluh = Math.floor(n / 10);
             let sisa = n % 10;
-            return puluhan[puluh] + (sisa > 0 ? ' ' + satuan[sisa] : '');
+            if (sisa === 0) return puluhan[puluh];
+            return puluhan[puluh] + ' ' + satuan[sisa];
         }
         if (n < 1000) {
             let ratus = Math.floor(n / 100);
             let sisa = n % 100;
-            return satuan[ratus] + ' RATUS' + (sisa > 0 ? ' ' + convert(sisa) : '');
+            let ratusText = (ratus === 1) ? 'SERATUS' : satuan[ratus] + ' RATUS';
+            if (sisa === 0) return ratusText;
+            return ratusText + ' ' + convert(sisa);
         }
         if (n < 1000000) {
             let ribu = Math.floor(n / 1000);
             let sisa = n % 1000;
-            return convert(ribu) + ' RIBU' + (sisa > 0 ? ' ' + convert(sisa) : '');
+            let ribuText = (ribu === 1) ? 'SERIBU' : convert(ribu) + ' RIBU';
+            if (sisa === 0) return ribuText;
+            return ribuText + ' ' + convert(sisa);
         }
         return n.toString();
     }
@@ -248,13 +286,20 @@ function terbilangAngka(angka, currency) {
     return hasil + ' ' + currency;
 }
 
-// ========== EKSTRAK MATA UANG DARI REKENING ASAL ==========
+// ========== EKSTRAK MATA UANG & BANK DARI REKENING ASAL ==========
 function getCurrencyFromRekeningText(rekeningText) {
     if (!rekeningText) return 'IDR';
     if (rekeningText.toUpperCase().includes('USD')) return 'USD';
     if (rekeningText.toUpperCase().includes('EUR')) return 'EUR';
     if (rekeningText.toUpperCase().includes('IDR')) return 'IDR';
     return 'IDR';
+}
+
+function getBankPengirimFromRekeningText(rekeningText) {
+    if (!rekeningText) return 'PANIN';
+    if (rekeningText.toUpperCase().includes('BCA')) return 'BCA';
+    if (rekeningText.toUpperCase().includes('PANIN')) return 'PANIN';
+    return 'PANIN';
 }
 
 // ========== PRINT TRANSFER KE SUPPLIER ==========
@@ -271,15 +316,13 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     const rekeningAsalText = rekeningAsalSelect?.options[rekeningAsalSelect.selectedIndex]?.text || '';
     const rekeningAsalValue = rekeningAsalSelect?.value || '';
     
-    let bank = 'PANIN';
-    if (rekeningAsalText.toUpperCase().includes('BCA')) {
-        bank = 'BCA';
-    }
-    
     if (!rekeningAsalSelect?.value) {
         alert('Pilih rekening asal terlebih dahulu!');
         return;
     }
+    
+    // Ambil bank pengirim dari rekening asal
+    const bankPengirim = getBankPengirimFromRekeningText(rekeningAsalText);
     
     const biayaTelexVal = parseInt(document.getElementById('biayaTelex')?.value) || 35000;
     const metodeTransferVal = document.getElementById('metodeTransfer')?.value || 'SHARE';
@@ -293,17 +336,15 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     let kurs = 0;
     let jumlahIDR = 0;
     if (mataUangRekeningAsal === 'IDR' && supplier.currency !== 'IDR') {
-        // Jika ada input kurs manual di form, ambil dari situ
         const kursInput = document.getElementById('kursTransfer')?.value;
         if (kursInput) {
             kurs = parseFloat(kursInput);
         } else {
-            // Default kurs contoh (Anda bisa sesuaikan dengan API kurs)
-            kurs = 15000;
+            alert('Kurs wajib diisi untuk transaksi valas (IDR ke ' + supplier.currency + ')');
+            return;
         }
         jumlahIDR = jumlah * kurs;
         
-        // Tambahkan biaya full amount ke jumlahIDR jika metode FULL_AMOUNT
         if (metodeTransferVal === 'FULL_AMOUNT') {
             jumlahIDR = jumlahIDR + (biayaFullAmountVal * kurs);
         }
@@ -311,26 +352,24 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     
     const data = {
         type: 'saveTransfer',
-        tanggal: new Date().toLocaleDateString(),
+        tanggal: new Date().toLocaleDateString('id-ID'),
         tanggalISO: new Date().toISOString(),
-        noLoa: document.getElementById('noRefTransfer')?.value || '',
-        bankTujuan: bank,
+        noLoa: noLoa,
+        bankTujuan: supplier.bankName || '-',  // Bank asing supplier
         namaPenerima: supplier.nama,
         accountNumber: supplier.account,
         currency: supplier.currency,
         jumlah: jumlah,
-        berita: document.getElementById('beritaTransfer').value,
-        tujuan: document.getElementById('tujuanTransfer').value,
-        rekeningAsal: rekeningAsalValue,
+        berita: document.getElementById('beritaTransfer').value || '',
+        tujuan: document.getElementById('tujuanTransfer').value || '',
+        rekeningAsal: rekeningAsalValue,  // Format: Nama - Jenis (MataUang) - NoRek - Bank
         valueDate: getValueDateString(),
         biayaTelex: biayaTelexVal,
         metodeTransfer: metodeTransferVal,
         biayaFullAmount: biayaFullAmountVal,
         totalBiaya: totalBiaya,
-        // TAMBAHAN untuk valas & kurs
         kurs: kurs,
-        jumlahIDR: jumlahIDR,
-        mataUangRekeningAsal: mataUangRekeningAsal
+        jumlahIDR: jumlahIDR
     };
     
     // Kirim ke Google Sheet via API
@@ -346,6 +385,11 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     
     const terbilang = terbilangAngka(jumlah, supplier.currency);
     
+    // Parse rekening asal untuk mendapatkan nama pengirim dan norek
+    const rekeningParts = rekeningAsalValue.split(' - ');
+    const pengirimNama = rekeningParts[0] || 'PT SINAR CAHAYA CEMERLANG';
+    const norekPengirim = rekeningParts[2] || '';
+    
     const params = new URLSearchParams({
         currency: supplier.currency,
         jumlah: jumlah,
@@ -357,24 +401,23 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
         bankAlamat: supplier.bankAlamat || '',
         swift: supplier.swift || '',
         country: supplier.country || '',
-        berita: data.berita || '',
-        tujuan: data.tujuan || '',
-        noLoa: data.noLoa || '',
-        norekPengirim: rekeningAsalValue,
-        pengirim: rekeningAsalText.split(' - ')[0] || 'PT SINAR CAHAYA CEMERLANG',
+        berita: data.berita,
+        tujuan: data.tujuan,
+        noLoa: data.noLoa,
+        norekPengirim: norekPengirim,
+        pengirim: pengirimNama,
+        valueDate: data.valueDate,
         biayaTelex: biayaTelexVal,
         metodeTransfer: metodeTransferVal,
         biayaFullAmount: biayaFullAmountVal,
         totalBiaya: totalBiaya,
-        valueDate: data.valueDate,
-        // TAMBAHAN parameter untuk valas
         kurs: kurs,
         jumlahIDR: jumlahIDR,
         jenis: 'transfer'
     }).toString();
     
-    // Buka window print
-    const printWindow = window.open(bank === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`, '_blank');
+    // Buka window print berdasarkan BANK PENGIRIM (bukan bank tujuan)
+    const printWindow = window.open(bankPengirim === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`, '_blank');
     
     if (!printWindow) {
         alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
@@ -391,7 +434,6 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     const dariSelect = document.getElementById('dariRekening');
     const keSelect = document.getElementById('keRekening');
     
-    // Validasi No CEK/LOA wajib
     const noRef = document.getElementById('noRefValas')?.value.trim();
     if (!noRef) {
         alert('No CEK/LOA wajib diisi!');
@@ -406,9 +448,10 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         return;
     }
     
-    let bankAsal = 'PANIN';
+    // Ambil bank pengirim dari rekening asal
+    let bankPengirim = 'PANIN';
     if (dariText.toUpperCase().includes('BCA')) {
-        bankAsal = 'BCA';
+        bankPengirim = 'BCA';
     }
     
     const mataUangTujuan = keText.split(' ')[0] || 'USD';
@@ -419,8 +462,12 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
     const tujuan = document.getElementById('tujuanValas')?.value || '-';
     const infoTambahan = document.getElementById('infoTambahanValas')?.value || '-';
     
-    if (jumlahValasVal <= 0 || kurs <= 0) {
-        alert('Masukkan jumlah valas dan kurs dengan benar!');
+    if (jumlahValasVal <= 0) {
+        alert('Masukkan jumlah valas dengan benar!');
+        return;
+    }
+    if (kurs <= 0) {
+        alert('Kurs wajib diisi!');
         return;
     }
     
@@ -459,14 +506,14 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         nama: 'PEMBELIAN VALAS',
         account: keText,
         alamat: '-',
-        bankName: bankAsal === 'PANIN' ? 'BANK PANIN' : 'BANK BCA',
+        bankName: bankPengirim === 'PANIN' ? 'BANK PANIN' : 'BANK BCA',
         bankAlamat: '-',
         swift: '-',
         country: 'INDONESIA',
         berita: berita,
         tujuan: tujuan,
         noLoa: noRef,
-        norekPengirim: dariText,
+        norekPengirim: dariText.split(' - ')[2] || '',
         pengirim: dariText.split(' - ')[0] || 'PT SINAR CAHAYA CEMERLANG',
         biayaTelex: 0,
         metodeTransfer: 'SHARE',
@@ -478,7 +525,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         jenis: 'valas'
     }).toString();
     
-    const printWindow = window.open(bankAsal === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`, '_blank');
+    const printWindow = window.open(bankPengirim === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`, '_blank');
     
     if (!printWindow) {
         alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
@@ -499,9 +546,19 @@ if (valueDateType) {
     hitungBiayaTelex();
 }
 
-// Supplier change update full amount
+// ========== EVENT LISTENER UNTUK KURS DINAMIS ==========
 document.getElementById('supplierSelect')?.addEventListener('change', () => {
     if (metodeTransfer?.value === 'FULL_AMOUNT') {
         updateFullAmountInfo();
     }
+    checkNeedKurs();  // Cek perlu kurs atau tidak
 });
+
+document.getElementById('rekeningAsalTransfer')?.addEventListener('change', () => {
+    checkNeedKurs();  // Cek perlu kurs atau tidak
+});
+
+// Inisialisasi
+setTimeout(() => {
+    checkNeedKurs();
+}, 100);
