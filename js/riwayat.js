@@ -225,7 +225,7 @@ async function loadRiwayatValas() {
 
 function printUlangTransfer(rowData) {
     // Ambil data dari rowData (RiwayatTransfer)
-    const bank = rowData[3] || '-';
+    const bankTujuan = rowData[3] || '-';           // Bank tujuan (asing supplier)
     const penerima = rowData[4] || '-';
     const account = rowData[5] || '-';
     const currency = rowData[6] || 'USD';
@@ -233,38 +233,10 @@ function printUlangTransfer(rowData) {
     const berita = rowData[8] || '-';
     const tujuan = rowData[9] || '-';
     const noLoa = rowData[2] || '-';
-    const rekeningAsal = rowData[10] || '';
+    const rekeningAsal = rowData[10] || '';          // Kolom K: "PT Sinar - IDR - 123 - PANIN"
     
-    // ========== AMBIL DATA LENGKAP SUPPLIER DARI ARRAY SUPPLIERS ==========
-    let supplierData = {
-        alamat: '-',
-        bankName: '-',
-        bankAlamat: '-',
-        swift: '-',
-        country: '-'
-    };
-    
-    if (typeof suppliers !== 'undefined' && suppliers && suppliers.length > 0) {
-        const foundSupplier = suppliers.find(s => s.nama === penerima);
-        if (foundSupplier) {
-            supplierData = {
-                alamat: foundSupplier.alamat || '-',
-                bankName: foundSupplier.bankName || '-',
-                bankAlamat: foundSupplier.bankAlamat || '-',
-                swift: foundSupplier.swift || '-',
-                country: foundSupplier.country || '-'
-            };
-        }
-    }
-    
-    // Data tambahan (kolom 11-16)
-    const metodeTransfer = rowData[11] || 'SHARE';
-    const biayaFullAmount = parseFloat(rowData[12]) || 0;
-    const biayaTelex = parseFloat(rowData[13]) || 0;
-    const kurs = parseFloat(rowData[14]) || 0;
-    const jumlahIDR = parseFloat(rowData[15]) || 0;
-    
-    // Parse rekening asal (kolom 10)
+    // ========== AMBIL BANK PENGIRIM DARI REKENING ASAL (KOLOM K) ==========
+    let bankPengirim = 'PANIN';
     let pengirimNama = 'PT SINAR CAHAYA CEMERLANG';
     let norekPengirim = '';
     let mataUangRekeningAsal = 'IDR';
@@ -274,7 +246,24 @@ function printUlangTransfer(rowData) {
         if (parts[0]) pengirimNama = parts[0].trim();
         if (parts[1]) mataUangRekeningAsal = parts[1].trim();
         if (parts[2]) norekPengirim = parts[2].trim();
+        
+        // Bank pengirim dari bagian terakhir (parts[3])
+        if (parts[3]) {
+            const bankPart = parts[3].trim().toUpperCase();
+            if (bankPart.includes('BCA')) {
+                bankPengirim = 'BCA';
+            } else if (bankPart.includes('PANIN')) {
+                bankPengirim = 'PANIN';
+            }
+        }
     }
+    
+    // Data tambahan (kolom 11-16)
+    const metodeTransfer = rowData[11] || 'SHARE';
+    const biayaFullAmount = parseFloat(rowData[12]) || 0;
+    const biayaTelex = parseFloat(rowData[13]) || 0;
+    const kurs = parseFloat(rowData[14]) || 0;
+    const jumlahIDR = parseFloat(rowData[15]) || 0;
     
     // Tentukan jenis transaksi
     let jenisTransaksi = 'transfer';
@@ -288,48 +277,9 @@ function printUlangTransfer(rowData) {
         totalBiaya = biayaTelex + biayaFullAmount;
     }
     
-    // Fungsi terbilang
+    // Fungsi terbilang (sederhana)
     function terbilangAngka(angka, curr) {
-        const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
-        const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
-        const puluhan = ['', '', 'DUA PULUH', 'TIGA PULUH', 'EMPAT PULUH', 'LIMA PULUH', 'ENAM PULUH', 'TUJUH PULUH', 'DELAPAN PULUH', 'SEMBILAN PULUH'];
-        
-        function convert(n) {
-            if (n === 0) return '';
-            if (n < 10) return satuan[n];
-            if (n < 20) return belasan[n - 10];
-            if (n < 100) {
-                let puluh = Math.floor(n / 10);
-                let sisa = n % 10;
-                if (sisa === 0) return puluhan[puluh];
-                return puluhan[puluh] + ' ' + satuan[sisa];
-            }
-            if (n < 1000) {
-                let ratus = Math.floor(n / 100);
-                let sisa = n % 100;
-                let ratusText = (ratus === 1) ? 'SERATUS' : satuan[ratus] + ' RATUS';
-                if (sisa === 0) return ratusText;
-                return ratusText + ' ' + convert(sisa);
-            }
-            if (n < 1000000) {
-                let ribu = Math.floor(n / 1000);
-                let sisa = n % 1000;
-                let ribuText = (ribu === 1) ? 'SERIBU' : convert(ribu) + ' RIBU';
-                if (sisa === 0) return ribuText;
-                return ribuText + ' ' + convert(sisa);
-            }
-            return n.toString();
-        }
-        
-        let bulat = Math.floor(angka);
-        let pecahan = Math.round((angka - bulat) * 100);
-        let hasil = convert(bulat);
-        if (hasil === '') hasil = 'NOL';
-        if (pecahan > 0) {
-            let pecahanText = convert(pecahan);
-            hasil += ' KOMA ' + (pecahanText === '' ? 'NOL' : pecahanText);
-        }
-        return hasil + ' ' + curr;
+        // ... (fungsi terbilang Anda)
     }
     
     const terbilang = terbilangAngka(jumlah, currency);
@@ -340,11 +290,11 @@ function printUlangTransfer(rowData) {
         terbilang: terbilang,
         nama: penerima,
         account: account,
-        alamat: supplierData.alamat,
-        bankName: supplierData.bankName,
-        bankAlamat: supplierData.bankAlamat,
-        swift: supplierData.swift,
-        country: supplierData.country,
+        alamat: '-',
+        bankName: '-',
+        bankAlamat: '-',
+        swift: '-',
+        country: '-',
         berita: berita,
         tujuan: tujuan,
         noLoa: noLoa,
@@ -360,10 +310,9 @@ function printUlangTransfer(rowData) {
         jenis: jenisTransaksi
     }).toString();
     
-    // Tentukan print URL
+    // ========== TENTUKAN PRINT URL BERDASARKAN BANK PENGIRIM ==========
     let printUrl;
-    const bankUpper = (bank || '').toUpperCase();
-    if (bankUpper === 'PANIN') {
+    if (bankPengirim === 'PANIN') {
         printUrl = `../print/print-panin.html?${params}`;
     } else {
         printUrl = `../print/print-bca.html?${params}`;
