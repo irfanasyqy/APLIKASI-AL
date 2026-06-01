@@ -51,19 +51,27 @@
             white-space: nowrap;
         }
         
+        /* TERBILANG - BISA WRAP MAX 2 BARIS */
         .terbilang {
             position: absolute;
             top: 12mm;
             left: 10mm;
             font-size: 9pt;
-            white-space: nowrap;
-            max-width: 90mm;
-            overflow-x: auto;
+            max-width: 80mm;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         .nama-penerima {
             position: absolute;
-            top: 20mm;
+            top: 24mm;  /* dari 20mm turun 4mm */
             left: 5mm;
             font-weight: bold;
             white-space: nowrap;
@@ -73,7 +81,7 @@
         
         .account {
             position: absolute;
-            top: 27mm;
+            top: 31mm;  /* dari 27mm turun 4mm */
             left: 5mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -82,7 +90,7 @@
         
         .alamat {
             position: absolute;
-            top: 34mm;
+            top: 38mm;  /* dari 34mm turun 4mm */
             left: 5mm;
             max-width: 90mm;
             white-space: normal;
@@ -98,7 +106,7 @@
         
         .bank-name {
             position: absolute;
-            top: 48mm;
+            top: 52mm;  /* dari 48mm turun 4mm */
             left: 5mm;
             font-weight: bold;
             white-space: nowrap;
@@ -108,7 +116,7 @@
         
         .bank-alamat {
             position: absolute;
-            top: 55mm;
+            top: 59mm;  /* dari 55mm turun 4mm */
             left: 5mm;
             max-width: 90mm;
             white-space: normal;
@@ -124,7 +132,7 @@
         
         .swift {
             position: absolute;
-            top: 69mm;
+            top: 73mm;  /* dari 69mm turun 4mm */
             left: 5mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -133,7 +141,7 @@
         
         .negara {
             position: absolute;
-            top: 76mm;
+            top: 80mm;  /* dari 76mm turun 4mm */
             left: 5mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -142,7 +150,7 @@
         
         .berita {
             position: absolute;
-            top: 86mm;
+            top: 90mm;  /* dari 86mm turun 4mm */
             left: 5mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -151,7 +159,7 @@
         
         .tujuan {
             position: absolute;
-            top: 93mm;
+            top: 97mm;  /* dari 93mm turun 4mm */
             left: 5mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -160,7 +168,7 @@
         
         .pengirim {
             position: absolute;
-            top: 103mm;
+            top: 107mm;  /* dari 103mm turun 4mm */
             left: 5mm;
             font-weight: bold;
             white-space: nowrap;
@@ -170,7 +178,7 @@
         
         .deretan-angka {
             position: absolute;
-            top: 110mm;
+            top: 114mm;  /* dari 110mm turun 4mm */
             left: 5mm;
             letter-spacing: 5px;
             white-space: nowrap;
@@ -436,7 +444,7 @@
                         <td class="currency-col"></td>
                         <td class="kurs-col"></td>
                         <td class="jumlah-col">IDR ${formattedBiayaTelex}</td>
-                    </tr>
+                    <tr>
                 `;
             }
             if (showBiayaFull) {
@@ -448,7 +456,7 @@
                     </tr>
                 `;
             }
-            rincianHtml = `<table style="margin-left: auto;">${rows}</td>`;
+            rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
             jumlahAkhirDisplay = showBiayaFull ? `${data.currency} ${formattedJumlahAkhir}` : `${data.currency} ${formattedJumlah}`;
             keteranganBiaya = `Transfer ${mataUangRekeningAsal} → ${data.currency}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
