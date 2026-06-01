@@ -225,7 +225,7 @@ async function loadRiwayatValas() {
 
 function printUlangTransfer(rowData) {
     // Ambil data dari rowData (RiwayatTransfer)
-    const bankTujuan = rowData[3] || '-';           // Bank tujuan (asing supplier)
+    const bankTujuan = rowData[3] || '-';
     const penerima = rowData[4] || '-';
     const account = rowData[5] || '-';
     const currency = rowData[6] || 'USD';
@@ -233,28 +233,36 @@ function printUlangTransfer(rowData) {
     const berita = rowData[8] || '-';
     const tujuan = rowData[9] || '-';
     const noLoa = rowData[2] || '-';
-    const rekeningAsal = rowData[10] || '';          // Kolom K: "PT Sinar - IDR - 123 - PANIN"
+    const rekeningAsal = rowData[10] || '';
     
-    // ========== AMBIL BANK PENGIRIM DARI REKENING ASAL (KOLOM K) ==========
-    let bankPengirim = 'PANIN';
+    // ========== DETEKSI BANK PENGIRIM, MATA UANG, DLL ==========
+    let bankPengirim = 'PANIN';  // default
     let pengirimNama = 'PT SINAR CAHAYA CEMERLANG';
     let norekPengirim = '';
     let mataUangRekeningAsal = 'IDR';
     
-    if (rekeningAsal) {
+    if (rekeningAsal && rekeningAsal !== '-') {
+        // Deteksi bank (BCA atau PANIN) - lihat bagian akhir
+        if (rekeningAsal.toUpperCase().includes('BCA')) {
+            bankPengirim = 'BCA';
+        } else if (rekeningAsal.toUpperCase().includes('PANIN')) {
+            bankPengirim = 'PANIN';
+        }
+        
+        // Ambil nama perusahaan (bagian sebelum strip pertama)
         const parts = rekeningAsal.split(' - ');
         if (parts[0]) pengirimNama = parts[0].trim();
-        if (parts[1]) mataUangRekeningAsal = parts[1].trim();
-        if (parts[2]) norekPengirim = parts[2].trim();
         
-        // Bank pengirim dari bagian terakhir (parts[3])
-        if (parts[3]) {
-            const bankPart = parts[3].trim().toUpperCase();
-            if (bankPart.includes('BCA')) {
-                bankPengirim = 'BCA';
-            } else if (bankPart.includes('PANIN')) {
-                bankPengirim = 'PANIN';
-            }
+        // Ambil mata uang dari dalam kurung (EUR) atau (USD)
+        const matchCurrency = rekeningAsal.match(/\(([A-Z]{3})\)/);
+        if (matchCurrency) {
+            mataUangRekeningAsal = matchCurrency[1];
+        }
+        
+        // Ambil no rekening (angka 4 digit atau lebih)
+        const matchNorek = rekeningAsal.match(/\d{4,}/);
+        if (matchNorek) {
+            norekPengirim = matchNorek[0];
         }
     }
     
@@ -270,6 +278,9 @@ function printUlangTransfer(rowData) {
     if (mataUangRekeningAsal === 'IDR' && currency !== 'IDR') {
         jenisTransaksi = 'valas';
     }
+    if (rekeningAsal.toUpperCase().includes('VALAS')) {
+        jenisTransaksi = 'valas';
+    }
     
     // Hitung total biaya
     let totalBiaya = biayaTelex;
@@ -277,12 +288,179 @@ function printUlangTransfer(rowData) {
         totalBiaya = biayaTelex + biayaFullAmount;
     }
     
-    // Fungsi terbilang (sederhana)
+    // DEBUG: Cek hasil deteksi di console
+    console.log('=== DEBUG PRINT TRANSFER ===');
+    console.log('rekeningAsal:', rekeningAsal);
+    console.log('bankPengirim terdeteksi:', bankPengirim);
+    console.log('mataUangRekeningAsal:', mataUangRekeningAsal);
+    console.log('norekPengirim:', norekPengirim);
+    console.log('jenisTransaksi:', jenisTransaksi);
+    
+    // Fungsi terbilang
     function terbilangAngka(angka, curr) {
-        // ... (fungsi terbilang Anda)
+        const satuan = ['', 'SATU', 'DUA', 'TIGA', 'EMPAT', 'LIMA', 'ENAM', 'TUJUH', 'DELAPAN', 'SEMBILAN'];
+        const belasan = ['SEPULUH', 'SEBELAS', 'DUA BELAS', 'TIGA BELAS', 'EMPAT BELAS', 'LIMA BELAS', 'ENAM BELAS', 'TUJUH BELAS', 'DELAPAN BELAS', 'SEMBILAN BELAS'];
+        const puluhan = ['', '', 'DUA PULUH', 'TIGA PULUH', 'EMPAT PULUH', 'LIMA PULUH', 'ENAM PULUH', 'TUJUH PULUH', 'DELAPAN PULUH', 'SEMBILAN PULUH'];
+        
+        function convert(n) {
+            if (n === 0) return '';
+            if (n < 10) return satuan[n];
+            if (n < 20) return belasan[n - 10];
+            if (n < 100) {
+                let puluh = Math.floor(n / 10);
+                let sisa = n % 10;
+                if (sisa === 0) return puluhan[puluh];
+                return puluhan[puluh] + ' ' + satuan[sisa];
+            }
+            if (n < 1000) {
+                let ratus = Math.floor(n / 100);
+                let sisa = n % 100;
+                let ratusText = (ratus === 1) ? 'SERATUS' : satuan[ratus] + ' RATUS';
+                if (sisa === 0) return ratusText;
+                return ratusText + ' ' + convert(sisa);
+            }
+            if (n < 1000000) {
+                let ribu = Math.floor(n / 1000);
+                let sisa = n % 1000;
+                let ribuText = (ribu === 1) ? 'SERIBU' : convert(ribu) + ' RIBU';
+                if (sisa === 0) return ribuText;
+                return ribuText + ' ' + convert(sisa);
+            }
+            return n.toString();
+        }
+        
+        let bulat = Math.floor(angka);
+        let pecahan = Math.round((angka - bulat) * 100);
+        let hasil = convert(bulat);
+        if (hasil === '') hasil = 'NOL';
+        if (pecahan > 0) {
+            let pecahanText = convert(pecahan);
+            hasil += ' KOMA ' + (pecahanText === '' ? 'NOL' : pecahanText);
+        }
+        return hasil + ' ' + curr;
     }
     
     const terbilang = terbilangAngka(jumlah, currency);
+    
+    // Format angka
+    const formatAngka = (angka, curr) => {
+        if (curr === 'IDR') {
+            return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        } else {
+            return angka.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        }
+    };
+    
+    const formatKurs = (kurs) => {
+        return kurs.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    };
+    
+    const formattedJumlah = formatAngka(jumlah, currency);
+    const formattedJumlahAkhir = formatAngka(jumlahAkhir, currency);
+    const formattedBiayaFull = formatAngka(biayaFullAmount, currency);
+    const formattedBiayaTelex = biayaTelex.toLocaleString('id-ID', {minimumFractionDigits: 0});
+    const formattedKurs = formatKurs(kurs);
+    const formattedJumlahIDR = formatAngka(jumlahIDR, 'IDR');
+    
+    let formattedBiayaFullIDR = '0';
+    let formattedJumlahAkhirIDR = '0';
+    if (kurs > 0 && showBiayaFull) {
+        formattedBiayaFullIDR = formatAngka(biayaFullAmount * kurs, 'IDR');
+    }
+    if (isTransaksiValas && kurs > 0) {
+        formattedJumlahAkhirIDR = formatAngka(jumlahAkhir * kurs, 'IDR');
+    }
+    
+    const norekFormat = norekPengirim.split('').join(' ');
+    
+    // ========== BUILD RINCIAN BIAYA ==========
+    let rincianHtml = '';
+    let jumlahAkhirDisplay = '';
+    let keteranganBiaya = '';
+    
+    // Hitung ulang isTransaksiValas dengan data yang sudah dideteksi
+    const isTransaksiValas = (mataUangRekeningAsal === 'IDR' && currency !== 'IDR') || jenisTransaksi === 'valas';
+    const isPembelianValas = false; // Sesuaikan jika perlu
+    
+    if (isTransaksiValas) {
+        let rows = `
+            <tr>
+                <td class="currency-col">${currency} ${formattedJumlah}</td>
+                <td class="kurs-col">${formattedKurs}</td>
+                <td class="jumlah-col">IDR ${formattedJumlahIDR}</td>
+            </tr>
+        `;
+        if (showBiayaFull) {
+            rows += `
+                <tr>
+                    <td class="currency-col">${currency} ${formattedBiayaFull}</td>
+                    <td class="kurs-col">${formattedKurs}</td>
+                    <td class="jumlah-col">IDR ${formattedBiayaFullIDR}</td>
+                </tr>
+            `;
+        }
+        if (biayaTelex > 0) {
+            rows += `
+                <tr class="telex-row">
+                    <td class="currency-col"></td>
+                    <td class="kurs-col"></td>
+                    <td class="jumlah-col">IDR ${formattedBiayaTelex}</td>
+                </tr>
+            `;
+        }
+        rows += `
+            <tr class="total-row">
+                <td class="currency-col"></td>
+                <td class="kurs-col"></td>
+                <td class="jumlah-col">IDR ${formattedJumlahAkhirIDR}</td>
+            </tr>
+        `;
+        rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
+        jumlahAkhirDisplay = `${currency} ${formattedJumlahAkhir}<br>(IDR ${formattedJumlahAkhirIDR})`;
+        keteranganBiaya = `Transfer valas IDR → ${currency} | 1 ${currency} = IDR ${formattedKurs}`;
+        if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
+        if (biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex}`;
+    } else {
+        let rows = `
+            <tr>
+                <td class="currency-col"></td>
+                <td class="kurs-col"></td>
+                <td class="jumlah-col">${currency} ${formattedJumlah}</td>
+            </tr>
+        `;
+        if (showBiayaFull) {
+            rows += `
+                <tr>
+                    <td class="currency-col"></td>
+                    <td class="kurs-col"><td>
+                    <td class="jumlah-col">${currency} ${formattedBiayaFull}</td>
+            职业
+            `;
+        }
+        if (biayaTelex > 0 && mataUangRekeningAsal === 'IDR') {
+            rows += `
+                <tr class="telex-row">
+                    <td class="currency-col"></td>
+                    <td class="kurs-col"></td>
+                    <td class="jumlah-col">IDR ${formattedBiayaTelex}</td>
+                </tr>
+            `;
+        }
+        if (showBiayaFull) {
+            rows += `
+                <tr class="total-row">
+                    <td class="currency-col"></td>
+                    <td class="kurs-col"></td>
+                    <td class="jumlah-col">${currency} ${formattedJumlahAkhir}</td>
+                </tr>
+            `;
+        }
+        rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
+        jumlahAkhirDisplay = showBiayaFull ? `${currency} ${formattedJumlahAkhir}` : `${currency} ${formattedJumlah}`;
+        keteranganBiaya = `Transfer ${mataUangRekeningAsal} → ${currency}`;
+        if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
+        if (biayaTelex > 0 && mataUangRekeningAsal === 'IDR') keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex} (terpisah)`;
+    }
     
     const params = new URLSearchParams({
         currency: currency,
@@ -312,10 +490,14 @@ function printUlangTransfer(rowData) {
     
     // ========== TENTUKAN PRINT URL BERDASARKAN BANK PENGIRIM ==========
     let printUrl;
+    console.log('bankPengirim untuk print:', bankPengirim);
+    
     if (bankPengirim === 'PANIN') {
         printUrl = `../print/print-panin.html?${params}`;
+        console.log('Menggunakan print-panin.html');
     } else {
         printUrl = `../print/print-bca.html?${params}`;
+        console.log('Menggunakan print-bca.html');
     }
     
     const printWindow = window.open(printUrl, '_blank');
