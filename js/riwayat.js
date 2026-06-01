@@ -223,48 +223,69 @@ async function loadRiwayatValas() {
     }
 }
 
-// ========== PRINT ULANG TRANSFER (dengan semua data dari Google Sheet) ==========
 function printUlangTransfer(rowData) {
-    // Ambil data berdasarkan indeks Google Sheet
-    // Pastikan kolom sesuai dengan yang disimpan di transfer.js
-    const bank = rowData[3] || '-';                    // Bank tujuan
-    const penerima = rowData[4] || '-';                // Nama penerima
-    const account = rowData[5] || '-';                 // Account number
-    const currency = rowData[6] || 'USD';              // Currency
-    const jumlah = parseFloat(rowData[7]) || 0;        // Jumlah
-    const berita = rowData[8] || '-';                  // Berita
-    const tujuan = rowData[9] || '-';                  // Tujuan
-    const noLoa = rowData[2] || '-';                   // No LOA
-    const rekeningAsal = rowData[10] || '';            // Rekening asal
-    const status = rowData[11] || '-';                 // Status
-    const valueDate = rowData[14] || '-';              // Value Date (kolom 14 jika ada)
+    // Ambil data dari rowData (RiwayatTransfer)
+    const bank = rowData[3] || '-';
+    const penerima = rowData[4] || '-';
+    const account = rowData[5] || '-';
+    const currency = rowData[6] || 'USD';
+    const jumlah = parseFloat(rowData[7]) || 0;
+    const berita = rowData[8] || '-';
+    const tujuan = rowData[9] || '-';
+    const noLoa = rowData[2] || '-';
+    const rekeningAsal = rowData[10] || '';
     
-    // ===== DATA BARU (kolom 12-16) =====
-    const metodeTransfer = rowData[12] || 'SHARE';              // Metode Transfer
-    const biayaFullAmount = parseFloat(rowData[13]) || 0;       // Biaya Full Amount
-    const biayaTelex = parseFloat(rowData[14]) || 0;            // Biaya Telex
-    const kurs = parseFloat(rowData[15]) || 0;                  // Kurs (untuk valas)
-    const jumlahIDR = parseFloat(rowData[16]) || 0;             // Jumlah dalam IDR
+    // ========== AMBIL DATA LENGKAP SUPPLIER DARI ARRAY SUPPLIERS ==========
+    let supplierData = {
+        alamat: '-',
+        bankName: '-',
+        bankAlamat: '-',
+        swift: '-',
+        country: '-'
+    };
     
-    // Parse rekening asal (format: "Nama Perusahaan - jenis (MataUang) - No Rek - Bank")
+    if (typeof suppliers !== 'undefined' && suppliers && suppliers.length > 0) {
+        const foundSupplier = suppliers.find(s => s.nama === penerima);
+        if (foundSupplier) {
+            supplierData = {
+                alamat: foundSupplier.alamat || '-',
+                bankName: foundSupplier.bankName || '-',
+                bankAlamat: foundSupplier.bankAlamat || '-',
+                swift: foundSupplier.swift || '-',
+                country: foundSupplier.country || '-'
+            };
+        }
+    }
+    
+    // Data tambahan (kolom 11-16)
+    const metodeTransfer = rowData[11] || 'SHARE';
+    const biayaFullAmount = parseFloat(rowData[12]) || 0;
+    const biayaTelex = parseFloat(rowData[13]) || 0;
+    const kurs = parseFloat(rowData[14]) || 0;
+    const jumlahIDR = parseFloat(rowData[15]) || 0;
+    
+    // Parse rekening asal (kolom 10)
     let pengirimNama = 'PT SINAR CAHAYA CEMERLANG';
     let norekPengirim = '';
     let mataUangRekeningAsal = 'IDR';
     
     if (rekeningAsal) {
         const parts = rekeningAsal.split(' - ');
-        if (parts[0] && parts[0].trim()) {
-            pengirimNama = parts[0].trim();
-        }
-        // Cari mata uang dari teks (misal: "(USD)")
-        const matchCurrency = rekeningAsal.match(/\(([A-Z]{3})\)/);
-        if (matchCurrency) {
-            mataUangRekeningAsal = matchCurrency[1];
-        }
-        // Ambil no rekening (biasanya di bagian ke-3 dari belakang)
-        if (parts.length >= 3) {
-            norekPengirim = parts[parts.length - 2]?.trim() || '';
-        }
+        if (parts[0]) pengirimNama = parts[0].trim();
+        if (parts[1]) mataUangRekeningAsal = parts[1].trim();
+        if (parts[2]) norekPengirim = parts[2].trim();
+    }
+    
+    // Tentukan jenis transaksi
+    let jenisTransaksi = 'transfer';
+    if (mataUangRekeningAsal === 'IDR' && currency !== 'IDR') {
+        jenisTransaksi = 'valas';
+    }
+    
+    // Hitung total biaya
+    let totalBiaya = biayaTelex;
+    if (metodeTransfer === 'FULL_AMOUNT') {
+        totalBiaya = biayaTelex + biayaFullAmount;
     }
     
     // Fungsi terbilang
@@ -280,17 +301,22 @@ function printUlangTransfer(rowData) {
             if (n < 100) {
                 let puluh = Math.floor(n / 10);
                 let sisa = n % 10;
-                return puluhan[puluh] + (sisa > 0 ? ' ' + satuan[sisa] : '');
+                if (sisa === 0) return puluhan[puluh];
+                return puluhan[puluh] + ' ' + satuan[sisa];
             }
             if (n < 1000) {
                 let ratus = Math.floor(n / 100);
                 let sisa = n % 100;
-                return satuan[ratus] + ' RATUS' + (sisa > 0 ? ' ' + convert(sisa) : '');
+                let ratusText = (ratus === 1) ? 'SERATUS' : satuan[ratus] + ' RATUS';
+                if (sisa === 0) return ratusText;
+                return ratusText + ' ' + convert(sisa);
             }
             if (n < 1000000) {
                 let ribu = Math.floor(n / 1000);
                 let sisa = n % 1000;
-                return convert(ribu) + ' RIBU' + (sisa > 0 ? ' ' + convert(sisa) : '');
+                let ribuText = (ribu === 1) ? 'SERIBU' : convert(ribu) + ' RIBU';
+                if (sisa === 0) return ribuText;
+                return ribuText + ' ' + convert(sisa);
             }
             return n.toString();
         }
@@ -299,23 +325,14 @@ function printUlangTransfer(rowData) {
         let pecahan = Math.round((angka - bulat) * 100);
         let hasil = convert(bulat);
         if (hasil === '') hasil = 'NOL';
-        if (pecahan > 0) hasil += ` KOMA ${convert(pecahan)}`;
+        if (pecahan > 0) {
+            let pecahanText = convert(pecahan);
+            hasil += ' KOMA ' + (pecahanText === '' ? 'NOL' : pecahanText);
+        }
         return hasil + ' ' + curr;
     }
     
     const terbilang = terbilangAngka(jumlah, currency);
-    
-    // Hitung total biaya untuk full amount
-    let totalBiaya = biayaTelex;
-    if (metodeTransfer === 'FULL_AMOUNT') {
-        totalBiaya = biayaTelex + biayaFullAmount;
-    }
-    
-    // Tentukan jenis transaksi (transfer biasa atau valas)
-    let jenisTransaksi = 'transfer';
-    if (mataUangRekeningAsal === 'IDR' && currency !== 'IDR') {
-        jenisTransaksi = 'valas';
-    }
     
     const params = new URLSearchParams({
         currency: currency,
@@ -323,17 +340,17 @@ function printUlangTransfer(rowData) {
         terbilang: terbilang,
         nama: penerima,
         account: account,
-        alamat: rowData[5] || '-',
-        bankName: rowData[4] || '-',
-        bankAlamat: '-',
-        swift: '-',
-        country: '-',
+        alamat: supplierData.alamat,
+        bankName: supplierData.bankName,
+        bankAlamat: supplierData.bankAlamat,
+        swift: supplierData.swift,
+        country: supplierData.country,
         berita: berita,
         tujuan: tujuan,
         noLoa: noLoa,
         norekPengirim: norekPengirim,
         pengirim: pengirimNama,
-        valueDate: valueDate,
+        valueDate: rowData[1] || '-',
         biayaTelex: biayaTelex,
         metodeTransfer: metodeTransfer,
         biayaFullAmount: biayaFullAmount,
@@ -343,7 +360,7 @@ function printUlangTransfer(rowData) {
         jenis: jenisTransaksi
     }).toString();
     
-    // Tentukan path print
+    // Tentukan print URL
     let printUrl;
     const bankUpper = (bank || '').toUpperCase();
     if (bankUpper === 'PANIN') {
@@ -352,9 +369,7 @@ function printUlangTransfer(rowData) {
         printUrl = `../print/print-bca.html?${params}`;
     }
     
-    // Buka window print
-    const printWindow = window.open(printUrl, '_blank', 'width=450,height=650,scrollbars=yes,resizable=yes');
-    
+    const printWindow = window.open(printUrl, '_blank');
     if (!printWindow) {
         alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
     }
