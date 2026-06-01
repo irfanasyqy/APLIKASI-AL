@@ -33,31 +33,13 @@
         }
         
         /* ========== KIRI ========== */
-        /* BATASAN LEBAR KOLOM KIRI (maksimal setengah A4) */
-        .currency, .jumlah-angka, .terbilang, .nama-penerima, 
-        .account, .alamat, .bank-name, .bank-alamat, .swift, 
-        .negara, .berita, .tujuan, .pengirim, .deretan-angka {
-            max-width: 90mm;  /* Setengah dari lebar A4 (210mm/2 - padding) */
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: break-word;
-            line-height: 1.3;
-        }
-        
-        /* Khusus deretan angka (no rek) - bisa scroll horizontal */
-        .deretan-angka {
-            white-space: nowrap;
-            overflow-x: auto;
-            letter-spacing: 3px;
-        }
-        
         .currency {
             position: absolute;
             top: 5mm;
             left: 20mm;
             font-size: 13pt;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .jumlah-angka {
@@ -66,6 +48,7 @@
             left: 40mm;
             font-size: 13pt;
             font-weight: bold;
+            white-space: nowrap;
         }
         
         .terbilang {
@@ -73,94 +56,143 @@
             top: 12mm;
             left: 10mm;
             font-size: 9pt;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .nama-penerima {
             position: absolute;
-            top: 22mm;
+            top: 20mm;
             left: 5mm;
             font-weight: bold;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .account {
             position: absolute;
-            top: 29mm;
+            top: 27mm;
             left: 5mm;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .alamat {
             position: absolute;
-            top: 36mm;
+            top: 34mm;
             left: 5mm;
+            max-width: 90mm;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         .bank-name {
             position: absolute;
-            top: 47mm;
+            top: 48mm;
             left: 5mm;
             font-weight: bold;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .bank-alamat {
             position: absolute;
-            top: 54mm;
+            top: 55mm;
             left: 5mm;
+            max-width: 90mm;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         .swift {
             position: absolute;
-            top: 61mm;
+            top: 69mm;
             left: 5mm;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .negara {
             position: absolute;
-            top: 68mm;
+            top: 76mm;
             left: 5mm;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .berita {
             position: absolute;
-            top: 79mm;
+            top: 86mm;
             left: 5mm;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .tujuan {
             position: absolute;
-            top: 86mm;
+            top: 93mm;
             left: 5mm;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .pengirim {
             position: absolute;
-            top: 97mm;
+            top: 103mm;
             left: 5mm;
             font-weight: bold;
+            white-space: nowrap;
+            max-width: 90mm;
+            overflow-x: auto;
         }
         
         .deretan-angka {
             position: absolute;
-            top: 104mm;
+            top: 110mm;
             left: 5mm;
             letter-spacing: 5px;
+            white-space: nowrap;
+            overflow-x: auto;
+            max-width: 90mm;
         }
         
         /* ========== KANAN ========== */
         .ref-no-cek {
             position: absolute;
             top: 50mm;
-            right: 80mm;
+            right: 50mm;
             text-align: right;
         }
         
         .ref-norek-pengirim {
             position: absolute;
             top: 50mm;
-            right: 60mm;
+            right: 20mm;
             text-align: right;
         }
         
-        /* TABEL RINCIAN BIAYA DI KANAN */
         .rincian-biaya {
             position: absolute;
             top: 58mm;
@@ -175,6 +207,7 @@
             min-width: 100px;
             text-align: right;
             border-collapse: collapse;
+            margin-left: auto;
         }
         
         .rincian-biaya td {
@@ -207,7 +240,6 @@
             padding-top: 5px;
         }
         
-        /* Baris biaya telex (tanpa currency & kurs) */
         .rincian-biaya .telex-row td:first-child,
         .rincian-biaya .telex-row td:nth-child(2) {
             visibility: hidden;
@@ -231,7 +263,6 @@
             color: #666;
         }
         
-        /* ========== SAAT CETAK ========== */
         @media print {
             body {
                 background: white;
@@ -293,11 +324,7 @@
         }
         
         const mataUangRekeningAsal = getCurrencyFromRekening(data.norekPengirim);
-        
-        // ========== APAKAH INI TRANSAKSI VALAS? (IDR ke USD/EUR) ==========
         const isTransaksiValas = (mataUangRekeningAsal === 'IDR' && data.currency !== 'IDR') || data.jenis === 'valas';
-        
-        // ========== APAKAH INI PEMBELIAN VALAS? ==========
         const isPembelianValas = data.jenis === 'valas';
         
         // ========== HITUNG JUMLAH AKHIR ==========
@@ -309,7 +336,7 @@
             showBiayaFull = true;
         }
         
-        // Format angka
+        // Format angka normal (tanpa RB)
         const formattedJumlah = data.jumlah.toLocaleString('en-US', {minimumFractionDigits: 2});
         const formattedJumlahAkhir = jumlahAkhir.toLocaleString('en-US', {minimumFractionDigits: 2});
         const formattedBiayaFull = data.biayaFullAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
@@ -317,14 +344,12 @@
         const formattedKurs = data.kurs.toLocaleString('id-ID', {minimumFractionDigits: 2});
         const formattedJumlahIDR = data.jumlahIDR.toLocaleString('id-ID', {minimumFractionDigits: 0});
         
-        // Konversi biaya full amount ke IDR jika ada kurs
         let biayaFullAmountIDR = 0;
         if (data.kurs > 0 && showBiayaFull) {
             biayaFullAmountIDR = data.biayaFullAmount * data.kurs;
         }
         const formattedBiayaFullIDR = biayaFullAmountIDR.toLocaleString('id-ID', {minimumFractionDigits: 0});
         
-        // Jumlah akhir dalam IDR (jika transaksi valas)
         let jumlahAkhirIDR = 0;
         if (isTransaksiValas && data.kurs > 0) {
             jumlahAkhirIDR = jumlahAkhir * data.kurs;
@@ -333,99 +358,69 @@
         
         const norekFormat = data.norekPengirim.split('').join(' ');
         
-        // Fungsi format ribuan dengan RB (Ribuan)
-        function formatRB(angka) {
-            if (!angka) return '0';
-            let str = angka.toString();
-            let len = str.length;
-            if (len >= 9) return str.substring(0, len-8) + ',' + str.substring(len-8, len-6) + 'M';
-            if (len >= 6) return str.substring(0, len-5) + 'RB';
-            if (len >= 4) return str.substring(0, len-3) + 'RB';
-            return str;
-        }
-        
-        const jumlahIDR_RB = formatRB(formattedJumlahIDR.replace(/,/g, ''));
-        const biayaFullIDR_RB = formatRB(formattedBiayaFullIDR.replace(/,/g, ''));
-        const biayaTelex_RB = formatRB(formattedBiayaTelex.replace(/,/g, ''));
-        const jumlahAkhirIDR_RB = formatRB(formattedJumlahAkhirIDR.replace(/,/g, ''));
-        
-        // ========== BUILD RINCIAN BIAYA DI KANAN ==========
+        // ========== BUILD RINCIAN BIAYA ==========
         let rincianHtml = '';
         let jumlahAkhirDisplay = '';
         let keteranganBiaya = '';
         
         if (isPembelianValas) {
-            // ===== PEMBELIAN VALAS =====
             rincianHtml = `
                 <table style="margin-left: auto;">
                     <tr>
                         <td class="currency-col">${data.currency} ${formattedJumlah}</td>
                         <td class="kurs-col">${formattedKurs}</td>
-                        <td class="jumlah-col">IDR ${jumlahIDR_RB}</td>
+                        <td class="jumlah-col">IDR ${formattedJumlahIDR}</td>
                     </tr>
                 </table>
             `;
             jumlahAkhirDisplay = `${data.currency} ${formattedJumlah}<br>(IDR ${formattedJumlahIDR})`;
             keteranganBiaya = `Pembelian valas | 1 ${data.currency} = IDR ${formattedKurs}`;
-            
         } else if (isTransaksiValas) {
-            // ===== TRANSFER VALAS (IDR ke USD/EUR) =====
-            let rows = '';
-            
-            rows += `
+            let rows = `
                 <tr>
                     <td class="currency-col">${data.currency} ${formattedJumlah}</td>
                     <td class="kurs-col">${formattedKurs}</td>
-                    <td class="jumlah-col">IDR ${jumlahIDR_RB}</td>
+                    <td class="jumlah-col">IDR ${formattedJumlahIDR}</td>
                 </tr>
             `;
-            
             if (showBiayaFull) {
                 rows += `
                     <tr>
                         <td class="currency-col">${data.currency} ${formattedBiayaFull}</td>
                         <td class="kurs-col">${formattedKurs}</td>
-                        <td class="jumlah-col">IDR ${biayaFullIDR_RB}</td>
+                        <td class="jumlah-col">IDR ${formattedBiayaFullIDR}</td>
                     </tr>
                 `;
             }
-            
             if (data.biayaTelex > 0) {
                 rows += `
                     <tr class="telex-row">
                         <td class="currency-col"></td>
                         <td class="kurs-col"></td>
-                        <td class="jumlah-col">IDR ${biayaTelex_RB}</td>
+                        <td class="jumlah-col">IDR ${formattedBiayaTelex}</td>
                     </tr>
                 `;
             }
-            
             rows += `
                 <tr class="total-row">
                     <td class="currency-col"></td>
                     <td class="kurs-col"></td>
-                    <td class="jumlah-col">IDR ${jumlahAkhirIDR_RB}</td>
+                    <td class="jumlah-col">IDR ${formattedJumlahAkhirIDR}</td>
                 </tr>
             `;
-            
             rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
             jumlahAkhirDisplay = `${data.currency} ${formattedJumlahAkhir}<br>(IDR ${formattedJumlahAkhirIDR})`;
             keteranganBiaya = `Transfer valas IDR → ${data.currency} | 1 ${data.currency} = IDR ${formattedKurs}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
             if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex}`;
-            
         } else {
-            // ===== TRANSFER BIASA =====
-            let rows = '';
-            
-            rows += `
+            let rows = `
                 <tr>
                     <td class="currency-col"></td>
                     <td class="kurs-col"></td>
                     <td class="jumlah-col">${data.currency} ${formattedJumlah}</td>
                 </tr>
             `;
-            
             if (showBiayaFull) {
                 rows += `
                     <tr>
@@ -435,17 +430,15 @@
                     </tr>
                 `;
             }
-            
             if (data.biayaTelex > 0 && mataUangRekeningAsal === 'IDR') {
                 rows += `
                     <tr class="telex-row">
                         <td class="currency-col"></td>
                         <td class="kurs-col"></td>
-                        <td class="jumlah-col">IDR ${biayaTelex_RB}</td>
+                        <td class="jumlah-col">IDR ${formattedBiayaTelex}</td>
                     </tr>
                 `;
             }
-            
             if (showBiayaFull) {
                 rows += `
                     <tr class="total-row">
@@ -455,8 +448,7 @@
                     </tr>
                 `;
             }
-            
-            rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
+            rincianHtml = `<table style="margin-left: auto;">${rows}</td>`;
             jumlahAkhirDisplay = showBiayaFull ? `${data.currency} ${formattedJumlahAkhir}` : `${data.currency} ${formattedJumlah}`;
             keteranganBiaya = `Transfer ${mataUangRekeningAsal} → ${data.currency}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
