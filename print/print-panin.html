@@ -33,6 +33,25 @@
         }
         
         /* ========== KIRI ========== */
+        /* BATASAN LEBAR KOLOM KIRI (maksimal setengah A4) */
+        .currency, .jumlah-angka, .terbilang, .nama-penerima, 
+        .account, .alamat, .bank-name, .bank-alamat, .swift, 
+        .negara, .berita, .tujuan, .pengirim, .deretan-angka {
+            max-width: 90mm;  /* Setengah dari lebar A4 (210mm/2 - padding) */
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+        
+        /* Khusus deretan angka (no rek) - bisa scroll horizontal */
+        .deretan-angka {
+            white-space: nowrap;
+            overflow-x: auto;
+            letter-spacing: 3px;
+        }
+        
         .currency {
             position: absolute;
             top: 5mm;
@@ -338,7 +357,7 @@
         if (isPembelianValas) {
             // ===== PEMBELIAN VALAS =====
             rincianHtml = `
-                <table>
+                <table style="margin-left: auto;">
                     <tr>
                         <td class="currency-col">${data.currency} ${formattedJumlah}</td>
                         <td class="kurs-col">${formattedKurs}</td>
@@ -353,7 +372,6 @@
             // ===== TRANSFER VALAS (IDR ke USD/EUR) =====
             let rows = '';
             
-            // Baris 1: Jumlah
             rows += `
                 <tr>
                     <td class="currency-col">${data.currency} ${formattedJumlah}</td>
@@ -362,7 +380,6 @@
                 </tr>
             `;
             
-            // Baris 2: Full Amount (jika ada)
             if (showBiayaFull) {
                 rows += `
                     <tr>
@@ -373,7 +390,6 @@
                 `;
             }
             
-            // Baris 3: Biaya Telex (jika ada)
             if (data.biayaTelex > 0) {
                 rows += `
                     <tr class="telex-row">
@@ -384,7 +400,6 @@
                 `;
             }
             
-            // Baris Total
             rows += `
                 <tr class="total-row">
                     <td class="currency-col"></td>
@@ -393,17 +408,16 @@
                 </tr>
             `;
             
-            rincianHtml = `<tr>${rows}</table>`;
+            rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
             jumlahAkhirDisplay = `${data.currency} ${formattedJumlahAkhir}<br>(IDR ${formattedJumlahAkhirIDR})`;
             keteranganBiaya = `Transfer valas IDR → ${data.currency} | 1 ${data.currency} = IDR ${formattedKurs}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
             if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex}`;
             
         } else {
-            // ===== TRANSFER BIASA (USD ke USD atau EUR ke EUR) =====
+            // ===== TRANSFER BIASA =====
             let rows = '';
             
-            // Baris 1: Jumlah
             rows += `
                 <tr>
                     <td class="currency-col"></td>
@@ -412,7 +426,6 @@
                 </tr>
             `;
             
-            // Baris 2: Full Amount (jika ada)
             if (showBiayaFull) {
                 rows += `
                     <tr>
@@ -423,7 +436,6 @@
                 `;
             }
             
-            // Baris 3: Biaya Telex (jika ada dan rek asal IDR)
             if (data.biayaTelex > 0 && mataUangRekeningAsal === 'IDR') {
                 rows += `
                     <tr class="telex-row">
@@ -434,7 +446,6 @@
                 `;
             }
             
-            // Baris Total (jika ada full amount)
             if (showBiayaFull) {
                 rows += `
                     <tr class="total-row">
@@ -445,7 +456,7 @@
                 `;
             }
             
-            rincianHtml = `<tr>${rows}</table>`;
+            rincianHtml = `<table style="margin-left: auto;">${rows}</table>`;
             jumlahAkhirDisplay = showBiayaFull ? `${data.currency} ${formattedJumlahAkhir}` : `${data.currency} ${formattedJumlah}`;
             keteranganBiaya = `Transfer ${mataUangRekeningAsal} → ${data.currency}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
