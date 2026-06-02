@@ -313,7 +313,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
         if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
         
         // Kirim ke Apps Script via JSON
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoeCLWyziIEBwjOvhtjiSxOI-eHs11Bm8TR_t3im5_Z3uUlt-JOyffm9TPM6xnCB1lhA/exec';
+        const APPS_SCRIPT_URL = CONFIG.API_URL;
         
         const payload = {
             action: 'upload',
