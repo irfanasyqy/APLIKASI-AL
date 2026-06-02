@@ -309,6 +309,7 @@ async function handleCameraUpload(event) {
 // =====================================================
 // UPLOAD FILE KE GOOGLE DRIVE (LANGSUNG KE APPS SCRIPT)
 // =====================================================
+// PASTE ULANG ID FOLDER DARI URL ANDA
 const BUKTI_FOLDER_ID = '1WPw2P8oPu0S5BCKXAEfNxX0W4aJBczuw';
 const APPS_SCRIPT_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbyEn2wW5Z5EUo-_4_ajGTK8wqgepxMOdewvS_4L8lg9AJv-a32ZkonQy1m0Xbo6lyVJsA/exec';
 
