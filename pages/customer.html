@@ -1,215 +1,256 @@
-// ========== CUSTOMER.JS ==========
-
-async function loadCustomers() {
-    const tbody = document.getElementById('customerTableBody');
-    if (!tbody) return;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Data - APLIKASI AL</title>
     
-    tbody.innerHTML = '<tr><td colspan="7">Memuat data customer...</td></tr>';
+    <!-- Import CSS yang sudah ada -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="../css/card.css">
+    <link rel="stylesheet" href="../css/form.css">
+    <link rel="stylesheet" href="../css/table.css">
+    <link rel="stylesheet" href="../css/print.css">
     
-    try {
-        const response = await fetch(CONFIG.CUSTOMER_API_URL || CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'getCustomers' })
-        });
-        const result = await response.json();
+    <style>
+        /* Preview panel */
+        .preview-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #27ae60;
+        }
         
-        if (result.success && result.data && result.data.length > 0) {
-            let html = '';
-            for (let i = 0; i < result.data.length; i++) {
-                const row = result.data[i];
-                const no = i + 1;
-                const nama = row[1] || '-';
-                const email = row[2] || '-';
-                const telepon = row[3] || '-';
-                const alamat = row[4] || '-';
-                const kota = row[5] || '-';
-                
-                html += `
-                    <tr data-id="${i}" data-nama="${escapeHtml(nama)}" data-email="${escapeHtml(email)}" 
-                        data-telepon="${escapeHtml(telepon)}" data-alamat="${escapeHtml(alamat)}" data-kota="${escapeHtml(kota)}">
-                        <td>${no}</td>
-                        <td>${escapeHtml(nama)}</td>
-                        <td>${escapeHtml(email)}</td>
-                        <td>${escapeHtml(telepon)}</td>
-                        <td>${escapeHtml(alamat)}</td>
-                        <td>${escapeHtml(kota)}</td>
-                        <td>
-                            <button class="btn-edit" onclick="editCustomer(${i})">✏️ Edit</button>
-                            <button class="btn-hapus" onclick="hapusCustomerConfirm(${i}, '${escapeHtml(nama)}')">🗑️ Hapus</button>
-                        </td>
+        .preview-panel h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        /* Popup form */
+        .form-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .btn-tambah {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .btn-tambah:hover {
+            background: #219a52;
+        }
+        
+        .btn-edit {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+        
+        .btn-hapus {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-hapus:hover {
+            background: #c0392b;
+        }
+        
+        .btn-simpan {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .btn-batal {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+        
+        #customerTableBody tr {
+            cursor: pointer;
+        }
+        
+        #customerTableBody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .total-data {
+            margin-top: 15px;
+            text-align: right;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Customer Data - Alamat dan Kontak</p>
+    </div>
+
+    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>👥 DATA CUSTOMER</h2>
+        
+        <button class="btn-tambah" id="btnTambahCustomer">➕ TAMBAH CUSTOMER</button>
+        
+        <div style="overflow-x: auto;">
+            <table id="customerTable">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Customer</th>
+                        <th>Email</th>
+                        <th>Telepon</th>
+                        <th>Alamat</th>
+                        <th>Kota</th>
+                        <th>Aksi</th>
                     </tr>
-                `;
-            }
-            tbody.innerHTML = html;
-            
-            // Update total data
-            document.getElementById('totalData').innerHTML = `Total Data: ${result.data.length} customer`;
-            
-            // Preview saat baris diklik
-            document.querySelectorAll('#customerTableBody tr').forEach(row => {
-                row.addEventListener('click', (e) => {
-                    // Jangan trigger jika yang diklik adalah tombol
-                    if (e.target.tagName === 'BUTTON') return;
-                    
-                    const nama = row.getAttribute('data-nama') || '-';
-                    const email = row.getAttribute('data-email') || '-';
-                    const telepon = row.getAttribute('data-telepon') || '-';
-                    const alamat = row.getAttribute('data-alamat') || '-';
-                    const kota = row.getAttribute('data-kota') || '-';
-                    
-                    const previewHtml = `
-                        <div><strong>📛 Nama:</strong> ${nama}</div>
-                        <div><strong>📧 Email:</strong> ${email}</div>
-                        <div><strong>📞 Telepon:</strong> ${telepon}</div>
-                        <div><strong>📍 Alamat:</strong> ${alamat}</div>
-                        <div><strong>🏙️ Kota:</strong> ${kota}</div>
-                    `;
-                    document.getElementById('previewContent').innerHTML = previewHtml;
-                    document.getElementById('previewPanel').style.display = 'block';
-                });
-            });
-            
-            window.customersData = result.data;
-        } else {
-            tbody.innerHTML = '<tr><td colspan="7">Belum ada data customer</td></tr>';
-            document.getElementById('totalData').innerHTML = 'Total Data: 0 customer';
-        }
-    } catch (error) {
-        console.error('Gagal load customer:', error);
-        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat data customer</td></tr>';
-    }
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-function editCustomer(index) {
-    const row = document.querySelector(`#customerTableBody tr[data-id="${index}"]`);
-    if (!row && window.customersData && window.customersData[index]) {
-        // Fallback ke data array
-        const data = window.customersData[index];
-        document.getElementById('editId').value = index;
-        document.getElementById('namaCustomer').value = data[1] || '';
-        document.getElementById('emailCustomer').value = data[2] || '';
-        document.getElementById('teleponCustomer').value = data[3] || '';
-        document.getElementById('alamatCustomer').value = data[4] || '';
-        document.getElementById('kotaCustomer').value = data[5] || '';
-    } else if (row) {
-        document.getElementById('editId').value = row.getAttribute('data-id');
-        document.getElementById('namaCustomer').value = row.getAttribute('data-nama') || '';
-        document.getElementById('emailCustomer').value = row.getAttribute('data-email') || '';
-        document.getElementById('teleponCustomer').value = row.getAttribute('data-telepon') || '';
-        document.getElementById('alamatCustomer').value = row.getAttribute('data-alamat') || '';
-        document.getElementById('kotaCustomer').value = row.getAttribute('data-kota') || '';
-    }
-    document.getElementById('formTitle').innerText = 'Edit Customer';
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('customerForm').style.display = 'block';
-}
-
-function hapusCustomerConfirm(index, nama) {
-    if (confirm(`Yakin ingin menghapus customer "${nama}"?\n\nTINDAKAN INI TIDAK DAPAT DIBATALKAN!`)) {
-        hapusCustomer(index);
-    }
-}
-
-async function hapusCustomer(index) {
-    try {
-        const response = await fetch(CONFIG.CUSTOMER_API_URL || CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                type: 'deleteCustomer', 
-                rowIndex: index
-            })
-        });
-        const result = await response.json();
-        if (result.success) {
-            alert('Data berhasil dihapus');
-            await loadCustomers();
-        } else {
-            alert('Gagal menghapus: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error hapus:', error);
-        alert('Error koneksi saat menghapus');
-    }
-}
-
-async function simpanCustomer() {
-    const editId = document.getElementById('editId').value;
-    const nama = document.getElementById('namaCustomer').value.trim();
-    if (!nama) {
-        alert('Nama customer wajib diisi!');
-        return;
-    }
-    
-    const data = {
-        type: 'saveCustomer',
-        id: editId || undefined,
-        nama: nama,
-        email: document.getElementById('emailCustomer').value.trim(),
-        telepon: document.getElementById('teleponCustomer').value.trim(),
-        alamat: document.getElementById('alamatCustomer').value.trim(),
-        kota: document.getElementById('kotaCustomer').value.trim(),
-        catatan: document.getElementById('catatanCustomer').value.trim()
-    };
-    
-    try {
-        const response = await fetch(CONFIG.CUSTOMER_API_URL || CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
+                </thead>
+                <tbody id="customerTableBody">
+                    <tr><td colspan="7">📡 Memuat data customer...</td></tr>
+                </tbody>
+            </table>
+        </div>
         
-        if (result.success) {
-            alert('Data berhasil disimpan');
-            tutupForm();
-            await loadCustomers();
-        } else {
-            alert('Gagal menyimpan: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error simpan:', error);
-        alert('Error koneksi saat menyimpan');
-    }
-}
+        <div class="total-data" id="totalData"></div>
+        
+        <!-- Preview Panel -->
+        <div class="preview-panel" id="previewPanel" style="display: none;">
+            <h3>🔍 PREVIEW DATA CUSTOMER</h3>
+            <div id="previewContent"></div>
+        </div>
+    </div>
+</div>
 
-function tutupForm() {
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('customerForm').style.display = 'none';
-    document.getElementById('editId').value = '';
-    document.getElementById('namaCustomer').value = '';
-    document.getElementById('emailCustomer').value = '';
-    document.getElementById('teleponCustomer').value = '';
-    document.getElementById('alamatCustomer').value = '';
-    document.getElementById('kotaCustomer').value = '';
-    document.getElementById('catatanCustomer').value = '';
-    document.getElementById('formTitle').innerText = 'Tambah Customer';
-    document.getElementById('previewPanel').style.display = 'none';
-}
+<!-- POPUP FORM TAMBAH/EDIT -->
+<div class="overlay" id="overlay"></div>
+<div class="form-popup" id="customerForm">
+    <h3 id="formTitle" style="margin-bottom: 20px; color: #2c3e50;">Tambah Customer</h3>
+    <input type="hidden" id="editId" value="">
+    <div class="form-group">
+        <label>Nama Customer <span style="color: red;">*</span></label>
+        <input type="text" id="namaCustomer" placeholder="Nama lengkap customer" required>
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="emailCustomer" placeholder="email@example.com">
+    </div>
+    <div class="form-group">
+        <label>Telepon</label>
+        <input type="text" id="teleponCustomer" placeholder="Nomor telepon">
+    </div>
+    <div class="form-group">
+        <label>Alamat</label>
+        <input type="text" id="alamatCustomer" placeholder="Alamat lengkap">
+    </div>
+    <div class="form-group">
+        <label>Kota</label>
+        <input type="text" id="kotaCustomer" placeholder="Kota">
+    </div>
+    <div class="form-group">
+        <label>Catatan (Opsional)</label>
+        <input type="text" id="catatanCustomer" placeholder="Catatan tambahan">
+    </div>
+    <div style="text-align: right;">
+        <button class="btn-simpan" id="btnSimpan">💾 SIMPAN</button>
+        <button class="btn-batal" id="btnBatal">❌ BATAL</button>
+    </div>
+</div>
 
-// Event listeners
-document.getElementById('btnTambahCustomer')?.addEventListener('click', () => {
-    tutupForm();
-    document.getElementById('overlay').style.display = 'block';
-    document.getElementById('customerForm').style.display = 'block';
-});
-
-document.getElementById('btnSimpan')?.addEventListener('click', simpanCustomer);
-document.getElementById('btnBatal')?.addEventListener('click', tutupForm);
-document.getElementById('overlay')?.addEventListener('click', tutupForm);
-
-// Load awal
-if (document.getElementById('customerTableBody')) {
-    loadCustomers();
-}
+<script src="../config.js"></script>
+<script src="../js/customer.js"></script>
+</body>
+</html>
