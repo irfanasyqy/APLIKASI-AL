@@ -19,28 +19,29 @@ async function loadCustomers() {
             for (let i = 0; i < result.data.length; i++) {
                 const row = result.data[i];
                 const no = i + 1;
-                const nama = row[1] || '-';
-                const email = row[2] || '-';
-                const telepon = row[3] || '-';
-                const alamat = row[4] || '-';
-                const kota = row[5] || '-';
+                // Gunakan escapeHtml yang sudah diperbaiki
+                const nama = escapeHtml(row[1] || row.Nama || '-');
+                const email = escapeHtml(row[2] || row.Email || '-');
+                const telepon = escapeHtml(row[3] || row.Telepon || '-');
+                const alamat = escapeHtml(row[4] || row.Alamat || '-');
+                const kota = escapeHtml(row[5] || row.Kota || '-');
                 
                 html += `
                     <tr data-id="${i}" 
-                        data-nama="${escapeHtml(nama)}" 
-                        data-email="${escapeHtml(email)}" 
-                        data-telepon="${escapeHtml(telepon)}" 
-                        data-alamat="${escapeHtml(alamat)}" 
-                        data-kota="${escapeHtml(kota)}">
+                        data-nama="${nama}" 
+                        data-email="${email}" 
+                        data-telepon="${telepon}" 
+                        data-alamat="${alamat}" 
+                        data-kota="${kota}">
                         <td>${no}</td>
-                        <td>${escapeHtml(nama)}</td>
-                        <td>${escapeHtml(email)}</td>
-                        <td>${escapeHtml(telepon)}</td>
-                        <td>${escapeHtml(alamat)}</td>
-                        <td>${escapeHtml(kota)}</td>
+                        <td>${nama}</td>
+                        <td>${email}</td>
+                        <td>${telepon}</td>
+                        <td>${alamat}</td>
+                        <td>${kota}</td>
                         <td>
                             <button class="btn-edit" onclick="editCustomer(${i})">✏️ Edit</button>
-                            <button class="btn-hapus" onclick="hapusCustomerConfirm(${i}, '${escapeHtml(nama)}')">🗑️ Hapus</button>
+                            <button class="btn-hapus" onclick="hapusCustomerConfirm(${i}, '${nama}')">🗑️ Hapus</button>
                         </td>
                     </tr>
                 `;
@@ -83,9 +84,14 @@ async function loadCustomers() {
     }
 }
 
+// ========== ESCAPE HTML YANG SUDAH DIPERBAIKI ==========
 function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    // Handle jika str bukan string
+    if (str === null || str === undefined) return '';
+    // Konversi ke string
+    const text = String(str);
+    // Escape karakter berbahaya
+    return text.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -98,11 +104,11 @@ function editCustomer(index) {
     if (!row && window.customersData && window.customersData[index]) {
         const data = window.customersData[index];
         document.getElementById('editId').value = index;
-        document.getElementById('namaCustomer').value = data[1] || '';
-        document.getElementById('emailCustomer').value = data[2] || '';
-        document.getElementById('teleponCustomer').value = data[3] || '';
-        document.getElementById('alamatCustomer').value = data[4] || '';
-        document.getElementById('kotaCustomer').value = data[5] || '';
+        document.getElementById('namaCustomer').value = data[1] || data.Nama || '';
+        document.getElementById('emailCustomer').value = data[2] || data.Email || '';
+        document.getElementById('teleponCustomer').value = data[3] || data.Telepon || '';
+        document.getElementById('alamatCustomer').value = data[4] || data.Alamat || '';
+        document.getElementById('kotaCustomer').value = data[5] || data.Kota || '';
         document.getElementById('catatanCustomer').value = data[6] || '';
     } else if (row) {
         document.getElementById('editId').value = row.getAttribute('data-id');
