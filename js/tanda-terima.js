@@ -295,39 +295,52 @@ async function uploadFileToDrive(file, noTT, fileName) {
             finalBlob = await convertImageToPDFBlob(file);
         }
         
-        if (progressFill) progressFill.style.width = '70%';
+        if (progressFill) progressFill.style.width = '70%');
         if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
         
-        // UPLOAD LANGSUNG KE APPS SCRIPT (tanpa Worker untuk upload)
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHT7yTm5km-YzM42bHxkILdEvLmNd5dQIE-Hvg0SsDhd14RuIFHuClY-xz1JaAFw6SWQ/exec';
-        
+        // KIRIM KE WORKER (bukan langsung ke Apps Script)
         const formData = new FormData();
         formData.append('action', 'upload');
         formData.append('noTT', noTT);
         formData.append('fileName', finalFileName);
         formData.append('file', finalBlob, `${finalFileName}.pdf`);
         
-        // Kirim dengan mode 'no-cors' untuk bypass CORS
-        await fetch(APPS_SCRIPT_URL, {
+        // Pake Worker (bukan no-cors)
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
-            mode: 'no-cors',
             body: formData
         });
         
-        if (progressFill) progressFill.style.width = '100%';
+        if (progressFill) progressFill.style.width = '90%');
         
-        // Karena mode no-cors tidak bisa baca response, kita anggap berhasil
-        if (uploadStatus) {
-            uploadStatus.innerHTML = '✅ Upload berhasil!';
-            uploadStatus.style.color = '#27ae60';
+        // Baca response dari Worker
+        let result;
+        try {
+            result = await response.json();
+        } catch(e) {
+            result = { success: false, error: 'Response tidak bisa dibaca' };
         }
         
-        alert(`✅ Bukti berhasil diupload untuk No. TT: ${noTT}\n\nSilakan refresh halaman untuk melihat bukti.`);
+        if (progressFill) progressFill.style.width = '100%');
         
-        setTimeout(() => {
-            closeUploadModal();
-            loadTandaTerima();
-        }, 2000);
+        if (result.success) {
+            if (uploadStatus) {
+                uploadStatus.innerHTML = '✅ Upload berhasil!';
+                uploadStatus.style.color = '#27ae60';
+            }
+            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n🔗 URL: ${result.url}`);
+            
+            // Simpan URL ke database
+            await simpanBuktiUrl(noTT, result.url);
+            
+            setTimeout(() => {
+                closeUploadModal();
+                loadTandaTerima();
+            }, 1500);
+        } else {
+            // Tampilkan error detail
+            throw new Error(result.error || 'Upload gagal');
+        }
         
     } catch (error) {
         console.error('Upload error:', error);
@@ -340,7 +353,6 @@ async function uploadFileToDrive(file, noTT, fileName) {
         alert('❌ Gagal upload: ' + error.message);
     }
 }
-
 // =====================================================
 // KONVERSI GAMBAR KE PDF BLOB
 // =====================================================
