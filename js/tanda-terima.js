@@ -310,7 +310,7 @@ async function handleCameraUpload(event) {
 // UPLOAD FILE KE GOOGLE DRIVE (LANGSUNG KE APPS SCRIPT)
 // =====================================================
 const BUKTI_FOLDER_ID = '1WPw2P8oPu0S5BCKXAEfNxX0W4aJBczuw';
-const APPS_SCRIPT_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbwdR8R-NexKOsaJsqououNk8RxS4oGc8ojc98wS_nkb2_SVJgnfKdIHdMRIR6u5h0nQcw/exec';
+const APPS_SCRIPT_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbyEn2wW5Z5EUo-_4_ajGTK8wqgepxMOdewvS_4L8lg9AJv-a32ZkonQy1m0Xbo6lyVJsA/exec';
 
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
