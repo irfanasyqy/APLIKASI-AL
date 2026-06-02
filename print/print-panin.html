@@ -331,7 +331,7 @@
             
             // Total (HANYA USD, tanpa telex)
             let totalValue = `${data.currency} ${totalNilaiEkuivalenUSD.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
+            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col"></td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
             rincianHtml = `<table style="margin-left: auto;"><thead><tr><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></tr>`;
             totalDisplay = totalValue;
