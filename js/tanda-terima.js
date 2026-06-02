@@ -259,6 +259,9 @@ function uploadFromCamera() {
 // =====================================================
 // FUNGSI UPLOAD DENGAN BASE64
 // =====================================================
+// Ganti CONFIG.API_URL dengan APPS_SCRIPT_URL langsung
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGpIzXW1hi7u5Vu66iypiMItSlSBipajgyrUCyYX65vK3TMC9lEvaga0QH0S60h7MF-w/exec';
+
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
 
@@ -288,7 +291,8 @@ async function uploadFileToDrive(file, noTT, fileName) {
         document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
         
         try {
-            const response = await fetch(CONFIG.API_URL, {
+            // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
+            const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
