@@ -307,9 +307,10 @@ async function handleCameraUpload(event) {
 }
 
 // =====================================================
-// UPLOAD FILE KE GOOGLE DRIVE (KE FOLDER KHUSUS)
+// UPLOAD FILE KE GOOGLE DRIVE (LANGSUNG KE APPS SCRIPT)
 // =====================================================
 const BUKTI_FOLDER_ID = '1WPw2P8oPu0S5BCKXAEfNxX0W4aJBczuw';
+const APPS_SCRIPT_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbwdR8R-NexKOsaJsqououNk8RxS4oGc8ojc98wS_nkb2_SVJgnfKdIHdMRIR6u5h0nQcw/exec';
 
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
@@ -338,32 +339,24 @@ async function uploadFileToDrive(file, noTT, fileName) {
     document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
 
     try {
-        // 3. Kirim ke Cloudflare Worker (yang akan forward ke Apps Script)
-        const response = await fetch(CONFIG.API_URL, {
+        // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
+        const response = await fetch(APPS_SCRIPT_UPLOAD_URL, {
             method: 'POST',
             body: formData
         });
 
-        // Baca response sebagai TEXT terlebih dahulu
         const responseText = await response.text();
-        console.log('Response TEXT:', responseText);
+        console.log('Response:', responseText);
         
-        // Coba parsing JSON
         let result;
         try {
             result = JSON.parse(responseText);
         } catch (e) {
-            // Jika bukan JSON, cek apakah response mengandung pesan sukses
-            if (responseText.toLowerCase().includes('success') || responseText.toLowerCase().includes('upload')) {
-                // Anggap sukses, buat objek result manual
-                result = { 
-                    success: true, 
-                    url: 'https://drive.google.com/drive/folders/' + BUKTI_FOLDER_ID,
-                    fileName: fileName + '.pdf',
-                    message: 'Upload berhasil'
-                };
+            // Jika response bukan JSON, cek apakah ada pesan sukses
+            if (responseText.includes('success') || responseText.includes('drive.google.com')) {
+                result = { success: true, url: responseText, fileName: fileName + '.pdf' };
             } else {
-                throw new Error('Server mengembalikan response tidak valid: ' + responseText.substring(0, 100));
+                throw new Error('Response tidak valid: ' + responseText.substring(0, 100));
             }
         }
         
@@ -376,13 +369,13 @@ async function uploadFileToDrive(file, noTT, fileName) {
             await simpanBuktiUrl(noTT, result.url);
             closeUploadModal();
         } else {
-            throw new Error(result.error || 'Upload gagal karena kesalahan server.');
+            throw new Error(result.error || 'Upload gagal');
         }
     } catch (error) {
         console.error('Error upload file:', error);
         document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
         
-        // Tawarkan metode manual jika upload gagal
+        // Tawarkan metode manual
         const pilihan = confirm(
             `❌ Gagal mengupload file: ${error.message}\n\n` +
             `Apakah Anda ingin memasukkan URL bukti secara manual?`
@@ -394,7 +387,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
                 await simpanBuktiUrl(noTT, manualUrl);
                 closeUploadModal();
             } else if (manualUrl) {
-                alert('❌ URL tidak valid! Pastikan URL dari Google Drive.');
+                alert('❌ URL tidak valid!');
             }
         }
     }
