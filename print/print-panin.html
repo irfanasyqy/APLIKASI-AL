@@ -7,22 +7,153 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Courier New', monospace; font-size: 10pt; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 10mm; background: #e0e0e0; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
         .print-container { background: white; width: 100%; min-height: 277mm; position: relative; padding: 5mm; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-        
-        /* KIRI */
-        .currency { position: absolute; top: 5mm; left: 20mm; font-size: 13pt; font-weight: bold; white-space: nowrap; }
-        .jumlah-angka { position: absolute; top: 5mm; left: 40mm; font-size: 13pt; font-weight: bold; white-space: nowrap; }
-        .terbilang { position: absolute; top: 12mm; left: 10mm; font-size: 9pt; max-width: 80mm; white-space: normal; word-wrap: break-word; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .nama-penerima { position: absolute; top: 24mm; left: 5mm; font-weight: bold; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .account { position: absolute; top: 31mm; left: 5mm; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .alamat { position: absolute; top: 38mm; left: 5mm; max-width: 90mm; white-space: normal; word-wrap: break-word; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .bank-name { position: absolute; top: 52mm; left: 5mm; font-weight: bold; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .bank-alamat { position: absolute; top: 59mm; left: 5mm; max-width: 90mm; white-space: normal; word-wrap: break-word; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .swift { position: absolute; top: 73mm; left: 5mm; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .negara { position: absolute; top: 80mm; left: 5mm; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .berita { position: absolute; top: 90mm; left: 5mm; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .tujuan { position: absolute; top: 97mm; left: 5mm; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .pengirim { position: absolute; top: 107mm; left: 5mm; font-weight: bold; white-space: nowrap; max-width: 90mm; overflow-x: auto; }
-        .deretan-angka { position: absolute; top: 114mm; left: 5mm; letter-spacing: 5px; white-space: nowrap; overflow-x: auto; max-width: 90mm; }
+        .alamat, .bank-alamat { margin-bottom: 2mm;  /* agar tidak terlalu rapat */}
+        /* ========== KIRI ========== */
+.currency {
+    position: absolute;
+    top: 35mm;      /* dari 5mm jadi 35mm */
+    left: 15mm;     /* dari 20mm jadi 15mm */
+    font-size: 13pt;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.jumlah-angka {
+    position: absolute;
+    top: 35mm;      /* dari 5mm jadi 35mm */
+    left: 35mm;     /* dari 40mm jadi 35mm */
+    font-size: 13pt;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.terbilang {
+    position: absolute;
+    top: 42mm;      /* dari 12mm jadi 42mm (35 + 7) */
+    left: 5mm;      /* dari 10mm jadi 5mm */
+    font-size: 9pt;
+    max-width: 80mm;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.nama-penerima {
+    position: absolute;
+    top: 54mm;      /* dari 24mm jadi 54mm (35 + 19) */
+    left: 5mm;
+    font-weight: bold;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.account {
+    position: absolute;
+    top: 61mm;      /* dari 31mm jadi 61mm (35 + 26) */
+    left: 5mm;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.alamat {
+    position: absolute;
+    top: 68mm;      /* dari 38mm jadi 68mm (35 + 33) */
+    left: 5mm;
+    max-width: 90mm;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bank-name {
+    position: absolute;
+    top: 82mm;      /* dari 52mm jadi 82mm (35 + 47) */
+    left: 5mm;
+    font-weight: bold;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.bank-alamat {
+    position: absolute;
+    top: 89mm;      /* dari 59mm jadi 89mm (35 + 54) */
+    left: 5mm;
+    max-width: 90mm;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.swift {
+    position: absolute;
+    top: 103mm;     /* dari 73mm jadi 103mm (35 + 68) */
+    left: 5mm;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.negara {
+    position: absolute;
+    top: 110mm;     /* dari 80mm jadi 110mm (35 + 75) */
+    left: 5mm;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.berita {
+    position: absolute;
+    top: 120mm;     /* dari 90mm jadi 120mm (35 + 85) */
+    left: 5mm;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.tujuan {
+    position: absolute;
+    top: 127mm;     /* dari 97mm jadi 127mm (35 + 92) */
+    left: 5mm;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.pengirim {
+    position: absolute;
+    top: 137mm;     /* dari 107mm jadi 137mm (35 + 102) */
+    left: 5mm;
+    font-weight: bold;
+    white-space: nowrap;
+    max-width: 90mm;
+    overflow-x: auto;
+}
+
+.deretan-angka {
+    position: absolute;
+    top: 144mm;     /* dari 114mm jadi 144mm (35 + 109) */
+    left: 5mm;
+    letter-spacing: 5px;
+    white-space: nowrap;
+    overflow-x: auto;
+    max-width: 90mm;
+}
         
         /* KANAN */
         .ref-no-cek { position: absolute; top: 50mm; right: 50mm; text-align: right; }
