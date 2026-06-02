@@ -182,7 +182,7 @@
             border-radius: 8px;
             cursor: pointer;
             flex: 1;
-            display: none; /* Hanya tampil jika bukti tersedia */
+            display: none;
         }
         .btn-hapus-bukti:hover { background: #d35400; }
         
@@ -325,6 +325,38 @@
             filter: brightness(0.95);
         }
         
+        /* Loading spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #27ae60;
+            transition: width 0.3s;
+        }
+        
         @media (max-width: 768px) {
             .two-columns {
                 grid-template-columns: 1fr;
@@ -386,26 +418,31 @@
             <span class="modal-close">&times;</span>
         </div>
         <div class="modal-body">
-            <p>Pilih sumber file bukti untuk No. TT: <strong id="modalTTNumber">-</strong></p>
+            <p>Upload bukti untuk No. TT: <strong id="modalTTNumber">-</strong></p>
             
-            <div id="fileNameInputGroup" style="display: none; margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File:</label>
-                <input type="text" id="fileName" placeholder="Contoh: Bukti_TT001" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <div id="fileNameInputGroup" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File (opsional):</label>
+                <input type="text" id="fileName" placeholder="Kosongkan untuk otomatis" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <small style="color: #666;">*Biarkan kosong untuk menggunakan nomor TT</small>
             </div>
             
             <div class="upload-options">
-                <button id="uploadFromDrive" class="upload-option drive">
-                    <span class="icon">📂</span> Google Drive
-                </button>
                 <button id="uploadFromPC" class="upload-option pc">
-                    <span class="icon">💻</span> PC / Dokumen
+                    <span class="icon">💻</span> Upload dari Komputer
                 </button>
                 <button id="uploadFromCamera" class="upload-option camera">
-                    <span class="icon">📷</span> Kamera
+                    <span class="icon">📷</span> Ambil Foto
+                </button>
+                <button id="uploadFromDrive" class="upload-option drive">
+                    <span class="icon">📂</span> Link Google Drive
                 </button>
             </div>
+            
             <div id="uploadPreview" style="display: none; margin-top: 15px; text-align: center;">
                 <img id="previewImage" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px;">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
                 <p id="uploadStatus" style="margin-top: 10px; font-size: 12px;"></p>
             </div>
         </div>
@@ -413,8 +450,8 @@
 </div>
 
 <!-- Input file tersembunyi -->
-<input type="file" id="fileInput" accept="image/*,application/pdf" style="display: none;">
-<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+<input type="file" id="fileInput" accept="image/jpeg,image/jpg,image/png,application/pdf" style="display: none;">
+<input type="file" id="cameraInput" accept="image/jpeg,image/jpg,image/png" capture="environment" style="display: none;">
 
 <script src="../config.js"></script>
 <script src="../js/tanda-terima.js"></script>

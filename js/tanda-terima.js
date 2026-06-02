@@ -313,23 +313,41 @@ async function uploadFileToDrive(file, noTT, fileName) {
         document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
         try {
             fileToUpload = await convertImageToPDF(file, fileName);
+            console.log('Hasil konversi:', {
+                type: fileToUpload.type,
+                size: fileToUpload.size,
+                name: fileToUpload.name
+            });
         } catch (error) {
-            alert('❌ Gagal mengkonversi gambar ke PDF.');
+            console.error('Error konversi:', error);
+            alert('❌ Gagal mengkonversi gambar ke PDF: ' + error.message);
             return;
         }
+    }
+
+    // PASTIKAN fileToUpload VALID
+    if (!fileToUpload || fileToUpload.size === 0) {
+        alert('❌ File tidak valid atau kosong!');
+        return;
     }
 
     const formData = new FormData();
     formData.append('action', 'upload');
     formData.append('noTT', noTT);
     formData.append('fileName', fileName);
-    formData.append('file', fileToUpload);
+    
+    // KIRIM FILE DENGAN BLOB YANG BENAR
+    if (fileToUpload instanceof Blob || fileToUpload instanceof File) {
+        formData.append('file', fileToUpload, `${fileName}.pdf`);
+    } else {
+        alert('❌ Format file tidak dikenali');
+        return;
+    }
 
     document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
 
     try {
-        // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6-skV1x_jbHnZBIMQ3wim_JeIN95ohpyeKLECxQphmUV33X4DJ9iVZSVHL-s36bZXFQ/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRVvpzWbE6dMXfdNrD51c4SqjWL9koy933-ch1JYr_pWhnnNHJmjwdJtAGvt9tEg2b2Q/exec';
         
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -347,7 +365,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
             throw new Error(result.error || 'Upload gagal');
         }
     } catch (error) {
-        console.error('Error upload:', error);
+        console.error('Error upload detail:', error);
         document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
         alert('❌ Gagal upload: ' + error.message);
     }
@@ -355,6 +373,11 @@ async function uploadFileToDrive(file, noTT, fileName) {
 
 // Konversi gambar ke PDF
 async function convertImageToPDF(imageFile, fileName) {
+    // Pastikan jsPDF sudah loaded
+    if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library not loaded. Pastikan Anda sudah include jsPDF library.');
+    }
+    
     const { jsPDF } = window.jspdf;
     
     return new Promise((resolve, reject) => {
@@ -362,26 +385,60 @@ async function convertImageToPDF(imageFile, fileName) {
         reader.onload = function(e) {
             const img = new Image();
             img.onload = function() {
-                const pdf = new jsPDF({
-                    orientation: img.width > img.height ? 'landscape' : 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                const imgWidth = pdf.internal.pageSize.getWidth();
-                const imgHeight = (img.height * imgWidth) / img.width;
-                pdf.addImage(img, 'JPEG', 0, 0, imgWidth, imgHeight);
-                const pdfBlob = pdf.output('blob');
-                const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { type: 'application/pdf' });
-                resolve(pdfFile);
+                try {
+                    // Buat PDF dengan ukuran A4
+                    const pdf = new jsPDF({
+                        orientation: img.width > img.height ? 'landscape' : 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    
+                    // Hitung proporsi gambar
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const imgWidth = img.width;
+                    const imgHeight = img.height;
+                    
+                    let width = pdfWidth;
+                    let height = (imgHeight * pdfWidth) / imgWidth;
+                    
+                    if (height > pdfHeight) {
+                        height = pdfHeight;
+                        width = (imgWidth * pdfHeight) / imgHeight;
+                    }
+                    
+                    const x = (pdfWidth - width) / 2;
+                    const y = (pdfHeight - height) / 2;
+                    
+                    // Tambahkan gambar ke PDF
+                    pdf.addImage(img, 'JPEG', x, y, width, height);
+                    
+                    // Konversi ke Blob
+                    const pdfBlob = pdf.output('blob');
+                    
+                    // Pastikan blob valid
+                    if (!pdfBlob || pdfBlob.size === 0) {
+                        reject(new Error('PDF blob kosong'));
+                        return;
+                    }
+                    
+                    // Konversi ke File object
+                    const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { 
+                        type: 'application/pdf' 
+                    });
+                    
+                    resolve(pdfFile);
+                } catch (err) {
+                    reject(err);
+                }
             };
-            img.onerror = reject;
+            img.onerror = () => reject(new Error('Gagal memuat gambar'));
             img.src = e.target.result;
         };
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error('Gagal membaca file'));
         reader.readAsDataURL(imageFile);
     });
 }
-
 // Simpan URL bukti ke database
 async function simpanBuktiUrl(noTT, url) {
     try {
