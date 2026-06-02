@@ -293,7 +293,7 @@
             
             // BARIS 3: Biaya Telex
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
+                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col"></td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
                 totalNilaiEkuivalen += data.biayaTelex;
             }
             
@@ -315,18 +315,18 @@
             let rows = '';
             
             // BARIS 1: Jumlah Transfer
-            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}<tr></tr>`;
+            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col"></td><td class="jumlah-col">${data.currency} ${formattedJumlah}<tr></tr>`;
             totalNilaiEkuivalenUSD += data.jumlah;
             
             // BARIS 2: Full Amount
             if (showBiayaFull) {
-                rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
+                rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col"></td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
                 totalNilaiEkuivalenUSD += data.biayaFullAmount;
             }
             
             // BARIS 3: Biaya Telex (TIDAK dimasukkan ke total USD)
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}<table></tr>`;
+                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col"></td><td class="jumlah-col">IDR ${formattedBiayaTelex}<table></tr>`;
             }
             
             // Total (HANYA USD, tanpa telex)
