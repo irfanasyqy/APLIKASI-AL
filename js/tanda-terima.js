@@ -116,7 +116,7 @@ function extractTTNumber(noTT) {
 }
 
 // =====================================================
-// 3. SELECT TT - TAMPILKAN DETAIL (DENGAN LOGIKA TOMBOL HAPUS BUKTI)
+// 3. SELECT TT - TAMPILKAN DETAIL
 // =====================================================
 function selectTT(tt) {
     selectedTT = tt;
@@ -130,12 +130,10 @@ function selectTT(tt) {
         ? '<span class="status-bukti-tersedia">✅ Bukti Faktur: TERSEDIA</span>'
         : '<span class="status-bukti-belum">⚠️ Bukti Faktur: BELUM ADA</span>';
     
-    // Tampilkan atau sembunyikan tombol HAPUS BUKTI hanya jika ada bukti
     if (btnHapusBukti) {
         btnHapusBukti.style.display = hasBukti ? 'flex' : 'none';
     }
     
-    // Format invoices
     let invoicesHtml = '';
     if (tt.invoices && tt.invoices.length > 0) {
         invoicesHtml = '<ul class="invoice-list">';
@@ -211,9 +209,13 @@ function showUploadModal(tt) {
     document.getElementById('uploadPreview').style.display = 'none';
     document.getElementById('previewImage').src = '';
     document.getElementById('uploadStatus').innerHTML = '';
-    document.getElementById('fileNameInputGroup').style.display = 'none';
+    document.getElementById('fileNameInputGroup').style.display = 'block';
     document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
     currentUploadSource = null;
+    
+    // Reset progress bar
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '0%';
 }
 
 function closeUploadModal() {
@@ -248,7 +250,6 @@ function uploadFromDrive() {
 function uploadFromPC() {
     if (!currentUploadTT) return;
     currentUploadSource = 'pc';
-    document.getElementById('fileNameInputGroup').style.display = 'block';
     document.getElementById('fileInput').click();
 }
 
@@ -256,61 +257,13 @@ function uploadFromPC() {
 function uploadFromCamera() {
     if (!currentUploadTT) return;
     currentUploadSource = 'camera';
-    document.getElementById('fileNameInputGroup').style.display = 'block';
     document.getElementById('cameraInput').click();
 }
 
-// Handle file dari PC
-async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file || !currentUploadTT) return;
-    
-    const fileName = document.getElementById('fileName').value.trim();
-    if (!fileName) {
-        alert('⚠️ Silakan isi nama file terlebih dahulu!');
-        return;
-    }
-    
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('previewImage').src = e.target.result;
-            document.getElementById('uploadPreview').style.display = 'block';
-            document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
-}
-
-// Handle file dari kamera
-async function handleCameraUpload(event) {
-    const file = event.target.files[0];
-    if (!file || !currentUploadTT) return;
-    
-    const fileName = document.getElementById('fileName').value.trim();
-    if (!fileName) {
-        alert('⚠️ Silakan isi nama file terlebih dahulu!');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('previewImage').src = e.target.result;
-        document.getElementById('uploadPreview').style.display = 'block';
-        document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
-    };
-    reader.readAsDataURL(file);
-    
-    await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
-}
-
 // =====================================================
-// PERBAIKI FUNGSI UPLOAD FILE KE DRIVE
+// FUNGSI UPLOAD DENGAN BASE64 (RELIABLE)
 // =====================================================
 async function uploadFileToDrive(file, noTT, fileName) {
-    // VALIDASI AWAL
     if (!file) {
         alert('❌ File tidak ditemukan!');
         return;
@@ -319,158 +272,123 @@ async function uploadFileToDrive(file, noTT, fileName) {
     console.log('File to upload:', {
         name: file.name,
         type: file.type,
-        size: file.size,
-        isFile: file instanceof File,
-        isBlob: file instanceof Blob
+        size: file.size
     });
     
-    let fileToUpload = file;
-    let isConverted = false;
-
-    // KONVERSI GAMBAR KE PDF (jika perlu)
-    if (file.type.startsWith('image/')) {
-        document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
-        document.getElementById('uploadStatus').style.color = '#f39c12';
-        
-        try {
-            fileToUpload = await convertImageToPDF(file, fileName);
-            console.log('Hasil konversi:', {
-                name: fileToUpload.name,
-                type: fileToUpload.type,
-                size: fileToUpload.size
-            });
-            isConverted = true;
-        } catch (error) {
-            console.error('Error konversi:', error);
-            document.getElementById('uploadStatus').innerHTML = '❌ Gagal konversi gambar';
-            document.getElementById('uploadStatus').style.color = 'red';
-            alert('❌ Gagal mengkonversi gambar ke PDF: ' + error.message);
-            return;
-        }
-    }
-    
-    // VALIDASI SETELAH KONVERSI
-    if (!fileToUpload || fileToUpload.size === 0) {
-        alert('❌ File hasil konversi kosong!');
-        return;
-    }
-    
-    // KIRIM KE APPS SCRIPT
-    const formData = new FormData();
-    formData.append('action', 'upload');
-    formData.append('noTT', noTT);
-    
-    // Gunakan nama file yang aman
-    let finalFileName = fileName || `Bukti_${noTT}`;
-    finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
-    formData.append('fileName', finalFileName);
-    
-    // PASTIKAN FILE TERKIRIM DENGAN BENAR
-    // Cara 1: Kirim sebagai File object
-    if (fileToUpload instanceof File) {
-        formData.append('file', fileToUpload, `${finalFileName}.pdf`);
-    } 
-    // Cara 2: Kirim sebagai Blob
-    else if (fileToUpload instanceof Blob) {
-        const blobAsFile = new File([fileToUpload], `${finalFileName}.pdf`, { type: 'application/pdf' });
-        formData.append('file', blobAsFile);
-    }
-    else {
-        alert('❌ Format file tidak dikenali');
-        return;
-    }
-    
-    // DEBUG: Cek formData
-    console.log('FormData entries:');
-    for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1] instanceof File ? `File: ${pair[1].name} (${pair[1].size} bytes)` : pair[1]);
-    }
-    
-    document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke server...';
-    document.getElementById('uploadStatus').style.color = '#3498db';
-    
-    // TAMPILKAN PROGRESS BAR
     const progressBar = document.getElementById('progressBar');
     const progressFill = document.getElementById('progressFill');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
     if (progressBar) progressBar.style.display = 'block';
+    if (progressFill) progressFill.style.width = '10%';
+    if (uploadStatus) {
+        uploadStatus.innerHTML = '📤 Memproses file...';
+        uploadStatus.style.color = '#3498db';
+    }
     
     try {
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRVvpzWbE6dMXfdNrD51c4SqjWL9koy933-ch1JYr_pWhnnNHJmjwdJtAGvt9tEg2b2Q/exec';
+        let finalBlob = file;
+        let finalFileName = fileName || `Bukti_${noTT}`;
+        finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
         
-        // Gunakan fetch dengan timeout
+        // Konversi gambar ke PDF jika perlu
+        if (file.type.startsWith('image/')) {
+            if (uploadStatus) {
+                uploadStatus.innerHTML = '🔄 Mengkonversi gambar ke PDF...';
+                uploadStatus.style.color = '#f39c12';
+            }
+            if (progressFill) progressFill.style.width = '30%';
+            
+            finalBlob = await convertImageToPDFBlob(file);
+            console.log('Converted to PDF, size:', finalBlob.size);
+        }
+        
+        if (progressFill) progressFill.style.width = '50%';
+        if (uploadStatus) uploadStatus.innerHTML = '📦 Mengenkripsi file...';
+        
+        // Konversi ke Base64
+        const base64 = await blobToBase64(finalBlob);
+        
+        if (progressFill) progressFill.style.width = '70%';
+        if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
+        
+        // Kirim ke Apps Script via JSON
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoeCLWyziIEBwjOvhtjiSxOI-eHs11Bm8TR_t3im5_Z3uUlt-JOyffm9TPM6xnCB1lhA/exec';
+        
+        const payload = {
+            action: 'upload',
+            noTT: noTT,
+            fileName: finalFileName,
+            fileData: base64,
+            contentType: 'application/pdf'
+        };
+        
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 detik timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
         
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
             signal: controller.signal
         });
         
         clearTimeout(timeoutId);
         
-        console.log('Response status:', response.status);
+        if (progressFill) progressFill.style.width = '90%';
         
-        // Baca response sebagai text dulu untuk debugging
-        const responseText = await response.text();
-        console.log('Response text:', responseText);
+        const result = await response.json();
+        console.log('Server response:', result);
         
-        // Parse JSON
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch(e) {
-            console.error('Gagal parse JSON:', e);
-            throw new Error('Server merespon format tidak valid: ' + responseText.substring(0, 200));
-        }
-        
-        if (progressBar) progressBar.style.display = 'none';
+        if (progressFill) progressFill.style.width = '100%';
         
         if (result.success) {
-            document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
-            document.getElementById('uploadStatus').style.color = '#27ae60';
+            if (uploadStatus) {
+                uploadStatus.innerHTML = '✅ Upload berhasil!';
+                uploadStatus.style.color = '#27ae60';
+            }
             
-            // Update progress fill to 100%
-            if (progressFill) progressFill.style.width = '100%';
-            
-            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n📄 Ukuran: ${Math.round(result.fileSize/1024)} KB`);
+            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}`);
             
             // Simpan URL ke database
             await simpanBuktiUrl(noTT, result.url);
             
-            // Tutup modal setelah 1 detik
+            // Tutup modal setelah sukses
             setTimeout(() => {
                 closeUploadModal();
-                // Refresh data
                 loadTandaTerima();
             }, 1000);
         } else {
             throw new Error(result.error || 'Upload gagal');
         }
+        
     } catch (error) {
-        console.error('Error upload detail:', error);
+        console.error('Upload error:', error);
         if (progressBar) progressBar.style.display = 'none';
         
         let errorMsg = error.message;
         if (error.name === 'AbortError') {
-            errorMsg = 'Upload timeout. Coba dengan file yang lebih kecil.';
+            errorMsg = 'Upload timeout. Coba dengan file yang lebih kecil (max 10MB).';
         } else if (error.message.includes('Failed to fetch')) {
             errorMsg = 'Koneksi terputus. Periksa koneksi internet Anda.';
+        } else if (error.message.includes('JSON')) {
+            errorMsg = 'Server error. Coba lagi nanti.';
         }
         
-        document.getElementById('uploadStatus').innerHTML = '❌ ' + errorMsg;
-        document.getElementById('uploadStatus').style.color = 'red';
+        if (uploadStatus) {
+            uploadStatus.innerHTML = '❌ ' + errorMsg;
+            uploadStatus.style.color = 'red';
+        }
         alert('❌ Gagal upload: ' + errorMsg);
     }
 }
 
 // =====================================================
-// PERBAIKI FUNGSI KONVERSI GAMBAR KE PDF
+// KONVERSI GAMBAR KE PDF BLOB
 // =====================================================
-async function convertImageToPDF(imageFile, fileName) {
-    // Pastikan jsPDF tersedia
+async function convertImageToPDFBlob(imageFile) {
     if (typeof window.jspdf === 'undefined') {
-        throw new Error('jsPDF library tidak ditemukan. Refresh halaman dan coba lagi.');
+        throw new Error('jsPDF library tidak ditemukan. Refresh halaman.');
     }
     
     const { jsPDF } = window.jspdf;
@@ -483,9 +401,8 @@ async function convertImageToPDF(imageFile, fileName) {
             
             img.onload = function() {
                 try {
-                    console.log('Image loaded:', { width: img.width, height: img.height });
+                    console.log('Image loaded:', img.width, 'x', img.height);
                     
-                    // Buat PDF dengan orientasi sesuai gambar
                     const orientation = img.width > img.height ? 'landscape' : 'portrait';
                     const pdf = new jsPDF({
                         orientation: orientation,
@@ -493,7 +410,6 @@ async function convertImageToPDF(imageFile, fileName) {
                         format: 'a4'
                     });
                     
-                    // Hitung dimensi agar proporsional
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
                     
@@ -508,27 +424,18 @@ async function convertImageToPDF(imageFile, fileName) {
                     const x = (pdfWidth - width) / 2;
                     const y = (pdfHeight - height) / 2;
                     
-                    // Tambahkan gambar ke PDF
                     pdf.addImage(img, 'JPEG', x, y, width, height);
                     
-                    // Konversi ke Blob
                     const pdfBlob = pdf.output('blob');
-                    console.log('PDF blob created:', { size: pdfBlob.size, type: pdfBlob.type });
                     
                     if (!pdfBlob || pdfBlob.size === 0) {
                         reject(new Error('PDF blob kosong'));
                         return;
                     }
                     
-                    // Buat File object
-                    const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { 
-                        type: 'application/pdf' 
-                    });
-                    
-                    resolve(pdfFile);
+                    resolve(pdfBlob);
                     
                 } catch (err) {
-                    console.error('Error creating PDF:', err);
                     reject(new Error('Gagal membuat PDF: ' + err.message));
                 }
             };
@@ -549,7 +456,23 @@ async function convertImageToPDF(imageFile, fileName) {
 }
 
 // =====================================================
-// PERBAIKI FUNGSI HANDLE FILE UPLOAD DARI PC
+// KONVERSI BLOB KE BASE64
+// =====================================================
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            // Ambil base64 tanpa header (data:application/pdf;base64,)
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+// =====================================================
+// HANDLE FILE UPLOAD DARI PC
 // =====================================================
 async function handleFileUpload(event) {
     const file = event.target.files[0];
@@ -586,6 +509,10 @@ async function handleFileUpload(event) {
             }
         };
         reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+        // Untuk PDF, tampilkan icon
+        document.getElementById('uploadPreview').style.display = 'block';
+        document.getElementById('previewImage').src = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
     }
     
     // Upload file
@@ -593,7 +520,7 @@ async function handleFileUpload(event) {
 }
 
 // =====================================================
-// PERBAIKI FUNGSI HANDLE UPLOAD DARI KAMERA
+// HANDLE UPLOAD DARI KAMERA
 // =====================================================
 async function handleCameraUpload(event) {
     const file = event.target.files[0];
@@ -633,7 +560,10 @@ async function handleCameraUpload(event) {
     // Upload file
     await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
-// Simpan URL bukti ke database
+
+// =====================================================
+// SIMPAN URL BUKTI KE DATABASE
+// =====================================================
 async function simpanBuktiUrl(noTT, url) {
     try {
         const response = await fetch(CONFIG.API_URL, {
@@ -648,21 +578,22 @@ async function simpanBuktiUrl(noTT, url) {
         const result = await response.json();
         
         if (result.success) {
-            alert('✅ Bukti faktur berhasil ditambahkan!');
+            console.log('✅ Bukti tersimpan di database');
             await loadTandaTerima();
             const updated = ttData.find(tt => tt.noTT === noTT);
             if (updated) selectTT(updated);
         } else {
-            alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
+            console.error('Gagal simpan ke database:', result.error);
+            alert('⚠️ File terupload tapi gagal menyimpan ke database: ' + (result.error || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error save bukti:', error);
-        alert('❌ Error koneksi saat menyimpan');
+        alert('⚠️ File terupload tapi error koneksi saat menyimpan ke database');
     }
 }
 
 // =====================================================
-// 6. HAPUS BUKTI (HANYA MUNCUL JIKA ADA BUKTI)
+// 6. HAPUS BUKTI
 // =====================================================
 async function hapusBukti() {
     if (!selectedTT) {
@@ -683,13 +614,11 @@ async function hapusBukti() {
     if (!confirm(confirmMsg)) return;
     
     try {
-        // 1. Hapus file dari Google Drive
         const fileId = extractFileIdFromUrl(selectedTT.buktiUrl);
         if (fileId) {
             await deleteFileFromDrive(fileId);
         }
         
-        // 2. Hapus URL dari database
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -715,7 +644,6 @@ async function hapusBukti() {
     }
 }
 
-// Ekstrak file ID dari URL Google Drive
 function extractFileIdFromUrl(url) {
     if (!url) return null;
     const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -725,7 +653,6 @@ function extractFileIdFromUrl(url) {
     return null;
 }
 
-// Hapus file dari Google Drive via Apps Script
 async function deleteFileFromDrive(fileId) {
     try {
         const response = await fetch(CONFIG.API_URL, {
