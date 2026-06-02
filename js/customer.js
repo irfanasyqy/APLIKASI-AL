@@ -4,7 +4,7 @@ async function loadCustomers() {
     const tbody = document.getElementById('customerTableBody');
     if (!tbody) return;
     
-    tbody.innerHTML = '<table><td colspan="7">📡 Memuat data customer...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">📡 Memuat data customer...</td></tr>';
     
     try {
         const response = await fetch(CONFIG.API_URL, {
@@ -18,34 +18,54 @@ async function loadCustomers() {
             let html = '';
             for (let i = 0; i < result.data.length; i++) {
                 const row = result.data[i];
+                
+                // A: NOMOR (kolom 0)
                 const no = row[0] || i + 1;
-                // Sesuai struktur: kolom B = NAMA PERUSAHAAN
+                
+                // B: NAMA PERUSAHAAN (kolom 1)
                 const nama = escapeHtml(row[1] || '-');
-                // Kolom G = KETERANGAN 1 (bisa dijadikan email)
-                const email = escapeHtml(row[6] || '-');
-                // Kolom F = NO HP
-                const telepon = escapeHtml(row[5] || '-');
-                // Kolom C = ALAMAT KIRIM FAKTUR
+                
+                // C: ALAMAT KIRIM FAKTUR (kolom 2)
                 const alamat = escapeHtml(row[2] || '-');
-                // Kolom H = KETERANGAN 2 (kota)
-                const kota = escapeHtml(row[7] || '-');
+                
+                // D: JADWAL KIRIM FAKTUR (kolom 3)
+                const jadwal = escapeHtml(row[3] || '-');
+                
+                // E: PIC (kolom 4)
+                const pic = escapeHtml(row[4] || '-');
+                
+                // F: NO HP (kolom 5)
+                const hp = escapeHtml(row[5] || '-');
+                
+                // Gabungan PIC + HP
+                let picHp = pic;
+                if (pic !== '-' && hp !== '-') {
+                    picHp = pic + ' - ' + hp;
+                } else if (hp !== '-') {
+                    picHp = hp;
+                }
+                
+                // G: KETERANGAN 1 / Email (kolom 6)
+                const email = escapeHtml(row[6] || '-');
                 
                 html += `
                     <tr data-id="${i}" 
                         data-nama="${nama}" 
-                        data-email="${email}" 
-                        data-telepon="${telepon}" 
                         data-alamat="${alamat}" 
-                        data-kota="${kota}">
+                        data-jadwal="${jadwal}" 
+                        data-pic="${pic}" 
+                        data-hp="${hp}" 
+                        data-email="${email}"
+                        data-catatan="${escapeHtml(row[8] || '')}">
                         <td>${no}</td>
                         <td>${nama}</td>
-                        <td>${email}</td>
-                        <td>${telepon}</td>
                         <td>${alamat}</td>
-                        <td>${kota}</td>
+                        <td>${jadwal}</td>
+                        <td>${picHp}</td>
+                        <td>${email}</td>
                         <td>
                             <button class="btn-edit" onclick="editCustomer(${i})">✏️ Edit</button>
-                            <button class="btn-hapus" onclick="hapusCustomerConfirm(${i}, '${nama}')">🗑️ Hapus</button>
+                            <button class="btn-hapus" onclick="hapusCustomerConfirm(${i}, '${nama.replace(/'/g, "\\'")}')">🗑️ Hapus</button>
                         </td>
                     </table>
                 `;
@@ -60,17 +80,19 @@ async function loadCustomers() {
                     if (e.target.tagName === 'BUTTON') return;
                     
                     const nama = row.getAttribute('data-nama') || '-';
-                    const email = row.getAttribute('data-email') || '-';
-                    const telepon = row.getAttribute('data-telepon') || '-';
                     const alamat = row.getAttribute('data-alamat') || '-';
-                    const kota = row.getAttribute('data-kota') || '-';
+                    const jadwal = row.getAttribute('data-jadwal') || '-';
+                    const pic = row.getAttribute('data-pic') || '-';
+                    const hp = row.getAttribute('data-hp') || '-';
+                    const email = row.getAttribute('data-email') || '-';
                     
                     const previewHtml = `
                         <div><strong>📛 Nama:</strong> ${nama}</div>
-                        <div><strong>📧 Email/Ket1:</strong> ${email}</div>
-                        <div><strong>📞 Telepon:</strong> ${telepon}</div>
                         <div><strong>📍 Alamat:</strong> ${alamat}</div>
-                        <div><strong>🏙️ Kota/Ket2:</strong> ${kota}</div>
+                        <div><strong>📅 Jadwal:</strong> ${jadwal}</div>
+                        <div><strong>👤 PIC:</strong> ${pic}</div>
+                        <div><strong>📞 HP:</strong> ${hp}</div>
+                        <div><strong>📧 Email:</strong> ${email}</div>
                     `;
                     document.getElementById('previewContent').innerHTML = previewHtml;
                     document.getElementById('previewPanel').style.display = 'block';
@@ -105,23 +127,52 @@ function editCustomer(index) {
         const data = window.customersData[index];
         document.getElementById('editId').value = index;
         document.getElementById('namaCustomer').value = data[1] || '';
-        document.getElementById('emailCustomer').value = data[6] || '';
-        document.getElementById('teleponCustomer').value = data[5] || '';
         document.getElementById('alamatCustomer').value = data[2] || '';
-        document.getElementById('kotaCustomer').value = data[7] || '';
+        document.getElementById('jadwalCustomer').value = data[3] || '';
+        document.getElementById('picCustomer').value = data[4] || '';
+        document.getElementById('hpCustomer').value = data[5] || '';
+        document.getElementById('emailCustomer').value = data[6] || '';
         document.getElementById('catatanCustomer').value = data[8] || '';
     } else if (row) {
         document.getElementById('editId').value = row.getAttribute('data-id');
         document.getElementById('namaCustomer').value = row.getAttribute('data-nama') || '';
-        document.getElementById('emailCustomer').value = row.getAttribute('data-email') || '';
-        document.getElementById('teleponCustomer').value = row.getAttribute('data-telepon') || '';
         document.getElementById('alamatCustomer').value = row.getAttribute('data-alamat') || '';
-        document.getElementById('kotaCustomer').value = row.getAttribute('data-kota') || '';
-        document.getElementById('catatanCustomer').value = '';
+        document.getElementById('jadwalCustomer').value = row.getAttribute('data-jadwal') || '';
+        document.getElementById('picCustomer').value = row.getAttribute('data-pic') || '';
+        document.getElementById('hpCustomer').value = row.getAttribute('data-hp') || '';
+        document.getElementById('emailCustomer').value = row.getAttribute('data-email') || '';
+        document.getElementById('catatanCustomer').value = row.getAttribute('data-catatan') || '';
     }
     document.getElementById('formTitle').innerText = '✏️ Edit Customer';
     document.getElementById('overlay').style.display = 'block';
     document.getElementById('customerForm').style.display = 'block';
+}
+
+function hapusCustomerConfirm(index, nama) {
+    if (confirm(`⚠️ Yakin ingin menghapus customer "${nama}"?\n\nTINDAKAN INI TIDAK DAPAT DIBATALKAN!`)) {
+        hapusCustomer(index);
+    }
+}
+
+async function hapusCustomer(index) {
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'deleteCustomer', rowIndex: index })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('✅ Data berhasil dihapus!');
+            await loadCustomers();
+            document.getElementById('previewPanel').style.display = 'none';
+        } else {
+            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error hapus:', error);
+        alert('❌ Error koneksi saat menghapus');
+    }
 }
 
 async function simpanCustomer() {
@@ -136,10 +187,11 @@ async function simpanCustomer() {
         type: 'saveCustomer',
         id: editId || undefined,
         nama: nama,
-        email: document.getElementById('emailCustomer').value.trim(),
-        telepon: document.getElementById('teleponCustomer').value.trim(),
         alamat: document.getElementById('alamatCustomer').value.trim(),
-        kota: document.getElementById('kotaCustomer').value.trim(),
+        jadwal: document.getElementById('jadwalCustomer').value.trim(),
+        pic: document.getElementById('picCustomer').value.trim(),
+        hp: document.getElementById('hpCustomer').value.trim(),
+        email: document.getElementById('emailCustomer').value.trim(),
         catatan: document.getElementById('catatanCustomer').value.trim()
     };
     
@@ -172,42 +224,16 @@ async function simpanCustomer() {
     }
 }
 
-function hapusCustomerConfirm(index, nama) {
-    if (confirm(`⚠️ Yakin ingin menghapus customer "${nama}"?\n\nTINDAKAN INI TIDAK DAPAT DIBATALKAN!`)) {
-        hapusCustomer(index);
-    }
-}
-
-async function hapusCustomer(index) {
-    try {
-        const response = await fetch(CONFIG.API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'deleteCustomer', rowIndex: index })
-        });
-        const result = await response.json();
-        if (result.success) {
-            alert('✅ Data berhasil dihapus!');
-            await loadCustomers();
-            document.getElementById('previewPanel').style.display = 'none';
-        } else {
-            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error hapus:', error);
-        alert('❌ Error koneksi saat menghapus');
-    }
-}
-
 function tutupForm() {
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('customerForm').style.display = 'none';
     document.getElementById('editId').value = '';
     document.getElementById('namaCustomer').value = '';
-    document.getElementById('emailCustomer').value = '';
-    document.getElementById('teleponCustomer').value = '';
     document.getElementById('alamatCustomer').value = '';
-    document.getElementById('kotaCustomer').value = '';
+    document.getElementById('jadwalCustomer').value = '';
+    document.getElementById('picCustomer').value = '';
+    document.getElementById('hpCustomer').value = '';
+    document.getElementById('emailCustomer').value = '';
     document.getElementById('catatanCustomer').value = '';
     document.getElementById('formTitle').innerText = '➕ Tambah Customer';
     document.getElementById('previewPanel').style.display = 'none';
