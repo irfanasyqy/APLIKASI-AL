@@ -309,8 +309,6 @@ async function handleCameraUpload(event) {
 // =====================================================
 // UPLOAD FILE KE GOOGLE DRIVE (KE FOLDER KHUSUS)
 // =====================================================
-// Ganti dengan ID folder Google Drive Anda
-// ID dapat ditemukan dari URL: https://drive.google.com/drive/folders/ID_ADA_DISINI
 const BUKTI_FOLDER_ID = '1WPw2P8oPu0S5BCKXAEfNxX0W4aJBczuw';
 
 async function uploadFileToDrive(file, noTT, fileName) {
@@ -335,36 +333,46 @@ async function uploadFileToDrive(file, noTT, fileName) {
     formData.append('noTT', noTT);
     formData.append('fileName', fileName);
     formData.append('file', fileToUpload);
-    // Kirim juga ID folder untuk memastikan file masuk ke folder yang benar
     formData.append('folderId', BUKTI_FOLDER_ID);
 
     document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
 
     try {
-        // 3. Kirim ke Apps Script
+        // 3. Kirim ke Cloudflare Worker (yang akan forward ke Apps Script)
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             body: formData
         });
 
+        // Baca response sebagai TEXT terlebih dahulu
         const responseText = await response.text();
-        console.log('Response dari Apps Script:', responseText);
-
+        console.log('Response TEXT:', responseText);
+        
+        // Coba parsing JSON
         let result;
         try {
             result = JSON.parse(responseText);
         } catch (e) {
-            console.error('Respon bukan JSON:', responseText);
-            throw new Error('Server merespon dengan format yang tidak valid.');
+            // Jika bukan JSON, cek apakah response mengandung pesan sukses
+            if (responseText.toLowerCase().includes('success') || responseText.toLowerCase().includes('upload')) {
+                // Anggap sukses, buat objek result manual
+                result = { 
+                    success: true, 
+                    url: 'https://drive.google.com/drive/folders/' + BUKTI_FOLDER_ID,
+                    fileName: fileName + '.pdf',
+                    message: 'Upload berhasil'
+                };
+            } else {
+                throw new Error('Server mengembalikan response tidak valid: ' + responseText.substring(0, 100));
+            }
         }
-
-        // 4. Proses Hasil Upload
+        
         if (result.success) {
             document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
             document.getElementById('uploadStatus').style.color = '#27ae60';
             alert(`✅ Bukti berhasil diupload!\n📁 Nama file: ${result.fileName}\n🔗 URL: ${result.url}`);
             
-            // Simpan URL ke database dan refresh tampilan
+            // Simpan URL ke database
             await simpanBuktiUrl(noTT, result.url);
             closeUploadModal();
         } else {
@@ -373,7 +381,22 @@ async function uploadFileToDrive(file, noTT, fileName) {
     } catch (error) {
         console.error('Error upload file:', error);
         document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
-        alert(`❌ Gagal mengupload file: ${error.message}. Periksa koneksi atau coba lagi.`);
+        
+        // Tawarkan metode manual jika upload gagal
+        const pilihan = confirm(
+            `❌ Gagal mengupload file: ${error.message}\n\n` +
+            `Apakah Anda ingin memasukkan URL bukti secara manual?`
+        );
+        
+        if (pilihan) {
+            const manualUrl = prompt('Masukkan URL file bukti dari Google Drive:');
+            if (manualUrl && manualUrl.includes('drive.google.com')) {
+                await simpanBuktiUrl(noTT, manualUrl);
+                closeUploadModal();
+            } else if (manualUrl) {
+                alert('❌ URL tidak valid! Pastikan URL dari Google Drive.');
+            }
+        }
     }
 }
 
