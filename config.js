@@ -3,7 +3,7 @@
 
 const CONFIG = {
     // Gunakan URL Cloudflare Worker Anda
-    API_URL: 'https://aplikasi-al.al-asyqy.workers.dev'
+    API_URL: 'https://aplikasi-al.muhammadirfanalasyqy.workers.dev/'
 };
 
 // Jangan ubah kode di bawah ini
