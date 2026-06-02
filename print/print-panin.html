@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Print Bank Panin</title>
     <style>
-       /* ======================================== */
+        /* ======================================== */
 /* RESET & DASAR */
 /* ======================================== */
 * { 
@@ -37,7 +37,7 @@ body {
 /* KOLOM KIRI - DATA PENGIRIM & PENERIMA */
 /* ======================================== */
 
-/* Baris 1: Mata Uang & Jumlah */
+/* ----- BARIS 1: MATA UANG & JUMLAH ----- */
 .currency { 
     position: absolute; 
     top: 43mm; 
@@ -56,7 +56,7 @@ body {
     white-space: nowrap; 
 }
 
-/* Baris 2: Terbilang (bisa 2 baris) */
+/* ----- BARIS 2: TERBILANG (bisa 2 baris) ----- */
 .terbilang { 
     position: absolute; 
     top: 51mm; 
@@ -72,7 +72,7 @@ body {
     overflow: hidden; 
 }
 
-/* Baris 3: Nama Penerima */
+/* ----- BARIS 3: NAMA PENERIMA ----- */
 .nama-penerima { 
     position: absolute; 
     top: 65mm; 
@@ -83,7 +83,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 4: No Rekening Penerima */
+/* ----- BARIS 4: NO REKENING PENERIMA ----- */
 .account { 
     position: absolute; 
     top: 73mm; 
@@ -93,7 +93,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 5: Alamat Penerima (bisa 2 baris) */
+/* ----- BARIS 5: ALAMAT PENERIMA (bisa 2 baris) ----- */
 .alamat { 
     position: absolute; 
     top: 78mm; 
@@ -108,7 +108,7 @@ body {
     overflow: hidden; 
 }
 
-/* Baris 6: Nama Bank */
+/* ----- BARIS 6: NAMA BANK ----- */
 .bank-name { 
     position: absolute; 
     top: 90mm; 
@@ -119,7 +119,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 7: Alamat Bank (bisa 2 baris) */
+/* ----- BARIS 7: ALAMAT BANK (bisa 2 baris) ----- */
 .bank-alamat { 
     position: absolute; 
     top: 95mm; 
@@ -134,7 +134,7 @@ body {
     overflow: hidden; 
 }
 
-/* Baris 8: SWIFT Code */
+/* ----- BARIS 8: SWIFT CODE ----- */
 .swift { 
     position: absolute; 
     top: 103mm; 
@@ -144,7 +144,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 9: Negara */
+/* ----- BARIS 9: NEGARA ----- */
 .negara { 
     position: absolute; 
     top: 108mm; 
@@ -154,7 +154,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 10: Berita Transfer */
+/* ----- BARIS 10: BERITA TRANSFER ----- */
 .berita { 
     position: absolute; 
     top: 115mm; 
@@ -164,7 +164,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 11: Tujuan Transfer */
+/* ----- BARIS 11: TUJUAN TRANSFER ----- */
 .tujuan { 
     position: absolute; 
     top: 125mm; 
@@ -174,7 +174,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 12: Nama Pengirim */
+/* ----- BARIS 12: NAMA PENGIRIM ----- */
 .pengirim { 
     position: absolute; 
     top: 142mm; 
@@ -185,7 +185,7 @@ body {
     overflow-x: auto; 
 }
 
-/* Baris 13: No Rekening Pengirim (dengan spasi) */
+/* ----- BARIS 13: NO REKENING PENGIRIM (dengan spasi) ----- */
 .deretan-angka { 
     position: absolute; 
     top: 152mm; 
@@ -199,6 +199,7 @@ body {
 /* ======================================== */
 /* KOLOM KANAN - REFERENSI & TOTAL */
 /* ======================================== */
+
 .ref-no-cek { 
     position: absolute; 
     top: 82mm; 
@@ -224,65 +225,45 @@ body {
     color: #000; 
 }
 
-/* Container utama rincian biaya */
+/* ======================================== */
+/* RINCIAN BIAYA - BONGKARAN (DIV + FLEX) */
+/* ======================================== */
+
+/* ----- CONTAINER UTAMA ----- */
 .rincian-bongkaran {
     position: absolute;
     top: 127mm;
-    left: 150mm;   /* posisi awal container */
+    left: 20mm;          /* <== ATUR POSISI KIRI DI SINI */
     width: auto;
 }
-/* Container untuk membungkus semua baris (biar posisi absolut baris relatif ke sini) */
+
+/* ----- PEMBUNGKUS DENGAN POSITION RELATIVE ----- */
 .rincian-wrapper {
-    position: relative;   /* ← INI PENTING! */
+    position: relative;
     width: 100%;
-    height: 25mm;
+    height: 30mm;        /* <== ATUR TINGGI TOTAL AREA RINCIAN */
 }
 
-/* Style untuk setiap baris rincian */
+/* ----- BARIS RINCIAN & TOTAL ----- */
 .baris-rincian, .baris-total {
     position: absolute;
+    left: 0;
+    display: flex;
+    flex-direction: row;
+    gap: 5mm;            /* <== JARAK ANTAR KOLOM */
     white-space: nowrap;
 }
 
-/* POSISI TOP & LEFT MASING-MASING BARIS */
-.baris-1 { 
-    top: 0mm; 
-    left: 0mm; 
-}
-.baris-2 { 
-    top: 6mm; 
-    left: 5mm;      /* ← atur left di sini */
-}
-.baris-3 { 
-    top: 12mm; 
-    left: 10mm;     /* ← atur left di sini */
-}
-.baris-total { 
-    top: 18mm; 
-    left: 0mm; 
-}
+/* ----- POSISI TOP & LEFT MASING-MASING BARIS ----- */
+.baris-1 { top: 0mm; left: 0mm; }      /* Baris 1: Jumlah Transfer */
+.baris-2 { top: 6mm; left: 5mm; }      /* Baris 2: Full Amount */
+.baris-3 { top: 12mm; left: 10mm; }    /* Baris 3: Biaya Telex */
+.baris-total { top: 18mm; left: 0mm; font-weight: bold; }  /* Total */
 
-/* Kolom dalam satu baris (pakai flex) */
-.baris-rincian, .baris-total {
-    display: flex;
-    flex-direction: row;
-    gap: 5mm;
-}
-
-.valuta-col {
-    width: 35mm;
-    text-align: left;
-}
-
-.kurs-col {
-    width: 25mm;
-    text-align: right;
-}
-
-.nilai-col {
-    width: 55mm;
-    text-align: right;
-}
+/* ----- LEBAR KOLOM ----- */
+.valuta-col { width: 35mm; text-align: left; }   /* Kolom 1: Valuta Asing */
+.kurs-col   { width: 25mm; text-align: right; }  /* Kolom 2: Kurs */
+.nilai-col  { width: 55mm; text-align: right; }  /* Kolom 3: Nilai Ekuivalen */
 
 /* ======================================== */
 /* MEDIA PRINT - SAAT DI CETAK */
@@ -303,7 +284,6 @@ body {
         margin: 0; 
     } 
 }
-      
     </style>
 </head>
 <body>
@@ -350,7 +330,6 @@ body {
         const formattedBiayaFull = formatAngka(data.biayaFullAmount, data.currency);
         const formattedBiayaTelex = data.biayaTelex.toLocaleString('id-ID', {minimumFractionDigits: 0});
         const formattedKurs = formatKurs(data.kurs);
-        const formattedJumlahIDR = formatAngka(data.jumlahIDR, 'IDR');
         
         // Hitung nilai IDR untuk full amount jika ada kurs
         let formattedBiayaFullIDR = '0';
@@ -360,22 +339,18 @@ body {
             formattedBiayaFullIDR = formatAngka(biayaFullIDRValue, 'IDR');
         }
         
-        // Hitung jumlah akhir (untuk total)
-        let jumlahAkhir = data.jumlah;
         let showBiayaFull = false;
         if (data.metodeTransfer === 'FULL_AMOUNT') {
-            jumlahAkhir = data.jumlah + data.biayaFullAmount;
             showBiayaFull = true;
         }
         
         const norekFormat = data.norekPengirim.split('').join(' ');
         
-        // ========== 3 KONDISI (BERDASARKAN KURS DAN JUMLAHIDR) ==========
+        // ========== 3 KONDISI ==========
         const isPembelianValas = (data.jenis === 'valas');
-        const isTransferValas = (!isPembelianValas && data.kurs > 0 && data.jumlahIDR > 0);
+        const isTransferValas = (!isPembelianValas && data.kurs > 0 && data.currency !== 'IDR');
         const isTransferBiasa = (!isPembelianValas && !isTransferValas);
         
-        // Variabel untuk total
         let totalDisplay = '';
         let rincianHtml = '';
         
@@ -385,18 +360,20 @@ body {
             let totalNilai = nilaiEkuivalen;
             
             rincianHtml = `
-                <table style="margin-left: auto;">
-                    <thead>
-                        <tr><th></th><th>Kurs</th><th></th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="currency-col">${data.currency} ${formattedJumlah}</td>
-                            <td class="kurs-col">${formattedKurs}</td>
-                            <td class="jumlah-col">IDR ${formatAngka(nilaiEkuivalen, 'IDR')}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="rincian-bongkaran">
+                    <div class="rincian-wrapper">
+                        <div class="baris-rincian baris-1">
+                            <span class="valuta-col">${data.currency} ${formattedJumlah}</span>
+                            <span class="kurs-col">${formattedKurs}</span>
+                            <span class="nilai-col">IDR ${formatAngka(nilaiEkuivalen, 'IDR')}</span>
+                        </div>
+                        <div class="baris-total" style="top: 8mm;">
+                            <span class="valuta-col">Total</span>
+                            <span class="kurs-col"></span>
+                            <span class="nilai-col">IDR ${formatAngka(totalNilai, 'IDR')}</span>
+                        </div>
+                    </div>
+                </div>
             `;
             totalDisplay = `IDR ${formatAngka(totalNilai, 'IDR')}`;
         }
@@ -404,59 +381,107 @@ body {
         // ========== KONDISI 2: TRANSFER VALAS (IDR → USD/EUR) ==========
         else if (isTransferValas) {
             let totalNilaiEkuivalen = 0;
-            let rows = '';
+            let rowsHtml = '';
             
-            // BARIS 1: Jumlah Transfer (hitung ulang: jumlah × kurs)
+            // BARIS 1: Jumlah Transfer (jumlah × kurs)
             let baris1Nilai = data.jumlah * data.kurs;
             let formattedBaris1Nilai = formatAngka(baris1Nilai, 'IDR');
-            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedBaris1Nilai}</td></tr>`;
+            rowsHtml += `
+                <div class="baris-rincian baris-1">
+                    <span class="valuta-col">${data.currency} ${formattedJumlah}</span>
+                    <span class="kurs-col">${formattedKurs}</span>
+                    <span class="nilai-col">IDR ${formattedBaris1Nilai}</span>
+                </div>
+            `;
             totalNilaiEkuivalen += baris1Nilai;
             
-            // BARIS 2: Full Amount (biayaFullAmount × kurs)
+            // BARIS 2: Full Amount
             if (showBiayaFull) {
-                rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col">${formattedKurs}</td><td class="jumlah-col">IDR ${formattedBiayaFullIDR}</td></tr>`;
+                rowsHtml += `
+                    <div class="baris-rincian baris-2">
+                        <span class="valuta-col">${data.currency} ${formattedBiayaFull}</span>
+                        <span class="kurs-col">${formattedKurs}</span>
+                        <span class="nilai-col">IDR ${formattedBiayaFullIDR}</span>
+                    </div>
+                `;
                 totalNilaiEkuivalen += biayaFullIDRValue;
             }
             
             // BARIS 3: Biaya Telex
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col"></td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
+                rowsHtml += `
+                    <div class="baris-rincian baris-3">
+                        <span class="valuta-col"></span>
+                        <span class="kurs-col"></span>
+                        <span class="nilai-col">IDR ${formattedBiayaTelex}</span>
+                    </div>
+                `;
                 totalNilaiEkuivalen += data.biayaTelex;
             }
             
-            // Total
+            // TOTAL
             let totalValue = `IDR ${totalNilaiEkuivalen.toLocaleString('id-ID', {minimumFractionDigits: 0})}`;
-            rows += `<tr class="total-row"><td class="currency-col"><strong></strong></td><td class="kurs-col"></td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
+            rowsHtml += `
+                <div class="baris-total">
+                    <span class="valuta-col">Total</span>
+                    <span class="kurs-col"></span>
+                    <span class="nilai-col">${totalValue}</span>
+                </div>
+            `;
             
-            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+            rincianHtml = `<div class="rincian-bongkaran"><div class="rincian-wrapper">${rowsHtml}</div></div>`;
             totalDisplay = totalValue;
         }
         
         // ========== KONDISI 3: TRANSFER BIASA (USD→USD, EUR→EUR) ==========
         else {
             let totalNilaiEkuivalenUSD = 0;
-            let rows = '';
+            let rowsHtml = '';
             
             // BARIS 1: Jumlah Transfer
-            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col"></td><td class="jumlah-col">${data.currency} ${formattedJumlah}<tr></tr>`;
+            rowsHtml += `
+                <div class="baris-rincian baris-1">
+                    <span class="valuta-col">${data.currency} ${formattedJumlah}</span>
+                    <span class="kurs-col"></span>
+                    <span class="nilai-col">${data.currency} ${formattedJumlah}</span>
+                </div>
+            `;
             totalNilaiEkuivalenUSD += data.jumlah;
             
             // BARIS 2: Full Amount
             if (showBiayaFull) {
-                rows += `<tr><td class="currency-col">${data.currency} ${formattedBiayaFull}</td><td class="kurs-col"></td><td class="jumlah-col">${data.currency} ${formattedBiayaFull}</td></tr>`;
+                rowsHtml += `
+                    <div class="baris-rincian baris-2">
+                        <span class="valuta-col">${data.currency} ${formattedBiayaFull}</span>
+                        <span class="kurs-col"></span>
+                        <span class="nilai-col">${data.currency} ${formattedBiayaFull}</span>
+                    </div>
+                `;
                 totalNilaiEkuivalenUSD += data.biayaFullAmount;
             }
             
-            // BARIS 3: Biaya Telex (TIDAK dimasukkan ke total USD)
+            // BARIS 3: Biaya Telex
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col"></td><td class="jumlah-col">IDR ${formattedBiayaTelex}<table></tr>`;
+                rowsHtml += `
+                    <div class="baris-rincian baris-3">
+                        <span class="valuta-col"></span>
+                        <span class="kurs-col"></span>
+                        <span class="nilai-col">IDR ${formattedBiayaTelex}</span>
+                    </div>
+                `;
             }
             
-            // Total (HANYA USD, tanpa telex)
+            // TOTAL
             let totalValue = `${data.currency} ${totalNilaiEkuivalenUSD.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col"></td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
+            rowsHtml += `
+                <div class="baris-total">
+                    <span class="valuta-col">Total</span>
+                    <span class="kurs-col"></span>
+                    <span class="nilai-col">${totalValue}</span>
+                </div>
+            `;
             
-            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></tr>`;
+            rincianHtml = `<div class="rincian-bongkaran"><div class="rincian-wrapper">${rowsHtml}</div></div>`;
             totalDisplay = totalValue;
         }
         
@@ -487,7 +512,7 @@ body {
                 <div class="ref-norek-pengirim">${data.norekPengirim}</div>
                 <div class="ref-total">${totalDisplay}</div>
                 
-                <div class="rincian-biaya">${rincianHtml}</div>
+                ${rincianHtml}
             </div>
         `;
         
