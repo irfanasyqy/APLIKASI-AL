@@ -212,16 +212,7 @@ function showUploadModal(tt) {
     document.getElementById('fileNameInputGroup').style.display = 'block';
     document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
     currentUploadSource = null;
-    
-    // Reset progress bar
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '0%';
 }
-
-<div id="fileNameInputGroup" style="display: block; margin-bottom: 15px;">
-    <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File:</label>
-    <input type="text" id="fileName" placeholder="Contoh: Bukti_TT001" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-</div>
 
 function closeUploadModal() {
     document.getElementById('uploadModal').style.display = 'none';
@@ -266,12 +257,11 @@ function uploadFromCamera() {
 }
 
 // =====================================================
-// FUNGSI UPLOAD DENGAN BASE64 (RELIABLE)
+// FUNGSI UPLOAD DENGAN BASE64
 // =====================================================
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
 
-    // Konversi ke PDF jika gambar
     if (file.type.startsWith('image/')) {
         document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
         try {
@@ -282,11 +272,10 @@ async function uploadFileToDrive(file, noTT, fileName) {
         }
     }
 
-    // ========== KONVERSI FILE KE BASE64 ==========
     const reader = new FileReader();
     
     reader.onload = async function(e) {
-        const base64 = e.target.result.split(',')[1]; // Ambil base64 tanpa header
+        const base64 = e.target.result.split(',')[1];
         
         const payload = {
             action: 'upload',
@@ -330,6 +319,37 @@ async function uploadFileToDrive(file, noTT, fileName) {
 }
 
 // =====================================================
+// KONVERSI GAMBAR KE PDF
+// =====================================================
+async function convertImageToPDF(imageFile, fileName) {
+    const { jsPDF } = window.jspdf;
+    
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const pdf = new jsPDF({
+                    orientation: img.width > img.height ? 'landscape' : 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                const imgWidth = pdf.internal.pageSize.getWidth();
+                const imgHeight = (img.height * imgWidth) / img.width;
+                pdf.addImage(img, 'JPEG', 0, 0, imgWidth, imgHeight);
+                const pdfBlob = pdf.output('blob');
+                const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { type: 'application/pdf' });
+                resolve(pdfFile);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageFile);
+    });
+}
+
+// =====================================================
 // HANDLE FILE UPLOAD DARI PC
 // =====================================================
 async function handleFileUpload(event) {
@@ -344,19 +364,16 @@ async function handleFileUpload(event) {
         return;
     }
     
-    // Validasi ukuran file (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
         alert('❌ Ukuran file terlalu besar! Maksimal 10MB.');
         return;
     }
     
-    // Dapatkan nama file
     let fileName = document.getElementById('fileName').value.trim();
     if (!fileName) {
         fileName = `Bukti_${currentUploadTT.noTT}`;
     }
     
-    // Tampilkan preview untuk gambar
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -368,12 +385,10 @@ async function handleFileUpload(event) {
         };
         reader.readAsDataURL(file);
     } else if (file.type === 'application/pdf') {
-        // Untuk PDF, tampilkan icon
         document.getElementById('uploadPreview').style.display = 'block';
         document.getElementById('previewImage').src = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
     }
     
-    // Upload file
     await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
 
@@ -392,19 +407,16 @@ async function handleCameraUpload(event) {
         return;
     }
     
-    // Validasi ukuran file
     if (file.size > 10 * 1024 * 1024) {
         alert('❌ Ukuran foto terlalu besar! Maksimal 10MB.');
         return;
     }
     
-    // Dapatkan nama file
     let fileName = document.getElementById('fileName').value.trim();
     if (!fileName) {
         fileName = `Bukti_${currentUploadTT.noTT}`;
     }
     
-    // Tampilkan preview
     const reader = new FileReader();
     reader.onload = function(e) {
         const previewImg = document.getElementById('previewImage');
@@ -415,7 +427,6 @@ async function handleCameraUpload(event) {
     };
     reader.readAsDataURL(file);
     
-    // Upload file
     await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
 
@@ -451,7 +462,7 @@ async function simpanBuktiUrl(noTT, url) {
 }
 
 // =====================================================
-// 6. HAPUS BUKTI
+// HAPUS BUKTI
 // =====================================================
 async function hapusBukti() {
     if (!selectedTT) {
@@ -530,7 +541,7 @@ async function deleteFileFromDrive(fileId) {
 }
 
 // =====================================================
-// 7. BUKA BUKTI
+// BUKA BUKTI
 // =====================================================
 function bukaBukti() {
     if (!selectedTT) {
@@ -546,7 +557,7 @@ function bukaBukti() {
 }
 
 // =====================================================
-// 8. HAPUS DATA TANDA TERIMA
+// HAPUS DATA TANDA TERIMA
 // =====================================================
 async function hapusTT() {
     if (!selectedTT) {
@@ -589,14 +600,14 @@ async function hapusTT() {
 }
 
 // =====================================================
-// 9. REFRESH DATA
+// REFRESH DATA
 // =====================================================
 function refreshData() {
     loadTandaTerima();
 }
 
 // =====================================================
-// 10. UTILITY FUNCTIONS
+// UTILITY FUNCTIONS
 // =====================================================
 function formatRupiah(angka) {
     return new Intl.NumberFormat('id-ID', {
@@ -618,7 +629,7 @@ function formatDate(dateStr) {
 }
 
 // =====================================================
-// 11. EVENT LISTENERS
+// EVENT LISTENERS
 // =====================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadTandaTerima();
