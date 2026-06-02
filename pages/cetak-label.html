@@ -2,37 +2,310 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APLIKASI AL - Cetak Label</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Cetak Label Customer - APLIKASI AL</title>
+    
+    <!-- Import CSS yang sudah ada -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="../css/card.css">
+    <link rel="stylesheet" href="../css/form.css">
+    <link rel="stylesheet" href="../css/table.css">
+    <link rel="stylesheet" href="../css/print.css">
+    
+    <style>
+        /* Layout 2 kolom */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        /* Panel tombol label */
+        .label-buttons {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        
+        .label-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-label {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn-label:hover {
+            background: #2980b9;
+            transform: scale(1.02);
+        }
+        
+        .btn-label.active {
+            background: #27ae60;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #27ae60;
+        }
+        
+        /* Panel pencarian customer */
+        .search-panel {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .customer-list {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: calc(100% - 30px);
+        }
+        
+        .customer-list div {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .customer-list div:hover {
+            background: #e8f4fd;
+        }
+        
+        .position-relative {
+            position: relative;
+        }
+        
+        /* Hasil data customer per label */
+        .hasil-label {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .hasil-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .hasil-data {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .hasil-data div {
+            margin-bottom: 5px;
+        }
+        
+        .preview-customer {
+            background: #fff9e6;
+            border: 1px solid #f39c12;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-cetak {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .btn-cetak:hover {
+            background: #219a52;
+        }
+        
+        .btn-refresh {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .btn-bersihkan {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .info-icon {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+            .label-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div class="app-header">
         <div class="app-title">APLIKASI <span>AL</span></div>
-        <p class="subtitle">Cetak Label</p>
+        <p class="subtitle">Cetak Label Customer</p>
     </div>
 
     <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
     
     <div class="card">
-        <h2>🏷️ CETAK LABEL</h2>
-        <div class="form-group"><label>Pilih Supplier</label><select id="labelSupplierSelect"><option>-- Pilih --</option></select></div>
-        <div class="form-group"><label>Alamat</label><textarea id="labelAlamat" rows="5" readonly style="background:#f0f0f0;"></textarea></div>
-        <button id="btnPrintLabel" class="btn-success">🖨️ PRINT LABEL</button>
+        <h2>🏷️ CETAK LABEL CUSTOMER</h2>
+        
+        <div class="two-columns">
+            <!-- KOLOM KIRI: Tombol Label & Pilih Customer -->
+            <div>
+                <!-- Tombol Pilih Label -->
+                <div class="label-buttons">
+                    <h3>📌 Pilih Posisi Label</h3>
+                    <div class="label-grid">
+                        <button class="btn-label" data-label="B3">🏷️ LABEL 1 (B3)</button>
+                        <button class="btn-label" data-label="I3">🏷️ LABEL 2 (I3)</button>
+                        <button class="btn-label" data-label="B7">🏷️ LABEL 3 (B7)</button>
+                        <button class="btn-label" data-label="I7">🏷️ LABEL 4 (I7)</button>
+                        <button class="btn-label" data-label="B11">🏷️ LABEL 5 (B11)</button>
+                        <button class="btn-label" data-label="I11">🏷️ LABEL 6 (I11)</button>
+                    </div>
+                    <div class="info-icon">💡 Klik tombol label di atas, lalu cari customer</div>
+                </div>
+                
+                <!-- Pencarian Customer -->
+                <div class="search-panel">
+                    <h3>👤 Cari Customer</h3>
+                    <div class="form-group position-relative">
+                        <label>Cari Customer (min 3 karakter)</label>
+                        <input type="text" id="searchCustomer" class="form-control" placeholder="Ketik nama customer..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd;">
+                    </div>
+                    <div id="customerList" class="customer-list" style="display: none;"></div>
+                    <div class="info-icon">💡 Ketik minimal 3 karakter, lalu pilih dari daftar</div>
+                </div>
+                
+                <!-- Preview Customer -->
+                <div class="preview-customer" id="previewPanel" style="display: none;">
+                    <strong>🔍 PREVIEW CUSTOMER</strong>
+                    <div id="previewContent" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+            
+            <!-- KOLOM KANAN: Hasil Data per Label -->
+            <div>
+                <h3>📋 HASIL DATA CUSTOMER</h3>
+                
+                <!-- Label 1 (B3) -->
+                <div class="hasil-label" id="hasilLabel1">
+                    <div class="hasil-title">🏷️ LABEL 1 (B3)</div>
+                    <div class="hasil-data" id="dataLabel1">
+                        <div>Nama: -</div>
+                        <div>Alamat: -</div>
+                        <div>HP: -</div>
+                    </div>
+                </div>
+                
+                <!-- Label 2 (I3) -->
+                <div class="hasil-label" id="hasilLabel2">
+                    <div class="hasil-title">🏷️ LABEL 2 (I3)</div>
+                    <div class="hasil-data" id="dataLabel2">
+                        <div>Nama: -</div>
+                        <div>Alamat: -</div>
+                        <div>HP: -</div>
+                    </div>
+                </div>
+                
+                <!-- Label 3 (B7) -->
+                <div class="hasil-label" id="hasilLabel3">
+                    <div class="hasil-title">🏷️ LABEL 3 (B7)</div>
+                    <div class="hasil-data" id="dataLabel3">
+                        <div>Nama: -</div>
+                        <div>Alamat: -</div>
+                        <div>HP: -</div>
+                    </div>
+                </div>
+                
+                <!-- Label 4 (I7) -->
+                <div class="hasil-label" id="hasilLabel4">
+                    <div class="hasil-title">🏷️ LABEL 4 (I7)</div>
+                    <div class="hasil-data" id="dataLabel4">
+                        <div>Nama: -</div>
+                        <div>Alamat: -</div>
+                        <div>HP: -</div>
+                    </div>
+                </div>
+                
+                <!-- Label 5 (B11) -->
+                <div class="hasil-label" id="hasilLabel5">
+                    <div class="hasil-title">🏷️ LABEL 5 (B11)</div>
+                    <div class="hasil-data" id="dataLabel5">
+                        <div>Nama: -</div>
+                        <div>Alamat: -</div>
+                        <div>HP: -</div>
+                    </div>
+                </div>
+                
+                <!-- Label 6 (I11) -->
+                <div class="hasil-label" id="hasilLabel6">
+                    <div class="hasil-title">🏷️ LABEL 6 (I11)</div>
+                    <div class="hasil-data" id="dataLabel6">
+                        <div>Nama: -</div>
+                        <div>Alamat: -</div>
+                        <div>HP: -</div>
+                    </div>
+                </div>
+                
+                <!-- Tombol Aksi -->
+                <div class="btn-group">
+                    <button class="btn-cetak" id="btnCetak">🖨️ CETAK LABEL</button>
+                    <button class="btn-refresh" id="btnRefresh">🔄 REFRESH</button>
+                    <button class="btn-bersihkan" id="btnBersihkan">🗑️ BERSIHKAN</button>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="print-area" id="printAreaLabel"><div id="labelPrintContent"></div></div>
 </div>
+
 <script src="../config.js"></script>
-<script src="../js/data.js"></script>
-<script src="../js/ui.js"></script>
-<script src="../js/transfer.js"></script>
-<script src="../js/tanda-terima.js"></script>
 <script src="../js/cetak-label.js"></script>
-<script src="../js/edit-data.js"></script>
-<script src="../js/riwayat.js"></script>
-<script src="../js/tukar-faktur.js"></script>
-<script src="../js/main.js"></script>
 </body>
 </html>

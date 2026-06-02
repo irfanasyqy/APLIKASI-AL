@@ -1,30 +1,380 @@
 // ========== TANDA-TERIMA.JS ==========
-document.getElementById('btnPrintTT')?.addEventListener('click', function() {
-    let idx = document.getElementById('ttSupplierSelect').value;
-    if (!idx) { alert('Pilih supplier'); return; }
-    let s = suppliers[idx];
-    let noTT = document.getElementById('ttNo').value || 'TT-' + Date.now();
-    let tanggal = document.getElementById('ttTanggal').value || new Date().toISOString().slice(0,10);
-    let dari = document.getElementById('ttDari').value;
-    let jumlah = document.getElementById('ttJumlah').value;
-    let untuk = document.getElementById('ttUntuk').value;
-    let keterangan = document.getElementById('ttKeterangan').value;
+// Riwayat Tanda Terima (Konversi dari frmView VBA)
+
+let ttData = [];
+let selectedTT = null;
+
+// Konfigurasi API
+const API_URL = CONFIG.API_URL;
+
+// =====================================================
+// 1. LOAD DATA TANDA TERIMA
+// =====================================================
+async function loadTandaTerima() {
+    const listContainer = document.getElementById('ttList');
+    listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">📡 Memuat data...</div>';
     
-    let printHtml = '<div style="font-family:monospace; padding:20px;"><h2 style="text-align:center;">TANDA TERIMA</h2>';
-    printHtml += '<p><strong>No:</strong> ' + noTT + '</p>';
-    printHtml += '<p><strong>Tanggal:</strong> ' + tanggal + '</p>';
-    printHtml += '<p><strong>Dari:</strong> ' + dari + '</p>';
-    printHtml += '<p><strong>Kepada:</strong> ' + (s.nama || '-') + '</p>';
-    printHtml += '<p><strong>Alamat:</strong> ' + (s.alamat || '-') + '</p>';
-    printHtml += '<p><strong>Jumlah:</strong> ' + jumlah + ' ' + (s.currency || '') + '</p>';
-    printHtml += '<p><strong>Untuk:</strong> ' + untuk + '</p>';
-    printHtml += '<p><strong>Keterangan:</strong> ' + keterangan + '</p>';
-    printHtml += '<br><br><p style="text-align:right">Penerima,<br><br>(' + (s.nama || '-') + ')</p></div>';
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'getTandaTerima' })
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.length > 0) {
+            ttData = result.data;
+            displayTTList(ttData);
+            document.getElementById('totalData').innerHTML = `📊 Total Data: ${ttData.length} record`;
+        } else {
+            listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">📭 Belum ada data tanda terima</div>';
+            document.getElementById('totalData').innerHTML = '📊 Total Data: 0 record';
+        }
+    } catch (error) {
+        console.error('Error load TT:', error);
+        listContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">❌ Gagal memuat data</div>';
+    }
+}
+
+// =====================================================
+// 2. TAMPILKAN DAFTAR TT
+// =====================================================
+function displayTTList(data) {
+    const listContainer = document.getElementById('ttList');
+    const searchText = document.getElementById('searchFilter').value.toLowerCase();
     
-    document.getElementById('ttPrintContent').innerHTML = printHtml;
-    let original = document.body.innerHTML;
-    document.body.innerHTML = document.getElementById('printAreaTT').innerHTML;
-    window.print();
-    document.body.innerHTML = original;
-    location.reload();
+    let filtered = data;
+    if (searchText) {
+        filtered = data.filter(tt => 
+            (tt.noTT && tt.noTT.toLowerCase().includes(searchText)) ||
+            (tt.customerNama && tt.customerNama.toLowerCase().includes(searchText))
+        );
+    }
+    
+    if (filtered.length === 0) {
+        listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">🔍 Tidak ada data yang cocok</div>';
+        document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} record (filtered: 0)`;
+        return;
+    }
+    
+    // Urutkan dari yang terbaru (nomor TT terbesar di atas)
+    filtered.sort((a, b) => {
+        const numA = extractTTNumber(a.noTT);
+        const numB = extractTTNumber(b.noTT);
+        return numB - numA;
+    });
+    
+    let html = '';
+    filtered.forEach((tt, idx) => {
+        const hasBukti = tt.buktiUrl && tt.buktiUrl !== '' && tt.buktiUrl !== 'Belum ada bukti';
+        const statusClass = hasBukti ? '' : 'belum-bukti';
+        const statusIcon = hasBukti ? '✅' : '⚠️';
+        const badgeClass = hasBukti ? 'badge-success' : 'badge-warning';
+        const badgeText = hasBukti ? '✓ Ada Bukti' : '! Belum Ada Bukti';
+        
+        html += `
+            <div class="list-item ${statusClass}" data-id="${tt.id || idx}" data-no="${tt.noTT}" title="${hasBukti ? 'Sudah ada bukti' : 'Belum ada bukti'}">
+                <div class="no-tt">${statusIcon} ${tt.noTT || '-'}</div>
+                <div class="customer-name">👤 ${escapeHtml(tt.customerNama || '-')}</div>
+                <div class="total">💰 ${formatRupiah(tt.total || 0)}</div>
+                <div class="status-badge ${badgeClass}">${badgeText}</div>
+            </div>
+        `;
+    });
+    
+    listContainer.innerHTML = html;
+    document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} record (filtered: ${filtered.length})`;
+    
+    // Tambahkan event listener ke setiap item
+    document.querySelectorAll('.list-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const noTT = item.getAttribute('data-no');
+            const selected = ttData.find(tt => tt.noTT === noTT);
+            if (selected) {
+                selectTT(selected);
+                // Highlight active item
+                document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+            }
+        });
+    });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// =====================================================
+// 3. EKSTRAK NOMOR URUT DARI NO TT
+// =====================================================
+function extractTTNumber(noTT) {
+    if (!noTT) return 0;
+    const match = noTT.match(/\d+/g);
+    if (match) {
+        return parseInt(match[match.length - 1]) || 0;
+    }
+    return 0;
+}
+
+// =====================================================
+// 4. SELECT TT - TAMPILKAN DETAIL
+// =====================================================
+function selectTT(tt) {
+    selectedTT = tt;
+    
+    const detailContainer = document.getElementById('detailContent');
+    const actionButtons = document.getElementById('actionButtons');
+    
+    const hasBukti = tt.buktiUrl && tt.buktiUrl !== '' && tt.buktiUrl !== 'Belum ada bukti';
+    const statusHtml = hasBukti 
+        ? '<span class="status-bukti-tersedia">✅ Bukti Faktur: TERSEDIA</span>'
+        : '<span class="status-bukti-belum">⚠️ Bukti Faktur: BELUM ADA</span>';
+    
+    // Format invoices
+    let invoicesHtml = '';
+    if (tt.invoices && tt.invoices.length > 0) {
+        invoicesHtml = '<ul class="invoice-list">';
+        tt.invoices.forEach(inv => {
+            invoicesHtml += `<li>📄 ${escapeHtml(inv.no)} - ${formatRupiah(inv.nominal)}</li>`;
+        });
+        invoicesHtml += '</ul>';
+    } else if (tt.invoiceList) {
+        invoicesHtml = `<div class="invoice-list">${escapeHtml(tt.invoiceList) || '-'}</div>`;
+    } else {
+        invoicesHtml = '<div>-</div>';
+    }
+    
+    const detailHtml = `
+        <div class="detail-row">
+            <div><span class="detail-label">🏷️ No. TT:</span> ${escapeHtml(tt.noTT) || '-'}</div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">📅 Tanggal:</span> ${formatDate(tt.tanggal) || '-'}</div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">👤 Customer:</span> ${escapeHtml(tt.customerNama) || '-'}</div>
+            <div><span class="detail-label">📍 Alamat:</span> ${escapeHtml(tt.customerAlamat) || '-'}</div>
+            <div><span class="detail-label">📞 Telp:</span> ${escapeHtml(tt.customerTelp) || '-'}</div>
+            <div><span class="detail-label">📱 HP:</span> ${escapeHtml(tt.customerHP) || '-'}</div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">📑 Faktur:</span></div>
+            ${invoicesHtml}
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">💰 Total:</span> <strong style="color: #27ae60;">${formatRupiah(tt.total || 0)}</strong></div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">🏢 PT:</span> ${escapeHtml(tt.ptName || tt.ptCode) || '-'}</div>
+        </div>
+        <div class="detail-row">
+            <div>${statusHtml}</div>
+            ${tt.buktiUrl && tt.buktiUrl !== 'Belum ada bukti' ? `<div style="margin-top: 5px; font-size: 11px;">🔗 URL: ${escapeHtml(tt.buktiUrl)}</div>` : ''}
+        </div>
+    `;
+    
+    detailContainer.innerHTML = detailHtml;
+    actionButtons.style.display = 'flex';
+}
+
+// =====================================================
+// 5. CETAK TANDA TERIMA
+// =====================================================
+function printTT() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    
+    window.open(`../print/print-tt.html?noTT=${encodeURIComponent(selectedTT.noTT)}`, '_blank');
+}
+
+// =====================================================
+// 6. UPLOAD BUKTI (2 PILIHAN)
+// =====================================================
+function uploadBukti() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    
+    const pilihan = confirm(
+        `Upload bukti untuk No. TT: ${selectedTT.noTT}\n\n` +
+        `OK = Upload file BARU dari komputer\n` +
+        `CANCEL = Pilih file dari Google Drive`
+    );
+    
+    if (pilihan) {
+        uploadFileBaru();
+    } else {
+        pilihDariGoogleDrive();
+    }
+}
+
+function uploadFileBaru() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,application/pdf';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        alert(`📎 Upload file: ${file.name}\n\nFitur upload sedang dalam pengembangan.\nFile akan diupload ke Google Drive.`);
+        // TODO: Implementasi upload ke Google Drive
+    };
+    input.click();
+}
+
+function pilihDariGoogleDrive() {
+    const driveUrl = prompt(
+        `Pilih file dari Google Drive untuk No. TT: ${selectedTT.noTT}\n\n` +
+        `1. Buka Google Drive di browser\n` +
+        `2. Klik kanan pada file → "Dapatkan link"\n` +
+        `3. Copy URL dan paste di bawah\n\n` +
+        `Masukkan URL Google Drive:`
+    );
+    
+    if (driveUrl && driveUrl.includes('drive.google.com')) {
+        simpanBuktiUrl(driveUrl);
+    } else if (driveUrl) {
+        alert('URL tidak valid! Pastikan URL dari Google Drive.');
+    }
+}
+
+async function simpanBuktiUrl(url) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'updateBuktiTT',
+                noTT: selectedTT.noTT,
+                buktiUrl: url
+            })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Bukti faktur berhasil ditambahkan!');
+            await loadTandaTerima();
+            const updated = ttData.find(tt => tt.noTT === selectedTT.noTT);
+            if (updated) selectTT(updated);
+        } else {
+            alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error save bukti:', error);
+        alert('❌ Error koneksi saat menyimpan');
+    }
+}
+
+// =====================================================
+// 7. BUKA BUKTI
+// =====================================================
+function bukaBukti() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    
+    if (selectedTT.buktiUrl && selectedTT.buktiUrl !== 'Belum ada bukti') {
+        window.open(selectedTT.buktiUrl, '_blank');
+    } else {
+        alert('Belum ada bukti faktur untuk No. TT ini!');
+    }
+}
+
+// =====================================================
+// 8. HAPUS TANDA TERIMA
+// =====================================================
+async function hapusTT() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    
+    const confirmMsg = `⚠️ Yakin ingin menghapus data ini?\n\n` +
+        `No. TT: ${selectedTT.noTT}\n` +
+        `Customer: ${selectedTT.customerNama}\n` +
+        `Total: ${formatRupiah(selectedTT.total || 0)}\n\n` +
+        `TINDAKAN INI TIDAK DAPAT DIBATALKAN!`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'deleteTandaTerima',
+                noTT: selectedTT.noTT
+            })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Data berhasil dihapus!');
+            await loadTandaTerima();
+            document.getElementById('detailContent').innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Pilih tanda terima dari daftar</div>';
+            document.getElementById('actionButtons').style.display = 'none';
+            selectedTT = null;
+        } else {
+            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error hapus:', error);
+        alert('❌ Error koneksi saat menghapus');
+    }
+}
+
+// =====================================================
+// 9. REFRESH DATA
+// =====================================================
+function refreshData() {
+    loadTandaTerima();
+}
+
+// =====================================================
+// 10. UTILITY FUNCTIONS
+// =====================================================
+function formatRupiah(angka) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(angka);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleDateString('id-ID');
+    } catch {
+        return dateStr;
+    }
+}
+
+// =====================================================
+// 11. EVENT LISTENERS
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadTandaTerima();
+    
+    document.getElementById('btnRefresh').addEventListener('click', refreshData);
+    document.getElementById('btnPrint').addEventListener('click', printTT);
+    document.getElementById('btnUpload').addEventListener('click', uploadBukti);
+    document.getElementById('btnBukaBukti').addEventListener('click', bukaBukti);
+    document.getElementById('btnHapus').addEventListener('click', hapusTT);
+    
+    document.getElementById('searchFilter').addEventListener('input', () => {
+        displayTTList(ttData);
+    });
 });

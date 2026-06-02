@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APLIKASI AL - Menu Utama</title>
-    <link rel="stylesheet" href="css/style.css">   <!-- ← PERBAIKAN DI SINI -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="container">
@@ -14,43 +14,64 @@
     </div>
 
     <div class="menu-grid">
+        <!-- TRANSFER BANK -->
         <div class="menu-card" onclick="window.location.href='pages/transfer.html'">
             <div class="menu-icon">🏦</div>
             <div class="menu-title">TRANSFER BANK</div>
             <div class="menu-desc">Transfer ke supplier luar negeri</div>
         </div>
+        
+        <!-- SUPPLIER DATA -->
         <div class="menu-card" onclick="window.location.href='pages/supplier.html'">
             <div class="menu-icon">📦</div>
             <div class="menu-title">SUPPLIER DATA</div>
             <div class="menu-desc">Lihat data supplier</div>
         </div>
-        <div class="menu-card" onclick="window.location.href='pages/tanda-terima.html'">
-            <div class="menu-icon">📄</div>
-            <div class="menu-title">TANDA TERIMA</div>
-            <div class="menu-desc">Buat tanda terima</div>
+        
+        <!-- CUSTOMER DATA -->
+        <div class="menu-card" onclick="window.location.href='pages/customer.html'">
+            <div class="menu-icon">👥</div>
+            <div class="menu-title">CUSTOMER DATA</div>
+            <div class="menu-desc">Lihat & kelola data customer</div>
         </div>
+        
+        <!-- TUKAR FAKTUR (form input) -->
+        <div class="menu-card" onclick="window.location.href='pages/tukar-faktur.html'">
+            <div class="menu-icon">🔄</div>
+            <div class="menu-title">TUKAR FAKTUR</div>
+            <div class="menu-desc">Input penukaran faktur / invoice</div>
+        </div>
+
+        <!-- TANDA TERIMA (riwayat) -->
+        <div class="menu-card" onclick="window.location.href='pages/tanda-terima.html'">
+            <div class="menu-icon">📋</div>
+            <div class="menu-title">TANDA TERIMA</div>
+            <div class="menu-desc">Lihat & kelola tanda terima</div>
+        </div>
+        
+        <!-- CETAK LABEL -->
         <div class="menu-card" onclick="window.location.href='pages/cetak-label.html'">
             <div class="menu-icon">🏷️</div>
             <div class="menu-title">CETAK LABEL</div>
             <div class="menu-desc">Cetak label alamat</div>
         </div>
+        
+        <!-- EDIT DATA -->
         <div class="menu-card" onclick="window.location.href='pages/edit-data.html'">
             <div class="menu-icon">✏️</div>
             <div class="menu-title">EDIT DATA</div>
             <div class="menu-desc">Edit supplier</div>
         </div>
+        
+        <!-- RIWAYAT -->
         <div class="menu-card" onclick="window.location.href='pages/riwayat.html'">
             <div class="menu-icon">📋</div>
             <div class="menu-title">RIWAYAT</div>
             <div class="menu-desc">History transfer</div>
         </div>
-        <div class="menu-card" onclick="window.location.href='pages/tukar-faktur.html'">
-            <div class="menu-icon">🔄</div>
-            <div class="menu-title">TUKAR FAKTUR</div>
-            <div class="menu-desc">Tukar faktur/invoice</div>
-        </div>
     </div>
 </div>
+
 <script src="config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/ui.js"></script>
@@ -61,5 +82,6 @@
 <script src="js/riwayat.js"></script>
 <script src="js/tukar-faktur.js"></script>
 <script src="js/main.js"></script>
+<script src="js/customer.js"></script>
 </body>
 </html>
