@@ -329,7 +329,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
 
     try {
         // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzn0IxB-DFRJSUZwANpwkw8P8LoVTjYdU2s7C57Gj0j4wCsgi2bJL27ouB3RyFTnQatg/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6-skV1x_jbHnZBIMQ3wim_JeIN95ohpyeKLECxQphmUV33X4DJ9iVZSVHL-s36bZXFQ/exec';
         
         const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
