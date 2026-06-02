@@ -63,7 +63,7 @@
 
         .alamat {
             position: absolute;
-            top: 64mm;
+            top: 63mm;
             left: 20mm;
             max-width: 90mm;
             white-space: normal;
@@ -77,7 +77,7 @@
 
         .bank-name {
             position: absolute;
-            top: 76mm;
+            top: 73mm;
             left: 20mm;
             font-weight: bold;
             white-space: nowrap;
@@ -87,7 +87,7 @@
 
         .bank-alamat {
             position: absolute;
-            top: 82mm;
+            top: 78mm;
             left: 20mm;
             max-width: 90mm;
             white-space: normal;
@@ -101,7 +101,7 @@
 
         .swift {
             position: absolute;
-            top: 94mm;
+            top: 88mm;
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -110,7 +110,7 @@
 
         .negara {
             position: absolute;
-            top: 100mm;
+            top: 93mm;
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -119,7 +119,7 @@
 
         .berita {
             position: absolute;
-            top: 108mm;
+            top: 100mm;
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -128,7 +128,7 @@
 
         .tujuan {
             position: absolute;
-            top: 114mm;
+            top: 105mm;
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -137,7 +137,7 @@
 
         .pengirim {
             position: absolute;
-            top: 122mm;
+            top: 112mm;
             left: 20mm;
             font-weight: bold;
             white-space: nowrap;
@@ -147,7 +147,7 @@
 
         .deretan-angka {
             position: absolute;
-            top: 128mm;
+            top: 117mm;
             left: 20mm;
             letter-spacing: 5px;
             white-space: nowrap;
@@ -157,10 +157,10 @@
         
         /* KANAN */
         .ref-no-cek { position: absolute; top: 68mm; right: 86mm; text-align: right; }
-        .ref-norek-pengirim { position: absolute; top: 68mm; right: 68mm; text-align: right; font-size: 8pt; }
-        .ref-total { position: absolute; top: 68mm; right: 15mm; text-align: right; font-size: 11pt; font-weight: bold; color: #000; }
+        .ref-norek-pengirim { position: absolute; top: 68mm; right: 60mm; text-align: right; font-size: 8pt; }
+        .ref-total { position: absolute; top: 68mm; right: 10mm; text-align: right; font-size: 11pt; font-weight: bold; color: #000; }
         
-        .rincian-biaya { position: absolute; top: 98mm; right: 15mm; text-align: right; font-size: 9pt; }
+        .rincian-biaya { position: absolute; top: 103mm; right: 10mm; text-align: right; font-size: 9pt; }
         .rincian-biaya table { width: auto; min-width: 180px; text-align: right; border-collapse: collapse; margin-left: auto; }
         .rincian-biaya th { border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; }
         .rincian-biaya td { padding: 2px 4px; white-space: nowrap; }
@@ -310,7 +310,7 @@
             let rows = '';
             
             // BARIS 1: Jumlah Transfer
-            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}</td></tr>`;
+            rows += `<tr><td class="currency-col">${data.currency} ${formattedJumlah}</td><td class="kurs-col">-</td><td class="jumlah-col">${data.currency} ${formattedJumlah}<tr></tr>`;
             totalNilaiEkuivalenUSD += data.jumlah;
             
             // BARIS 2: Full Amount
@@ -321,14 +321,14 @@
             
             // BARIS 3: Biaya Telex (TIDAK dimasukkan ke total USD)
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
+                rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}<table></tr>`;
             }
             
             // Total (HANYA USD, tanpa telex)
             let totalValue = `${data.currency} ${totalNilaiEkuivalenUSD.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
             rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
-            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></table>`;
+            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></tr>`;
             totalDisplay = totalValue;
             keteranganBiaya = `Transfer ${data.currency} → ${data.currency}`;
             if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
