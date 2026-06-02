@@ -218,6 +218,11 @@ function showUploadModal(tt) {
     if (progressFill) progressFill.style.width = '0%';
 }
 
+<div id="fileNameInputGroup" style="display: block; margin-bottom: 15px;">
+    <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File:</label>
+    <input type="text" id="fileName" placeholder="Contoh: Bukti_TT001" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+</div>
+
 function closeUploadModal() {
     document.getElementById('uploadModal').style.display = 'none';
     currentUploadTT = null;
@@ -264,181 +269,64 @@ function uploadFromCamera() {
 // FUNGSI UPLOAD DENGAN BASE64 (RELIABLE)
 // =====================================================
 async function uploadFileToDrive(file, noTT, fileName) {
-    if (!file) {
-        alert('❌ File tidak ditemukan!');
-        return;
-    }
-    
-    const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
-    const uploadStatus = document.getElementById('uploadStatus');
-    
-    if (progressBar) progressBar.style.display = 'block';
-    if (progressFill) progressFill.style.width = '30%';
-    if (uploadStatus) {
-        uploadStatus.innerHTML = '📤 Memproses file...';
-        uploadStatus.style.color = '#3498db';
-    }
-    
-    try {
-        let finalBlob = file;
-        let finalFileName = fileName || `Bukti_${noTT}`;
-        finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
-        
-        // Konversi gambar ke PDF jika perlu
-        if (file.type.startsWith('image/')) {
-            if (uploadStatus) {
-                uploadStatus.innerHTML = '🔄 Mengkonversi gambar ke PDF...';
-                uploadStatus.style.color = '#f39c12';
-            }
-            if (progressFill) progressFill.style.width = '50%';
-            finalBlob = await convertImageToPDFBlob(file);
-        }
-        
-        if (progressFill) progressFill.style.width = '70%');
-        if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
-        
-        // KIRIM KE WORKER (bukan langsung ke Apps Script)
-        const formData = new FormData();
-        formData.append('action', 'upload');
-        formData.append('noTT', noTT);
-        formData.append('fileName', finalFileName);
-        formData.append('file', finalBlob, `${finalFileName}.pdf`);
-        
-        // Pake Worker (bukan no-cors)
-        const response = await fetch(CONFIG.API_URL, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (progressFill) progressFill.style.width = '90%');
-        
-        // Baca response dari Worker
-        let result;
-        try {
-            result = await response.json();
-        } catch(e) {
-            result = { success: false, error: 'Response tidak bisa dibaca' };
-        }
-        
-        if (progressFill) progressFill.style.width = '100%');
-        
-        if (result.success) {
-            if (uploadStatus) {
-                uploadStatus.innerHTML = '✅ Upload berhasil!';
-                uploadStatus.style.color = '#27ae60';
-            }
-            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n🔗 URL: ${result.url}`);
-            
-            // Simpan URL ke database
-            await simpanBuktiUrl(noTT, result.url);
-            
-            setTimeout(() => {
-                closeUploadModal();
-                loadTandaTerima();
-            }, 1500);
-        } else {
-            // Tampilkan error detail
-            throw new Error(result.error || 'Upload gagal');
-        }
-        
-    } catch (error) {
-        console.error('Upload error:', error);
-        if (progressBar) progressBar.style.display = 'none';
-        
-        if (uploadStatus) {
-            uploadStatus.innerHTML = '❌ ' + error.message;
-            uploadStatus.style.color = 'red';
-        }
-        alert('❌ Gagal upload: ' + error.message);
-    }
-}
-// =====================================================
-// KONVERSI GAMBAR KE PDF BLOB
-// =====================================================
-async function convertImageToPDFBlob(imageFile) {
-    if (typeof window.jspdf === 'undefined') {
-        throw new Error('jsPDF library tidak ditemukan. Refresh halaman.');
-    }
-    
-    const { jsPDF } = window.jspdf;
-    
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const img = new Image();
-            
-            img.onload = function() {
-                try {
-                    console.log('Image loaded:', img.width, 'x', img.height);
-                    
-                    const orientation = img.width > img.height ? 'landscape' : 'portrait';
-                    const pdf = new jsPDF({
-                        orientation: orientation,
-                        unit: 'mm',
-                        format: 'a4'
-                    });
-                    
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    
-                    let width = pdfWidth;
-                    let height = (img.height * pdfWidth) / img.width;
-                    
-                    if (height > pdfHeight) {
-                        height = pdfHeight;
-                        width = (img.width * pdfHeight) / img.height;
-                    }
-                    
-                    const x = (pdfWidth - width) / 2;
-                    const y = (pdfHeight - height) / 2;
-                    
-                    pdf.addImage(img, 'JPEG', x, y, width, height);
-                    
-                    const pdfBlob = pdf.output('blob');
-                    
-                    if (!pdfBlob || pdfBlob.size === 0) {
-                        reject(new Error('PDF blob kosong'));
-                        return;
-                    }
-                    
-                    resolve(pdfBlob);
-                    
-                } catch (err) {
-                    reject(new Error('Gagal membuat PDF: ' + err.message));
-                }
-            };
-            
-            img.onerror = function() {
-                reject(new Error('Gagal memuat gambar'));
-            };
-            
-            img.src = e.target.result;
-        };
-        
-        reader.onerror = function() {
-            reject(new Error('Gagal membaca file gambar'));
-        };
-        
-        reader.readAsDataURL(imageFile);
-    });
-}
+    let fileToUpload = file;
 
-// =====================================================
-// KONVERSI BLOB KE BASE64
-// =====================================================
-function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            // Ambil base64 tanpa header (data:application/pdf;base64,)
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
+    // Konversi ke PDF jika gambar
+    if (file.type.startsWith('image/')) {
+        document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
+        try {
+            fileToUpload = await convertImageToPDF(file, fileName);
+        } catch (error) {
+            alert('❌ Gagal mengkonversi gambar ke PDF.');
+            return;
+        }
+    }
+
+    // ========== KONVERSI FILE KE BASE64 ==========
+    const reader = new FileReader();
+    
+    reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1]; // Ambil base64 tanpa header
+        
+        const payload = {
+            action: 'upload',
+            noTT: noTT,
+            fileName: fileName,
+            fileBase64: base64,
+            mimeType: fileToUpload.type
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
+        
+        document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
+        
+        try {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
+                alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n🔗 URL: ${result.url}`);
+                await simpanBuktiUrl(noTT, result.url);
+                closeUploadModal();
+            } else {
+                throw new Error(result.error || 'Upload gagal');
+            }
+        } catch (error) {
+            console.error('Error upload:', error);
+            document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
+            alert('❌ Gagal upload: ' + error.message);
+        }
+    };
+    
+    reader.onerror = function() {
+        alert('❌ Gagal membaca file');
+    };
+    
+    reader.readAsDataURL(fileToUpload);
 }
 
 // =====================================================
