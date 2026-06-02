@@ -294,7 +294,7 @@
             
             // Total
             let totalValue = `IDR ${totalNilaiEkuivalen.toLocaleString('id-ID', {minimumFractionDigits: 0})}`;
-            rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
+            rows += `<tr class="total-row"><td class="currency-col"><strong></strong></td><td class="kurs-col"></td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
             rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
             totalDisplay = totalValue;
