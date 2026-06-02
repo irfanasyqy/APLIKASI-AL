@@ -307,90 +307,50 @@ async function handleCameraUpload(event) {
 }
 
 // =====================================================
-// UPLOAD FILE KE GOOGLE DRIVE (LANGSUNG KE APPS SCRIPT)
+// UPLOAD FILE KE GOOGLE DRIVE
 // =====================================================
-// PASTE ULANG ID FOLDER DARI URL ANDA
-const BUKTI_FOLDER_ID = '1WPw2P8oPu0S5BCKXAEfNxX0W4aJBczuw';
-const APPS_SCRIPT_UPLOAD_URL = 'https://script.google.com/macros/s/AKfycbyEn2wW5Z5EUo-_4_ajGTK8wqgepxMOdewvS_4L8lg9AJv-a32ZkonQy1m0Xbo6lyVJsA/exec';
-
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
 
-    // 1. Konversi gambar ke PDF
     if (file.type.startsWith('image/')) {
         document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
         try {
             fileToUpload = await convertImageToPDF(file, fileName);
         } catch (error) {
-            console.error('Gagal konversi gambar:', error);
             alert('❌ Gagal mengkonversi gambar ke PDF.');
-            document.getElementById('uploadStatus').innerHTML = '❌ Konversi gagal';
             return;
         }
     }
 
-    // 2. Siapkan FormData
     const formData = new FormData();
     formData.append('action', 'upload');
     formData.append('noTT', noTT);
     formData.append('fileName', fileName);
     formData.append('file', fileToUpload);
-    formData.append('folderId', BUKTI_FOLDER_ID);
 
     document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
 
     try {
-        // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
-        const response = await fetch(APPS_SCRIPT_UPLOAD_URL, {
+        // PAKAI WORKER (LEWAT CLOUDFLARE)
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             body: formData
         });
 
-        const responseText = await response.text();
-        console.log('Response:', responseText);
-        
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (e) {
-            // Jika response bukan JSON, cek apakah ada pesan sukses
-            if (responseText.includes('success') || responseText.includes('drive.google.com')) {
-                result = { success: true, url: responseText, fileName: fileName + '.pdf' };
-            } else {
-                throw new Error('Response tidak valid: ' + responseText.substring(0, 100));
-            }
-        }
+        const result = await response.json();
         
         if (result.success) {
             document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
-            document.getElementById('uploadStatus').style.color = '#27ae60';
-            alert(`✅ Bukti berhasil diupload!\n📁 Nama file: ${result.fileName}\n🔗 URL: ${result.url}`);
-            
-            // Simpan URL ke database
+            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n🔗 URL: ${result.url}`);
             await simpanBuktiUrl(noTT, result.url);
             closeUploadModal();
         } else {
             throw new Error(result.error || 'Upload gagal');
         }
     } catch (error) {
-        console.error('Error upload file:', error);
+        console.error('Error upload:', error);
         document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
-        
-        // Tawarkan metode manual
-        const pilihan = confirm(
-            `❌ Gagal mengupload file: ${error.message}\n\n` +
-            `Apakah Anda ingin memasukkan URL bukti secara manual?`
-        );
-        
-        if (pilihan) {
-            const manualUrl = prompt('Masukkan URL file bukti dari Google Drive:');
-            if (manualUrl && manualUrl.includes('drive.google.com')) {
-                await simpanBuktiUrl(noTT, manualUrl);
-                closeUploadModal();
-            } else if (manualUrl) {
-                alert('❌ URL tidak valid!');
-            }
-        }
+        alert('❌ Gagal upload via Worker: ' + error.message);
     }
 }
 
