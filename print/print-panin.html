@@ -224,61 +224,59 @@ body {
     color: #000; 
 }
 
-/* ======================================== */
-/* RINCIAN BIAYA - BONGKARAN (TANPA TABEL) */
-/* ======================================== */
-
 /* Container utama rincian biaya */
 .rincian-bongkaran {
     position: absolute;
     top: 127mm;
-    left: 150mm;
-    width: 100mm;
+    left: 150mm;   /* posisi awal container */
+    width: auto;
 }
 
 /* Style untuk setiap baris rincian */
-.baris-rincian {
+.baris-rincian, .baris-total {
     position: absolute;
-    left: 0;
-    width: 100%;
     white-space: nowrap;
 }
 
-/* Style untuk baris total */
-.baris-total {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    font-weight: bold;
-    white-space: nowrap;
+/* POSISI TOP & LEFT MASING-MASING BARIS */
+.baris-1 { 
+    top: 0mm; 
+    left: 0mm; 
+}
+.baris-2 { 
+    top: 6mm; 
+    left: 5mm;      /* ← atur left di sini */
+}
+.baris-3 { 
+    top: 12mm; 
+    left: 10mm;     /* ← atur left di sini */
+}
+.baris-total { 
+    top: 18mm; 
+    left: 0mm; 
 }
 
-/* Kolom 1: Valuta Asing (mata uang + jumlah) */
+/* Kolom dalam satu baris (pakai flex) */
+.baris-rincian, .baris-total {
+    display: flex;
+    flex-direction: row;
+    gap: 5mm;
+}
+
 .valuta-col {
-    display: inline-block;
-    width: 30mm;
+    width: 35mm;
     text-align: left;
 }
 
-/* Kolom 2: Kurs */
 .kurs-col {
-    display: inline-block;
     width: 25mm;
     text-align: right;
 }
 
-/* Kolom 3: Nilai Ekuivalen */
 .nilai-col {
-    display: inline-block;
-    width: 40mm;
+    width: 55mm;
     text-align: right;
 }
-
-/* POSISI TOP MASING-MASING BARIS */
-.baris-1 { top: 127mm; }      /* Jumlah Transfer */
-.baris-2 { top: 132mm; }      /* Full Amount */
-.baris-3 { top: 137mm; }     /* Biaya Telex */
-.baris-total { top: 142mm; } /* Total */
 
 /* ======================================== */
 /* MEDIA PRINT - SAAT DI CETAK */
