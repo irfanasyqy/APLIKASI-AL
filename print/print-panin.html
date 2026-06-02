@@ -21,16 +21,19 @@ body {
     margin: 20px auto; 
     padding: 10mm; 
     background: #e0e0e0; 
-    box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    overflow-x: auto;  /* tambahkan: biar bisa scroll jika kelebihan */
 }
 
 .print-container { 
     background: white; 
     width: 100%; 
+    max-width: 210mm;
     min-height: 277mm; 
     position: relative; 
-    padding: 5mm; 
-    box-shadow: 0 0 5px rgba(0,0,0,0.1); 
+    padding: 5mm;
+    margin: 0 auto;    /* tambahkan: center di web preview */
+    overflow: hidden;  /* tambahkan: potong kelebihan di dalam container */
 }
 
 /* ======================================== */
@@ -233,7 +236,7 @@ body {
 .rincian-bongkaran {
     position: absolute;
     top: 127mm;
-    left: 20mm;          /* <== ATUR POSISI KIRI DI SINI */
+    left: 130mm;          /* <== ATUR POSISI KIRI DI SINI */
     width: auto;
 }
 
@@ -256,14 +259,32 @@ body {
 
 /* ----- POSISI TOP & LEFT MASING-MASING BARIS ----- */
 .baris-1 { top: 0mm; left: 0mm; }      /* Baris 1: Jumlah Transfer */
-.baris-2 { top: 6mm; left: 5mm; }      /* Baris 2: Full Amount */
-.baris-3 { top: 12mm; left: 10mm; }    /* Baris 3: Biaya Telex */
+.baris-2 { top: 6mm; left: 0mm; }      /* Baris 2: Full Amount */
+.baris-3 { top: 12mm; left: 0mm; }    /* Baris 3: Biaya Telex */
 .baris-total { top: 18mm; left: 0mm; font-weight: bold; }  /* Total */
 
 /* ----- LEBAR KOLOM ----- */
-.valuta-col { width: 35mm; text-align: left; }   /* Kolom 1: Valuta Asing */
+.valuta-col { width: 10mm; text-align: left; }   /* Kolom 1: Valuta Asing */
 .kurs-col   { width: 25mm; text-align: right; }  /* Kolom 2: Kurs */
-.nilai-col  { width: 55mm; text-align: right; }  /* Kolom 3: Nilai Ekuivalen */
+.nilai-col  { width: 12mm; text-align: right; }  /* Kolom 3: Nilai Ekuivalen */
+
+/* ======================================== */
+/* KHUSUS WEB PREVIEW - MUAT SEMUA KONTEN */
+/* ======================================== */
+@media screen {
+    body { 
+        transform: scale(0.7);
+        transform-origin: top left;
+        width: 300mm;
+        margin: 20px;
+        padding: 20px;
+        overflow-x: auto;
+    }
+    
+    .print-container { 
+        margin: 0 auto;
+    }
+}
 
 /* ======================================== */
 /* MEDIA PRINT - SAAT DI CETAK */
