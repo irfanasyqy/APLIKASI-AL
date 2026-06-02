@@ -254,7 +254,7 @@
             rincianHtml = `
                 <table style="margin-left: auto;">
                     <thead>
-                        <tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr>
+                        <tr><th>Valuta Asing</th><th>Kurs</th><th></th></tr>
                     </thead>
                     <tbody>
                         <tr>
@@ -296,7 +296,7 @@
             let totalValue = `IDR ${totalNilaiEkuivalen.toLocaleString('id-ID', {minimumFractionDigits: 0})}`;
             rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
-            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></table>`;
+            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
             totalDisplay = totalValue;
             keteranganBiaya = `Transfer valas IDR → ${data.currency}`;
             if (data.kurs > 0) keteranganBiaya += ` | 1 ${data.currency} = IDR ${formattedKurs}`;
@@ -328,11 +328,8 @@
             let totalValue = `${data.currency} ${totalNilaiEkuivalenUSD.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
             rows += `<tr class="total-row"><td class="currency-col"><strong>Total</strong></td><td class="kurs-col">-</td><td class="jumlah-col"><strong>${totalValue}</strong></td></tr>`;
             
-            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th>Valuta Asing</th><th>Kurs</th><th>Nilai Ekuivalen</th></tr></thead><tbody>${rows}</tbody></tr>`;
+            rincianHtml = `<table style="margin-left: auto;"><thead><tr><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></tr>`;
             totalDisplay = totalValue;
-            keteranganBiaya = `Transfer ${data.currency} → ${data.currency}`;
-            if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
-            if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex} (terpisah)`;
         }
         
         const html = `
@@ -360,7 +357,7 @@
                 <!-- KANAN -->
                 <div class="ref-no-cek">${data.noLoa}</div>
                 <div class="ref-norek-pengirim">${data.norekPengirim}</div>
-                <div class="ref-total">Total: ${totalDisplay}</div>
+                <div class="ref-total">${totalDisplay}</div>
                 
                 <div class="rincian-biaya">${rincianHtml}</div>
                 <div class="keterangan-biaya">${keteranganBiaya}</div>
