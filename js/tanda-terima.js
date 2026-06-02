@@ -328,8 +328,10 @@ async function uploadFileToDrive(file, noTT, fileName) {
     document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
 
     try {
-        // PAKAI WORKER (LEWAT CLOUDFLARE)
-        const response = await fetch(CONFIG.API_URL, {  // ← Worker
+        // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzn0IxB-DFRJSUZwANpwkw8P8LoVTjYdU2s7C57Gj0j4wCsgi2bJL27ouB3RyFTnQatg/exec';
+        
+        const response = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
             body: formData
         });
@@ -347,7 +349,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
     } catch (error) {
         console.error('Error upload:', error);
         document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
-        alert('❌ Gagal upload via Worker: ' + error.message);
+        alert('❌ Gagal upload: ' + error.message);
     }
 }
 
