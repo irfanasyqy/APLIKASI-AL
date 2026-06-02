@@ -44,7 +44,7 @@
 
         .nama-penerima {
             position: absolute;
-            top: 52mm;
+            top: 57mm;  /* dari 52mm +5mm */
             left: 20mm;
             font-weight: bold;
             white-space: nowrap;
@@ -54,7 +54,7 @@
 
         .account {
             position: absolute;
-            top: 58mm;
+            top: 63mm;  /* dari 58mm +5mm */
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -63,7 +63,7 @@
 
         .alamat {
             position: absolute;
-            top: 63mm;
+            top: 68mm;  /* dari 63mm +5mm */
             left: 20mm;
             max-width: 90mm;
             white-space: normal;
@@ -77,7 +77,7 @@
 
         .bank-name {
             position: absolute;
-            top: 73mm;
+            top: 78mm;  /* dari 73mm +5mm */
             left: 20mm;
             font-weight: bold;
             white-space: nowrap;
@@ -87,7 +87,7 @@
 
         .bank-alamat {
             position: absolute;
-            top: 78mm;
+            top: 83mm;  /* dari 78mm +5mm */
             left: 20mm;
             max-width: 90mm;
             white-space: normal;
@@ -101,7 +101,7 @@
 
         .swift {
             position: absolute;
-            top: 88mm;
+            top: 93mm;  /* dari 88mm +5mm */
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -110,7 +110,7 @@
 
         .negara {
             position: absolute;
-            top: 93mm;
+            top: 98mm;  /* dari 93mm +5mm */
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -119,7 +119,7 @@
 
         .berita {
             position: absolute;
-            top: 100mm;
+            top: 105mm;  /* dari 100mm +5mm */
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -128,7 +128,7 @@
 
         .tujuan {
             position: absolute;
-            top: 105mm;
+            top: 110mm;  /* dari 105mm +5mm */
             left: 20mm;
             white-space: nowrap;
             max-width: 90mm;
@@ -137,7 +137,7 @@
 
         .pengirim {
             position: absolute;
-            top: 112mm;
+            top: 117mm;  /* dari 112mm +5mm */
             left: 20mm;
             font-weight: bold;
             white-space: nowrap;
@@ -147,7 +147,7 @@
 
         .deretan-angka {
             position: absolute;
-            top: 117mm;
+            top: 122mm;  /* dari 117mm +5mm */
             left: 20mm;
             letter-spacing: 5px;
             white-space: nowrap;
@@ -171,8 +171,6 @@
              font-weight: bold; }
 
         .rincian-biaya .telex-row td:first-child { text-align: left; }
-        
-        .keterangan-biaya { position: absolute; top: 144mm; right: 5mm; text-align: right; font-size: 7pt; color: #666; }
         
         @media print { body { background: white; margin: 0; padding: 0; box-shadow: none; } .print-container { box-shadow: none; padding: 0; } @page { size: A4; margin: 0; } }
     </style>
@@ -249,7 +247,6 @@
         // Variabel untuk total
         let totalDisplay = '';
         let rincianHtml = '';
-        let keteranganBiaya = '';
         
         // ========== KONDISI 1: PEMBELIAN VALAS ==========
         if (isPembelianValas) {
@@ -271,7 +268,6 @@
                 </table>
             `;
             totalDisplay = `IDR ${formatAngka(totalNilai, 'IDR')}`;
-            keteranganBiaya = `Pembelian valas | 1 ${data.currency} = IDR ${formattedKurs}`;
         }
         
         // ========== KONDISI 2: TRANSFER VALAS (IDR → USD/EUR) ==========
@@ -303,10 +299,6 @@
             
             rincianHtml = `<table style="margin-left: auto;"><thead><tr><th></th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
             totalDisplay = totalValue;
-            keteranganBiaya = `Transfer valas IDR → ${data.currency}`;
-            if (data.kurs > 0) keteranganBiaya += ` | 1 ${data.currency} = IDR ${formattedKurs}`;
-            if (showBiayaFull) keteranganBiaya += ` | Full amount include`;
-            if (data.biayaTelex > 0) keteranganBiaya += ` | Biaya telex IDR ${formattedBiayaTelex}`;
         }
         
         // ========== KONDISI 3: TRANSFER BIASA (USD→USD, EUR→EUR) ==========
@@ -365,7 +357,6 @@
                 <div class="ref-total">${totalDisplay}</div>
                 
                 <div class="rincian-biaya">${rincianHtml}</div>
-                <div class="keterangan-biaya">${keteranganBiaya}</div>
             </div>
         `;
         
