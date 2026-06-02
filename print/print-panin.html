@@ -231,6 +231,12 @@ body {
     left: 150mm;   /* posisi awal container */
     width: auto;
 }
+/* Container untuk membungkus semua baris (biar posisi absolut baris relatif ke sini) */
+.rincian-wrapper {
+    position: relative;   /* ← INI PENTING! */
+    width: 100%;
+    height: 25mm;
+}
 
 /* Style untuk setiap baris rincian */
 .baris-rincian, .baris-total {
