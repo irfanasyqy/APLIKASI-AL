@@ -33,7 +33,7 @@ async function loadTandaTerima() {
         }
     } catch (error) {
         console.error('Error load TT:', error);
-        listContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">❌ Gagal memuat数据</div>';
+        listContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">❌ Gagal memuat data</div>';
     }
 }
 
@@ -116,19 +116,26 @@ function extractTTNumber(noTT) {
 }
 
 // =====================================================
-// 3. SELECT TT - TAMPILKAN DETAIL
+// 3. SELECT TT - TAMPILKAN DETAIL (DENGAN LOGIKA TOMBOL HAPUS BUKTI)
 // =====================================================
 function selectTT(tt) {
     selectedTT = tt;
     
     const detailContainer = document.getElementById('detailContent');
     const actionButtons = document.getElementById('actionButtons');
+    const btnHapusBukti = document.getElementById('btnHapusBukti');
     
     const hasBukti = tt.buktiUrl && tt.buktiUrl !== '' && tt.buktiUrl !== 'Belum ada bukti';
     const statusHtml = hasBukti 
         ? '<span class="status-bukti-tersedia">✅ Bukti Faktur: TERSEDIA</span>'
         : '<span class="status-bukti-belum">⚠️ Bukti Faktur: BELUM ADA</span>';
     
+    // Tampilkan atau sembunyikan tombol HAPUS BUKTI hanya jika ada bukti
+    if (btnHapusBukti) {
+        btnHapusBukti.style.display = hasBukti ? 'flex' : 'none';
+    }
+    
+    // Format invoices
     let invoicesHtml = '';
     if (tt.invoices && tt.invoices.length > 0) {
         invoicesHtml = '<ul class="invoice-list">';
@@ -299,9 +306,7 @@ async function handleCameraUpload(event) {
     await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
 
-// =====================================================
-// UPLOAD FILE KE GOOGLE DRIVE VIA APPS SCRIPT
-// =====================================================
+// Upload file ke Google Drive via Apps Script
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
     
@@ -341,9 +346,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
     }
 }
 
-// =====================================================
-// KONVERSI GAMBAR KE PDF
-// =====================================================
+// Konversi gambar ke PDF
 async function convertImageToPDF(imageFile, fileName) {
     const { jsPDF } = window.jspdf;
     
@@ -372,9 +375,7 @@ async function convertImageToPDF(imageFile, fileName) {
     });
 }
 
-// =====================================================
-// SIMPAN URL BUKTI KE DATABASE
-// =====================================================
+// Simpan URL bukti ke database
 async function simpanBuktiUrl(noTT, url) {
     try {
         const response = await fetch(CONFIG.API_URL, {
@@ -403,7 +404,90 @@ async function simpanBuktiUrl(noTT, url) {
 }
 
 // =====================================================
-// 6. BUKA BUKTI
+// 6. HAPUS BUKTI (HANYA MUNCUL JIKA ADA BUKTI)
+// =====================================================
+async function hapusBukti() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    
+    if (!selectedTT.buktiUrl || selectedTT.buktiUrl === '' || selectedTT.buktiUrl === 'Belum ada bukti') {
+        alert('⚠️ Tidak ada bukti yang dapat dihapus!');
+        return;
+    }
+    
+    const confirmMsg = `⚠️ Yakin ingin menghapus bukti untuk No. TT: ${selectedTT.noTT}?\n\n` +
+        `URL: ${selectedTT.buktiUrl}\n\n` +
+        `TINDAKAN INI AKAN MENGHAPUS FILE DARI GOOGLE DRIVE DAN DATABASE!\n` +
+        `TIDAK DAPAT DIBATALKAN!`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    try {
+        // 1. Hapus file dari Google Drive
+        const fileId = extractFileIdFromUrl(selectedTT.buktiUrl);
+        if (fileId) {
+            await deleteFileFromDrive(fileId);
+        }
+        
+        // 2. Hapus URL dari database
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'updateBuktiTT',
+                noTT: selectedTT.noTT,
+                buktiUrl: ''
+            })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Bukti berhasil dihapus!');
+            await loadTandaTerima();
+            const updated = ttData.find(tt => tt.noTT === selectedTT.noTT);
+            if (updated) selectTT(updated);
+        } else {
+            alert('❌ Gagal menghapus bukti dari database: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error hapus bukti:', error);
+        alert('❌ Error koneksi saat menghapus bukti');
+    }
+}
+
+// Ekstrak file ID dari URL Google Drive
+function extractFileIdFromUrl(url) {
+    if (!url) return null;
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) return match[1];
+    const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (match2 && match2[1]) return match2[1];
+    return null;
+}
+
+// Hapus file dari Google Drive via Apps Script
+async function deleteFileFromDrive(fileId) {
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'deleteFile',
+                fileId: fileId
+            })
+        });
+        const result = await response.json();
+        return result.success;
+    } catch (error) {
+        console.error('Error delete file:', error);
+        return false;
+    }
+}
+
+// =====================================================
+// 7. BUKA BUKTI
 // =====================================================
 function bukaBukti() {
     if (!selectedTT) {
@@ -411,7 +495,7 @@ function bukaBukti() {
         return;
     }
     
-    if (selectedTT.buktiUrl && selectedTT.buktiUrl !== 'Belum ada bukti') {
+    if (selectedTT.buktiUrl && selectedTT.buktiUrl !== '' && selectedTT.buktiUrl !== 'Belum ada bukti') {
         window.open(selectedTT.buktiUrl, '_blank');
     } else {
         alert('Belum ada bukti faktur untuk No. TT ini!');
@@ -419,7 +503,7 @@ function bukaBukti() {
 }
 
 // =====================================================
-// 7. HAPUS TANDA TERIMA
+// 8. HAPUS DATA TANDA TERIMA
 // =====================================================
 async function hapusTT() {
     if (!selectedTT) {
@@ -427,7 +511,7 @@ async function hapusTT() {
         return;
     }
     
-    const confirmMsg = `⚠️ Yakin ingin menghapus data ini?\n\n` +
+    const confirmMsg = `⚠️ Yakin ingin menghapus data Tanda Terima ini?\n\n` +
         `No. TT: ${selectedTT.noTT}\n` +
         `Customer: ${selectedTT.customerNama}\n` +
         `Total: ${formatRupiah(selectedTT.total || 0)}\n\n` +
@@ -462,14 +546,14 @@ async function hapusTT() {
 }
 
 // =====================================================
-// 8. REFRESH DATA
+// 9. REFRESH DATA
 // =====================================================
 function refreshData() {
     loadTandaTerima();
 }
 
 // =====================================================
-// 9. UTILITY FUNCTIONS
+// 10. UTILITY FUNCTIONS
 // =====================================================
 function formatRupiah(angka) {
     return new Intl.NumberFormat('id-ID', {
@@ -491,7 +575,7 @@ function formatDate(dateStr) {
 }
 
 // =====================================================
-// 10. EVENT LISTENERS
+// 11. EVENT LISTENERS
 // =====================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadTandaTerima();
@@ -500,6 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnPrint').addEventListener('click', printTT);
     document.getElementById('btnUpload').addEventListener('click', uploadBukti);
     document.getElementById('btnBukaBukti').addEventListener('click', bukaBukti);
+    document.getElementById('btnHapusBukti').addEventListener('click', hapusBukti);
     document.getElementById('btnHapus').addEventListener('click', hapusTT);
     document.getElementById('searchFilter').addEventListener('input', () => {
         displayTTList(ttData);
