@@ -288,7 +288,7 @@
             
             // BARIS 3: Biaya Telex
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
+                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}</td></tr>`;
                 totalNilaiEkuivalen += data.biayaTelex;
             }
             
@@ -321,7 +321,7 @@
             
             // BARIS 3: Biaya Telex (TIDAK dimasukkan ke total USD)
             if (data.biayaTelex > 0) {
-                rows += `<tr class="telex-row"><td class="currency-col">Biaya Telex</td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}<table></tr>`;
+                rows += `<tr class="telex-row"><td class="currency-col"></td><td class="kurs-col">-</td><td class="jumlah-col">IDR ${formattedBiayaTelex}<table></tr>`;
             }
             
             // Total (HANYA USD, tanpa telex)
