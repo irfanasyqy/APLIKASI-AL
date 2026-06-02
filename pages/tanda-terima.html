@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="../css/table.css">
     <link rel="stylesheet" href="../css/print.css">
     
+    <!-- jsPDF untuk konversi gambar ke PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         /* Layout 2 kolom */
         .two-columns {
@@ -265,7 +268,8 @@
         </div>
     </div>
 </div>
-<!-- MODAL UPLOAD BUKTI -->
+
+<!-- MODAL UPLOAD BUKTI (SATU SAJA) -->
 <div id="uploadModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
@@ -274,6 +278,13 @@
         </div>
         <div class="modal-body">
             <p>Pilih sumber file bukti untuk No. TT: <strong id="modalTTNumber">-</strong></p>
+            
+            <!-- Input untuk nama file -->
+            <div id="fileNameInputGroup" style="display: none; margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File:</label>
+                <input type="text" id="fileName" placeholder="Contoh: Bukti_TT001" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            </div>
+            
             <div class="upload-options">
                 <button id="uploadFromDrive" class="upload-option drive">
                     <span class="icon">📂</span> Google Drive
@@ -293,9 +304,10 @@
     </div>
 </div>
 
-<!-- Input file tersembunyi -->
+<!-- Input file tersembunyi (SATU SAJA) -->
 <input type="file" id="fileInput" accept="image/*,application/pdf" style="display: none;">
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+
 <script src="../config.js"></script>
 <script src="../js/tanda-terima.js"></script>
 </body>

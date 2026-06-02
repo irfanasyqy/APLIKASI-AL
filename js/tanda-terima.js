@@ -1,10 +1,11 @@
 // ========== TANDA-TERIMA.JS ==========
-// Riwayat Tanda Terima (Konversi dari frmView VBA)
+// Riwayat Tanda Terima
 
 let ttData = [];
 let selectedTT = null;
+let currentUploadTT = null;
+let currentUploadSource = null;
 
-// Konfigurasi API
 const API_URL = CONFIG.API_URL;
 
 // =====================================================
@@ -32,7 +33,7 @@ async function loadTandaTerima() {
         }
     } catch (error) {
         console.error('Error load TT:', error);
-        listContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">❌ Gagal memuat data</div>';
+        listContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">❌ Gagal memuat数据</div>';
     }
 }
 
@@ -57,7 +58,6 @@ function displayTTList(data) {
         return;
     }
     
-    // Urutkan dari yang terbaru (nomor TT terbesar di atas)
     filtered.sort((a, b) => {
         const numA = extractTTNumber(a.noTT);
         const numB = extractTTNumber(b.noTT);
@@ -74,7 +74,7 @@ function displayTTList(data) {
         
         html += `
             <div class="list-item ${statusClass}" data-id="${tt.id || idx}" data-no="${tt.noTT}" title="${hasBukti ? 'Sudah ada bukti' : 'Belum ada bukti'}">
-                <div class="no-tt">${statusIcon} ${tt.noTT || '-'}</div>
+                <div class="no-tt">${statusIcon} ${escapeHtml(tt.noTT || '-')}</div>
                 <div class="customer-name">👤 ${escapeHtml(tt.customerNama || '-')}</div>
                 <div class="total">💰 ${formatRupiah(tt.total || 0)}</div>
                 <div class="status-badge ${badgeClass}">${badgeText}</div>
@@ -85,14 +85,12 @@ function displayTTList(data) {
     listContainer.innerHTML = html;
     document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} record (filtered: ${filtered.length})`;
     
-    // Tambahkan event listener ke setiap item
     document.querySelectorAll('.list-item').forEach(item => {
         item.addEventListener('click', () => {
             const noTT = item.getAttribute('data-no');
             const selected = ttData.find(tt => tt.noTT === noTT);
             if (selected) {
                 selectTT(selected);
-                // Highlight active item
                 document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
                 item.classList.add('active');
             }
@@ -110,20 +108,15 @@ function escapeHtml(str) {
     });
 }
 
-// =====================================================
-// 3. EKSTRAK NOMOR URUT DARI NO TT
-// =====================================================
 function extractTTNumber(noTT) {
     if (!noTT) return 0;
     const match = noTT.match(/\d+/g);
-    if (match) {
-        return parseInt(match[match.length - 1]) || 0;
-    }
+    if (match) return parseInt(match[match.length - 1]) || 0;
     return 0;
 }
 
 // =====================================================
-// 4. SELECT TT - TAMPILKAN DETAIL
+// 3. SELECT TT - TAMPILKAN DETAIL
 // =====================================================
 function selectTT(tt) {
     selectedTT = tt;
@@ -136,7 +129,6 @@ function selectTT(tt) {
         ? '<span class="status-bukti-tersedia">✅ Bukti Faktur: TERSEDIA</span>'
         : '<span class="status-bukti-belum">⚠️ Bukti Faktur: BELUM ADA</span>';
     
-    // Format invoices
     let invoicesHtml = '';
     if (tt.invoices && tt.invoices.length > 0) {
         invoicesHtml = '<ul class="invoice-list">';
@@ -184,204 +176,26 @@ function selectTT(tt) {
 }
 
 // =====================================================
-// 5. CETAK TANDA TERIMA
+// 4. CETAK TANDA TERIMA
 // =====================================================
 function printTT() {
     if (!selectedTT) {
         alert('Pilih tanda terima terlebih dahulu!');
         return;
     }
-    
     window.open(`../print/print-tt.html?noTT=${encodeURIComponent(selectedTT.noTT)}`, '_blank');
 }
 
 // =====================================================
-// 6. UPLOAD BUKTI (2 PILIHAN)
+// 5. UPLOAD BUKTI (POPUP MODAL)
 // =====================================================
 function uploadBukti() {
     if (!selectedTT) {
         alert('Pilih tanda terima terlebih dahulu!');
         return;
     }
-    
-    const pilihan = confirm(
-        `Upload bukti untuk No. TT: ${selectedTT.noTT}\n\n` +
-        `OK = Upload file BARU dari komputer\n` +
-        `CANCEL = Pilih file dari Google Drive`
-    );
-    
-    if (pilihan) {
-        uploadFileBaru();
-    } else {
-        pilihDariGoogleDrive();
-    }
+    showUploadModal(selectedTT);
 }
-
-function uploadFileBaru() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,application/pdf';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        alert(`📎 Upload file: ${file.name}\n\nFitur upload sedang dalam pengembangan.\nFile akan diupload ke Google Drive.`);
-        // TODO: Implementasi upload ke Google Drive
-    };
-    input.click();
-}
-
-function pilihDariGoogleDrive() {
-    const driveUrl = prompt(
-        `Pilih file dari Google Drive untuk No. TT: ${selectedTT.noTT}\n\n` +
-        `1. Buka Google Drive di browser\n` +
-        `2. Klik kanan pada file → "Dapatkan link"\n` +
-        `3. Copy URL dan paste di bawah\n\n` +
-        `Masukkan URL Google Drive:`
-    );
-    
-    if (driveUrl && driveUrl.includes('drive.google.com')) {
-        simpanBuktiUrl(driveUrl);
-    } else if (driveUrl) {
-        alert('URL tidak valid! Pastikan URL dari Google Drive.');
-    }
-}
-
-async function simpanBuktiUrl(url) {
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'updateBuktiTT',
-                noTT: selectedTT.noTT,
-                buktiUrl: url
-            })
-        });
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('✅ Bukti faktur berhasil ditambahkan!');
-            await loadTandaTerima();
-            const updated = ttData.find(tt => tt.noTT === selectedTT.noTT);
-            if (updated) selectTT(updated);
-        } else {
-            alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error save bukti:', error);
-        alert('❌ Error koneksi saat menyimpan');
-    }
-}
-
-// =====================================================
-// 7. BUKA BUKTI
-// =====================================================
-function bukaBukti() {
-    if (!selectedTT) {
-        alert('Pilih tanda terima terlebih dahulu!');
-        return;
-    }
-    
-    if (selectedTT.buktiUrl && selectedTT.buktiUrl !== 'Belum ada bukti') {
-        window.open(selectedTT.buktiUrl, '_blank');
-    } else {
-        alert('Belum ada bukti faktur untuk No. TT ini!');
-    }
-}
-
-// =====================================================
-// 8. HAPUS TANDA TERIMA
-// =====================================================
-async function hapusTT() {
-    if (!selectedTT) {
-        alert('Pilih tanda terima terlebih dahulu!');
-        return;
-    }
-    
-    const confirmMsg = `⚠️ Yakin ingin menghapus data ini?\n\n` +
-        `No. TT: ${selectedTT.noTT}\n` +
-        `Customer: ${selectedTT.customerNama}\n` +
-        `Total: ${formatRupiah(selectedTT.total || 0)}\n\n` +
-        `TINDAKAN INI TIDAK DAPAT DIBATALKAN!`;
-    
-    if (!confirm(confirmMsg)) return;
-    
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'deleteTandaTerima',
-                noTT: selectedTT.noTT
-            })
-        });
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('✅ Data berhasil dihapus!');
-            await loadTandaTerima();
-            document.getElementById('detailContent').innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Pilih tanda terima dari daftar</div>';
-            document.getElementById('actionButtons').style.display = 'none';
-            selectedTT = null;
-        } else {
-            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error hapus:', error);
-        alert('❌ Error koneksi saat menghapus');
-    }
-}
-
-// =====================================================
-// 9. REFRESH DATA
-// =====================================================
-function refreshData() {
-    loadTandaTerima();
-}
-
-// =====================================================
-// 10. UTILITY FUNCTIONS
-// =====================================================
-function formatRupiah(angka) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(angka);
-}
-
-function formatDate(dateStr) {
-    if (!dateStr) return '-';
-    try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
-        return date.toLocaleDateString('id-ID');
-    } catch {
-        return dateStr;
-    }
-}
-
-// =====================================================
-// 11. EVENT LISTENERS
-// =====================================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadTandaTerima();
-    
-    document.getElementById('btnRefresh').addEventListener('click', refreshData);
-    document.getElementById('btnPrint').addEventListener('click', printTT);
-    document.getElementById('btnUpload').addEventListener('click', uploadBukti);
-    document.getElementById('btnBukaBukti').addEventListener('click', bukaBukti);
-    document.getElementById('btnHapus').addEventListener('click', hapusTT);
-    
-    document.getElementById('searchFilter').addEventListener('input', () => {
-        displayTTList(ttData);
-    });
-});
-
-// ========== UPLOAD BUKTI DENGAN POPUP ==========
-
-let currentUploadTT = null;
 
 function showUploadModal(tt) {
     currentUploadTT = tt;
@@ -390,6 +204,9 @@ function showUploadModal(tt) {
     document.getElementById('uploadPreview').style.display = 'none';
     document.getElementById('previewImage').src = '';
     document.getElementById('uploadStatus').innerHTML = '';
+    document.getElementById('fileNameInputGroup').style.display = 'none';
+    document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
+    currentUploadSource = null;
 }
 
 function closeUploadModal() {
@@ -423,12 +240,16 @@ function uploadFromDrive() {
 // 2. Upload dari PC
 function uploadFromPC() {
     if (!currentUploadTT) return;
+    currentUploadSource = 'pc';
+    document.getElementById('fileNameInputGroup').style.display = 'block';
     document.getElementById('fileInput').click();
 }
 
 // 3. Upload dari Kamera
 function uploadFromCamera() {
     if (!currentUploadTT) return;
+    currentUploadSource = 'camera';
+    document.getElementById('fileNameInputGroup').style.display = 'block';
     document.getElementById('cameraInput').click();
 }
 
@@ -437,19 +258,23 @@ async function handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file || !currentUploadTT) return;
     
-    // Preview gambar
+    const fileName = document.getElementById('fileName').value.trim();
+    if (!fileName) {
+        alert('⚠️ Silakan isi nama file terlebih dahulu!');
+        return;
+    }
+    
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('previewImage').src = e.target.result;
             document.getElementById('uploadPreview').style.display = 'block';
-            document.getElementById('uploadStatus').innerHTML = '📤 Mengupload...';
+            document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
         };
         reader.readAsDataURL(file);
     }
     
-    // Upload ke server
-    await uploadFileToServer(file, currentUploadTT.noTT);
+    await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
 
 // Handle file dari kamera
@@ -457,39 +282,99 @@ async function handleCameraUpload(event) {
     const file = event.target.files[0];
     if (!file || !currentUploadTT) return;
     
-    // Preview gambar
+    const fileName = document.getElementById('fileName').value.trim();
+    if (!fileName) {
+        alert('⚠️ Silakan isi nama file terlebih dahulu!');
+        return;
+    }
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         document.getElementById('previewImage').src = e.target.result;
         document.getElementById('uploadPreview').style.display = 'block';
-        document.getElementById('uploadStatus').innerHTML = '📤 Mengupload...';
+        document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
     };
     reader.readAsDataURL(file);
     
-    // Upload ke server
-    await uploadFileToServer(file, currentUploadTT.noTT);
+    await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
 
-// Upload file ke server (simulasi/sementara)
-async function uploadFileToServer(file, noTT) {
-    // Untuk sementara, gunakan pendekatan manual
-    // Karena upload langsung ke Apps Script memerlukan konfigurasi tambahan
+// =====================================================
+// UPLOAD FILE KE GOOGLE DRIVE VIA APPS SCRIPT
+// =====================================================
+async function uploadFileToDrive(file, noTT, fileName) {
+    let fileToUpload = file;
     
-    document.getElementById('uploadStatus').innerHTML = '📤 Proses upload...';
+    if (file.type.startsWith('image/')) {
+        document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
+        fileToUpload = await convertImageToPDF(file, fileName);
+    }
     
-    // Simulasi upload (ganti dengan implementasi API upload nanti)
-    setTimeout(() => {
-        const fakeUrl = `https://drive.google.com/file/d/UPLOAD_${Date.now()}/view`;
-        document.getElementById('uploadStatus').innerHTML = '✅ Upload selesai!';
+    const formData = new FormData();
+    formData.append('action', 'upload');
+    formData.append('noTT', noTT);
+    formData.append('fileName', fileName);
+    formData.append('file', fileToUpload);
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            body: formData
+        });
         
-        if (confirm(`File berhasil diproses!\n\nSimpan URL bukti?\nURL: ${fakeUrl}`)) {
-            simpanBuktiUrl(noTT, fakeUrl);
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
+            document.getElementById('uploadStatus').style.color = '#27ae60';
+            alert(`✅ File berhasil diupload ke Google Drive!\n\n📁 Nama: ${result.fileName}\n🔗 URL: ${result.url}`);
+            await simpanBuktiUrl(noTT, result.url);
             closeUploadModal();
+        } else {
+            document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
+            alert('❌ Gagal upload: ' + (result.error || 'Unknown error'));
         }
-    }, 1500);
+    } catch (error) {
+        console.error('Error upload:', error);
+        document.getElementById('uploadStatus').innerHTML = '❌ Error koneksi';
+        alert('❌ Error koneksi saat upload file');
+    }
 }
 
-// Simpan URL bukti ke database
+// =====================================================
+// KONVERSI GAMBAR KE PDF
+// =====================================================
+async function convertImageToPDF(imageFile, fileName) {
+    const { jsPDF } = window.jspdf;
+    
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const pdf = new jsPDF({
+                    orientation: img.width > img.height ? 'landscape' : 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                const imgWidth = pdf.internal.pageSize.getWidth();
+                const imgHeight = (img.height * imgWidth) / img.width;
+                pdf.addImage(img, 'JPEG', 0, 0, imgWidth, imgHeight);
+                const pdfBlob = pdf.output('blob');
+                const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { type: 'application/pdf' });
+                resolve(pdfFile);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageFile);
+    });
+}
+
+// =====================================================
+// SIMPAN URL BUKTI KE DATABASE
+// =====================================================
 async function simpanBuktiUrl(noTT, url) {
     try {
         const response = await fetch(CONFIG.API_URL, {
@@ -517,16 +402,111 @@ async function simpanBuktiUrl(noTT, url) {
     }
 }
 
-// Update fungsi uploadBukti (panggil modal)
-function uploadBukti() {
+// =====================================================
+// 6. BUKA BUKTI
+// =====================================================
+function bukaBukti() {
     if (!selectedTT) {
         alert('Pilih tanda terima terlebih dahulu!');
         return;
     }
-    showUploadModal(selectedTT);
+    
+    if (selectedTT.buktiUrl && selectedTT.buktiUrl !== 'Belum ada bukti') {
+        window.open(selectedTT.buktiUrl, '_blank');
+    } else {
+        alert('Belum ada bukti faktur untuk No. TT ini!');
+    }
 }
 
-// ========== EVENT LISTENERS UPLOAD ==========
+// =====================================================
+// 7. HAPUS TANDA TERIMA
+// =====================================================
+async function hapusTT() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    
+    const confirmMsg = `⚠️ Yakin ingin menghapus data ini?\n\n` +
+        `No. TT: ${selectedTT.noTT}\n` +
+        `Customer: ${selectedTT.customerNama}\n` +
+        `Total: ${formatRupiah(selectedTT.total || 0)}\n\n` +
+        `TINDAKAN INI TIDAK DAPAT DIBATALKAN!`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'deleteTandaTerima',
+                noTT: selectedTT.noTT
+            })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Data berhasil dihapus!');
+            await loadTandaTerima();
+            document.getElementById('detailContent').innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">Pilih tanda terima dari daftar</div>';
+            document.getElementById('actionButtons').style.display = 'none';
+            selectedTT = null;
+        } else {
+            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error hapus:', error);
+        alert('❌ Error koneksi saat menghapus');
+    }
+}
+
+// =====================================================
+// 8. REFRESH DATA
+// =====================================================
+function refreshData() {
+    loadTandaTerima();
+}
+
+// =====================================================
+// 9. UTILITY FUNCTIONS
+// =====================================================
+function formatRupiah(angka) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(angka);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        return date.toLocaleDateString('id-ID');
+    } catch {
+        return dateStr;
+    }
+}
+
+// =====================================================
+// 10. EVENT LISTENERS
+// =====================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadTandaTerima();
+    
+    document.getElementById('btnRefresh').addEventListener('click', refreshData);
+    document.getElementById('btnPrint').addEventListener('click', printTT);
+    document.getElementById('btnUpload').addEventListener('click', uploadBukti);
+    document.getElementById('btnBukaBukti').addEventListener('click', bukaBukti);
+    document.getElementById('btnHapus').addEventListener('click', hapusTT);
+    document.getElementById('searchFilter').addEventListener('input', () => {
+        displayTTList(ttData);
+    });
+});
+
+// Event listeners untuk upload modal
 document.getElementById('uploadFromDrive')?.addEventListener('click', uploadFromDrive);
 document.getElementById('uploadFromPC')?.addEventListener('click', uploadFromPC);
 document.getElementById('uploadFromCamera')?.addEventListener('click', uploadFromCamera);
