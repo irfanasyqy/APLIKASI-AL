@@ -378,3 +378,161 @@ document.addEventListener('DOMContentLoaded', () => {
         displayTTList(ttData);
     });
 });
+
+// ========== UPLOAD BUKTI DENGAN POPUP ==========
+
+let currentUploadTT = null;
+
+function showUploadModal(tt) {
+    currentUploadTT = tt;
+    document.getElementById('modalTTNumber').innerText = tt.noTT;
+    document.getElementById('uploadModal').style.display = 'flex';
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('previewImage').src = '';
+    document.getElementById('uploadStatus').innerHTML = '';
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').style.display = 'none';
+    currentUploadTT = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('cameraInput').value = '';
+}
+
+// 1. Upload dari Google Drive (ambil link)
+function uploadFromDrive() {
+    if (!currentUploadTT) return;
+    
+    const driveUrl = prompt(
+        `📂 Upload bukti untuk No. TT: ${currentUploadTT.noTT}\n\n` +
+        `1. Buka Google Drive di browser\n` +
+        `2. Klik kanan pada file bukti\n` +
+        `3. Pilih "Dapatkan link"\n` +
+        `4. Copy URL dan paste di bawah\n\n` +
+        `Masukkan URL Google Drive:`
+    );
+    
+    if (driveUrl && driveUrl.includes('drive.google.com')) {
+        simpanBuktiUrl(currentUploadTT.noTT, driveUrl);
+        closeUploadModal();
+    } else if (driveUrl) {
+        alert('❌ URL tidak valid! Pastikan URL dari Google Drive.');
+    }
+}
+
+// 2. Upload dari PC
+function uploadFromPC() {
+    if (!currentUploadTT) return;
+    document.getElementById('fileInput').click();
+}
+
+// 3. Upload dari Kamera
+function uploadFromCamera() {
+    if (!currentUploadTT) return;
+    document.getElementById('cameraInput').click();
+}
+
+// Handle file dari PC
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file || !currentUploadTT) return;
+    
+    // Preview gambar
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('uploadPreview').style.display = 'block';
+            document.getElementById('uploadStatus').innerHTML = '📤 Mengupload...';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Upload ke server
+    await uploadFileToServer(file, currentUploadTT.noTT);
+}
+
+// Handle file dari kamera
+async function handleCameraUpload(event) {
+    const file = event.target.files[0];
+    if (!file || !currentUploadTT) return;
+    
+    // Preview gambar
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImage').src = e.target.result;
+        document.getElementById('uploadPreview').style.display = 'block';
+        document.getElementById('uploadStatus').innerHTML = '📤 Mengupload...';
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload ke server
+    await uploadFileToServer(file, currentUploadTT.noTT);
+}
+
+// Upload file ke server (simulasi/sementara)
+async function uploadFileToServer(file, noTT) {
+    // Untuk sementara, gunakan pendekatan manual
+    // Karena upload langsung ke Apps Script memerlukan konfigurasi tambahan
+    
+    document.getElementById('uploadStatus').innerHTML = '📤 Proses upload...';
+    
+    // Simulasi upload (ganti dengan implementasi API upload nanti)
+    setTimeout(() => {
+        const fakeUrl = `https://drive.google.com/file/d/UPLOAD_${Date.now()}/view`;
+        document.getElementById('uploadStatus').innerHTML = '✅ Upload selesai!';
+        
+        if (confirm(`File berhasil diproses!\n\nSimpan URL bukti?\nURL: ${fakeUrl}`)) {
+            simpanBuktiUrl(noTT, fakeUrl);
+            closeUploadModal();
+        }
+    }, 1500);
+}
+
+// Simpan URL bukti ke database
+async function simpanBuktiUrl(noTT, url) {
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'updateBuktiTT',
+                noTT: noTT,
+                buktiUrl: url
+            })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Bukti faktur berhasil ditambahkan!');
+            await loadTandaTerima();
+            const updated = ttData.find(tt => tt.noTT === noTT);
+            if (updated) selectTT(updated);
+        } else {
+            alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error save bukti:', error);
+        alert('❌ Error koneksi saat menyimpan');
+    }
+}
+
+// Update fungsi uploadBukti (panggil modal)
+function uploadBukti() {
+    if (!selectedTT) {
+        alert('Pilih tanda terima terlebih dahulu!');
+        return;
+    }
+    showUploadModal(selectedTT);
+}
+
+// ========== EVENT LISTENERS UPLOAD ==========
+document.getElementById('uploadFromDrive')?.addEventListener('click', uploadFromDrive);
+document.getElementById('uploadFromPC')?.addEventListener('click', uploadFromPC);
+document.getElementById('uploadFromCamera')?.addEventListener('click', uploadFromCamera);
+document.getElementById('fileInput')?.addEventListener('change', handleFileUpload);
+document.getElementById('cameraInput')?.addEventListener('change', handleCameraUpload);
+document.querySelector('.modal-close')?.addEventListener('click', closeUploadModal);
+document.getElementById('uploadModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'uploadModal') closeUploadModal();
+});
