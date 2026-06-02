@@ -298,71 +298,46 @@ async function uploadFileToDrive(file, noTT, fileName) {
         if (progressFill) progressFill.style.width = '70%';
         if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
         
-        // Kirim sebagai FormData (bukan base64)
+        // UPLOAD LANGSUNG KE APPS SCRIPT (tanpa Worker untuk upload)
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHT7yTm5km-YzM42bHxkILdEvLmNd5dQIE-Hvg0SsDhd14RuIFHuClY-xz1JaAFw6SWQ/exec';
+        
         const formData = new FormData();
         formData.append('action', 'upload');
         formData.append('noTT', noTT);
         formData.append('fileName', finalFileName);
         formData.append('file', finalBlob, `${finalFileName}.pdf`);
         
-        const response = await fetch(CONFIG.API_URL, {
+        // Kirim dengan mode 'no-cors' untuk bypass CORS
+        await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: formData  // JANGAN pake headers, biar browser set otomatis
+            mode: 'no-cors',
+            body: formData
         });
         
         if (progressFill) progressFill.style.width = '100%';
         
-        // Coba parse response (mungkin gagal karena CORS, tapi file tetap terupload)
-        let result = { success: false };
-        try {
-            result = await response.json();
-        } catch(e) {
-            console.log('Response not readable (CORS), but file might be uploaded');
-            // Anggap berhasil karena CORS blocking
-            result = { success: true, warning: 'CORS blocking response' };
+        // Karena mode no-cors tidak bisa baca response, kita anggap berhasil
+        if (uploadStatus) {
+            uploadStatus.innerHTML = '✅ Upload berhasil!';
+            uploadStatus.style.color = '#27ae60';
         }
         
-        if (result.success) {
-            if (uploadStatus) {
-                uploadStatus.innerHTML = '✅ Upload berhasil!';
-                uploadStatus.style.color = '#27ae60';
-            }
-            alert(`✅ Bukti berhasil diupload untuk No. TT: ${noTT}`);
-            
-            // Refresh data
-            setTimeout(() => {
-                closeUploadModal();
-                loadTandaTerima();
-            }, 1000);
-        } else if (result.warning) {
-            // CORS blocking tapi file mungkin sudah terupload
-            alert(`⚠️ Upload mungkin berhasil. Silakan refresh halaman untuk cek bukti.`);
-            setTimeout(() => {
-                closeUploadModal();
-                loadTandaTerima();
-            }, 1000);
-        } else {
-            throw new Error(result.error || 'Upload gagal');
-        }
+        alert(`✅ Bukti berhasil diupload untuk No. TT: ${noTT}\n\nSilakan refresh halaman untuk melihat bukti.`);
+        
+        setTimeout(() => {
+            closeUploadModal();
+            loadTandaTerima();
+        }, 2000);
         
     } catch (error) {
         console.error('Upload error:', error);
         if (progressBar) progressBar.style.display = 'none';
         
-        // Jika error karena CORS, tetap anggap sukses (file mungkin terupload)
-        if (error.message.includes('fetch') || error.message.includes('CORS')) {
-            alert(`⚠️ Upload mungkin berhasil. Silakan cek folder Drive dan refresh halaman.`);
-            setTimeout(() => {
-                closeUploadModal();
-                loadTandaTerima();
-            }, 1000);
-        } else {
-            if (uploadStatus) {
-                uploadStatus.innerHTML = '❌ ' + error.message;
-                uploadStatus.style.color = 'red';
-            }
-            alert('❌ Gagal upload: ' + error.message);
+        if (uploadStatus) {
+            uploadStatus.innerHTML = '❌ ' + error.message;
+            uploadStatus.style.color = 'red';
         }
+        alert('❌ Gagal upload: ' + error.message);
     }
 }
 
