@@ -306,15 +306,9 @@ async function handleCameraUpload(event) {
     await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
 }
 
-// =====================================================
-// UPLOAD FILE KE GOOGLE DRIVE (LANGSUNG KE APPS SCRIPT)
-// =====================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-Cv4jqiZVt22KfUJiZ9Np-Phzdx7nLjqWBAeDS8ztzl6swBvC3TjAU-UHbHdnAa5sEA/exec';
-
 async function uploadFileToDrive(file, noTT, fileName) {
     let fileToUpload = file;
 
-    // Konversi gambar ke PDF
     if (file.type.startsWith('image/')) {
         document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
         try {
@@ -330,30 +324,17 @@ async function uploadFileToDrive(file, noTT, fileName) {
     formData.append('noTT', noTT);
     formData.append('fileName', fileName);
     formData.append('file', fileToUpload);
-    // Jangan kirim folderId, biar Apps Script yang cari berdasarkan nama
 
     document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
 
     try {
-        // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
-        const response = await fetch(APPS_SCRIPT_URL, {
+        // PAKAI WORKER (LEWAT CLOUDFLARE)
+        const response = await fetch(CONFIG.API_URL, {  // ← Worker
             method: 'POST',
             body: formData
         });
 
-        const responseText = await response.text();
-        console.log('Response:', responseText);
-        
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (e) {
-            if (responseText.includes('success') || responseText.includes('drive.google.com')) {
-                result = { success: true, url: responseText, fileName: fileName + '.pdf' };
-            } else {
-                throw new Error('Response tidak valid: ' + responseText.substring(0, 100));
-            }
-        }
+        const result = await response.json();
         
         if (result.success) {
             document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
@@ -366,7 +347,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
     } catch (error) {
         console.error('Error upload:', error);
         document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
-        alert('❌ Gagal upload: ' + error.message);
+        alert('❌ Gagal upload via Worker: ' + error.message);
     }
 }
 
