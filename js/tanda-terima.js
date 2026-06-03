@@ -522,6 +522,9 @@ async function simpanBuktiUrl(noTT, url) {
 // =====================================================
 // HAPUS BUKTI
 // =====================================================
+// =====================================================
+// HAPUS BUKTI (FILE DI DRIVE + DATABASE)
+// =====================================================
 async function hapusBukti() {
     if (!selectedTT) {
         alert('Pilih tanda terima terlebih dahulu!');
@@ -540,12 +543,29 @@ async function hapusBukti() {
     
     if (!confirm(confirmMsg)) return;
     
+    // Tampilkan loading
+    const btnHapusBukti = document.getElementById('btnHapusBukti');
+    const originalText = btnHapusBukti ? btnHapusBukti.innerText : 'Hapus';
+    if (btnHapusBukti) {
+        btnHapusBukti.innerText = '⏳ Menghapus...';
+        btnHapusBukti.disabled = true;
+    }
+    
     try {
+        // 1. Hapus file dari Google Drive
         const fileId = extractFileIdFromUrl(selectedTT.buktiUrl);
+        let fileDeleted = false;
+        
         if (fileId) {
-            await deleteFileFromDrive(fileId);
+            fileDeleted = await deleteFileFromDrive(fileId);
+            if (fileDeleted) {
+                console.log('✅ File berhasil dihapus dari Google Drive');
+            } else {
+                console.warn('⚠️ Gagal hapus file dari Drive, tetapi akan tetap hapus dari database');
+            }
         }
         
+        // 2. Hapus URL dari database
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -557,8 +577,18 @@ async function hapusBukti() {
         });
         const result = await response.json();
         
+        // Reset tombol
+        if (btnHapusBukti) {
+            btnHapusBukti.innerText = originalText;
+            btnHapusBukti.disabled = false;
+        }
+        
         if (result.success) {
-            alert('✅ Bukti berhasil dihapus!');
+            if (fileDeleted) {
+                alert('✅ Bukti berhasil dihapus (file di Drive & database)!');
+            } else {
+                alert('✅ Bukti berhasil dihapus dari database.\n⚠️ File di Drive mungkin masih ada, harap hapus manual.');
+            }
             await loadTandaTerima();
             const updated = ttData.find(tt => tt.noTT === selectedTT.noTT);
             if (updated) selectTT(updated);
@@ -567,7 +597,11 @@ async function hapusBukti() {
         }
     } catch (error) {
         console.error('Error hapus bukti:', error);
-        alert('❌ Error koneksi saat menghapus bukti');
+        if (btnHapusBukti) {
+            btnHapusBukti.innerText = originalText;
+            btnHapusBukti.disabled = false;
+        }
+        alert('❌ Error koneksi saat menghapus bukti: ' + error.message);
     }
 }
 
@@ -580,6 +614,7 @@ function extractFileIdFromUrl(url) {
     return null;
 }
 
+// Hapus file dari Google Drive via Worker
 async function deleteFileFromDrive(fileId) {
     try {
         const response = await fetch(API_URL, {
@@ -591,7 +626,8 @@ async function deleteFileFromDrive(fileId) {
             })
         });
         const result = await response.json();
-        return result.success;
+        console.log('Delete file result:', result);
+        return result.success === true;
     } catch (error) {
         console.error('Error delete file:', error);
         return false;
