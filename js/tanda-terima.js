@@ -14,7 +14,15 @@ const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
 // 1. LOAD DATA TANDA TERIMA
 // =====================================================
 async function loadTandaTerima() {
+    console.log('loadTandaTerima dipanggil');
     const listContainer = document.getElementById('ttList');
+    console.log('listContainer:', listContainer);
+    
+    if (!listContainer) {
+        console.error('Element #ttList tidak ditemukan!');
+        return;
+    }
+    
     listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">📡 Memuat数据...</div>';
     
     try {
@@ -24,6 +32,8 @@ async function loadTandaTerima() {
             body: JSON.stringify({ type: 'getTandaTerima' })
         });
         const result = await response.json();
+        console.log('Result dari API:', result);
+        console.log('Jumlah data:', result.data?.length);
         
         if (result.success && result.data && result.data.length > 0) {
             ttData = result.data;
