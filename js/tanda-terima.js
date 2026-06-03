@@ -6,7 +6,8 @@ let selectedTT = null;
 let currentUploadTT = null;
 let currentUploadSource = null;
 
-const API_URL = CONFIG.API_URL;
+// Gunakan Worker URL sebagai proxy
+const API_URL = 'https://aplikasi-al.al-asyqy.workers.dev';
 
 // =====================================================
 // 1. LOAD DATA TANDA TERIMA
@@ -267,10 +268,8 @@ function uploadFromCamera() {
 }
 
 // =====================================================
-// FUNGSI UPLOAD DENGAN BASE64
+// FUNGSI UPLOAD DENGAN BASE64 - VIA WORKER
 // =====================================================
-// Ganti CONFIG.API_URL dengan APPS_SCRIPT_URL langsung
-
 async function uploadFileToDrive(file, noTT, fileName) {
     if (!file) {
         alert('❌ File tidak ditemukan!');
@@ -291,7 +290,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
     try {
         let finalBlob = file;
         let finalFileName = fileName || `Bukti_${noTT}`;
-        finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+        finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_') + '.pdf';
         
         // Konversi gambar ke PDF jika perlu
         if (file.type.startsWith('image/')) {
@@ -303,17 +302,17 @@ async function uploadFileToDrive(file, noTT, fileName) {
             finalBlob = await convertImageToPDFBlob(file);
         }
         
-        if (progressFill) progressFill.style.width = '70%');
+        if (progressFill) progressFill.style.width = '70%';
         if (uploadStatus) uploadStatus.innerHTML = '📦 Mengenkripsi file...';
         
         // KONVERSI KE BASE64
         const base64 = await blobToBase64(finalBlob);
         
-        if (progressFill) progressFill.style.width = '85%');
+        if (progressFill) progressFill.style.width = '85%';
         if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
         
-        // KIRIM SEBAGAI JSON (BUKAN FORMDATA)
-        const response = await fetch(CONFIG.API_URL, {
+        // KIRIM VIA WORKER (Cloudflare Worker sebagai proxy)
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -325,12 +324,12 @@ async function uploadFileToDrive(file, noTT, fileName) {
             })
         });
         
-        if (progressFill) progressFill.style.width = '95%');
+        if (progressFill) progressFill.style.width = '95%';
         
         const result = await response.json();
         console.log('Upload result:', result);
         
-        if (progressFill) progressFill.style.width = '100%');
+        if (progressFill) progressFill.style.width = '100%';
         
         if (result.success) {
             if (uploadStatus) {
@@ -338,10 +337,13 @@ async function uploadFileToDrive(file, noTT, fileName) {
                 uploadStatus.style.color = '#27ae60';
             }
             
-            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}`);
+            // Gunakan fileUrl atau fileId dari response
+            const fileUrl = result.fileUrl || `https://drive.google.com/file/d/${result.fileId}/view`;
+            
+            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n📂 Folder: ${result.folderName || 'TandaTerima'}`);
             
             // Simpan URL ke database
-            await simpanBuktiUrl(noTT, result.url);
+            await simpanBuktiUrl(noTT, fileUrl);
             
             setTimeout(() => {
                 closeUploadModal();
@@ -363,7 +365,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
     }
 }
 
-// Fungsi blobToBase64 (tambahkan jika belum ada)
+// Fungsi blobToBase64
 function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -376,54 +378,10 @@ function blobToBase64(blob) {
     });
 }
 
-// Fungsi convertImageToPDFBlob (tambahkan jika belum ada)
+// Fungsi convertImageToPDFBlob
 async function convertImageToPDFBlob(imageFile) {
     if (typeof window.jspdf === 'undefined') {
-        throw new Error('jsPDF library tidak ditemukan');
-    }
-    
-    const { jsPDF } = window.jspdf;
-    
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                try {
-                    const orientation = img.width > img.height ? 'landscape' : 'portrait';
-                    const pdf = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
-                    
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    
-                    let width = pdfWidth;
-                    let height = (img.height * pdfWidth) / img.width;
-                    
-                    if (height > pdfHeight) {
-                        height = pdfHeight;
-                        width = (img.width * pdfHeight) / img.height;
-                    }
-                    
-                    const x = (pdfWidth - width) / 2;
-                    const y = (pdfHeight - height) / 2;
-                    
-                    pdf.addImage(img, 'JPEG', x, y, width, height);
-                    resolve(pdf.output('blob'));
-                } catch (err) {
-                    reject(err);
-                }
-            };
-            img.onerror = () => reject(new Error('Gagal memuat gambar'));
-            img.src = e.target.result;
-        };
-        reader.onerror = () => reject(new Error('Gagal membaca file'));
-        reader.readAsDataURL(imageFile);
-    });
-}
-
-async function convertImageToPDFBlob(imageFile) {
-    if (typeof window.jspdf === 'undefined') {
-        throw new Error('jsPDF library tidak ditemukan. Refresh halaman.');
+        throw new Error('jsPDF library tidak ditemukan. Pastikan library sudah di-load.');
     }
     
     const { jsPDF } = window.jspdf;
@@ -477,37 +435,6 @@ async function convertImageToPDFBlob(imageFile) {
             reject(new Error('Gagal membaca file gambar'));
         };
         
-        reader.readAsDataURL(imageFile);
-    });
-}
-
-// =====================================================
-// KONVERSI GAMBAR KE PDF
-// =====================================================
-async function convertImageToPDF(imageFile, fileName) {
-    const { jsPDF } = window.jspdf;
-    
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const pdf = new jsPDF({
-                    orientation: img.width > img.height ? 'landscape' : 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                const imgWidth = pdf.internal.pageSize.getWidth();
-                const imgHeight = (img.height * imgWidth) / img.width;
-                pdf.addImage(img, 'JPEG', 0, 0, imgWidth, imgHeight);
-                const pdfBlob = pdf.output('blob');
-                const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { type: 'application/pdf' });
-                resolve(pdfFile);
-            };
-            img.onerror = reject;
-            img.src = e.target.result;
-        };
-        reader.onerror = reject;
         reader.readAsDataURL(imageFile);
     });
 }
@@ -594,11 +521,11 @@ async function handleCameraUpload(event) {
 }
 
 // =====================================================
-// SIMPAN URL BUKTI KE DATABASE
+// SIMPAN URL BUKTI KE DATABASE (via Worker)
 // =====================================================
 async function simpanBuktiUrl(noTT, url) {
     try {
-        const response = await fetch(CONFIG.API_URL, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -651,7 +578,7 @@ async function hapusBukti() {
             await deleteFileFromDrive(fileId);
         }
         
-        const response = await fetch(CONFIG.API_URL, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -687,7 +614,7 @@ function extractFileIdFromUrl(url) {
 
 async function deleteFileFromDrive(fileId) {
     try {
-        const response = await fetch(CONFIG.API_URL, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -737,7 +664,7 @@ async function hapusTT() {
     if (!confirm(confirmMsg)) return;
     
     try {
-        const response = await fetch(CONFIG.API_URL, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
