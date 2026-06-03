@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak Tanda Terima / Tukar Faktur - APLIKASI AL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 10px;
+        }
+        
+        .print-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .header h1 {
+            font-size: 18pt;
+        }
+        
+        .header h3 {
+            font-size: 12pt;
+            margin-top: 5px;
+            color: #555;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .info-label {
+            width: 100px;
+            font-weight: bold;
+        }
+        
+        .info-value {
+            flex: 1;
+        }
+        
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .invoice-table th {
+            background: #f0f0f0;
+        }
+        
+        .total-row {
+            text-align: right;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #333;
+        }
+        
+        .total-amount {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .signature {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .signature div {
+            text-align: center;
+            width: 200px;
+        }
+        
+        .signature .line {
+            margin-top: 40px;
+            border-top: 1px solid #333;
+            width: 100%;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            .no-print {
+                display: none;
+            }
+            .info-section {
+                border: 1px solid #ccc;
+            }
+        }
+        
+        .btn-print {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .btn-print:hover {
+            background: #219a52;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 50px;
+            color: red;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="print-container">
+    <button class="btn-print no-print" onclick="window.print()">🖨️ CETAK</button>
+    <button class="btn-print no-print" onclick="window.close()" style="background: #e74c3c; margin-left: 10px;">✖ TUTUP</button>
+    
+    <div id="content">
+        <div class="loading">📡 Memuat data...</div>
+    </div>
+</div>
+
+<script src="../config.js"></script>
+<script>
+    // Konfigurasi API
+    const API_URL = CONFIG.API_URL;
+    
+    // Ambil parameter dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const noTT = urlParams.get('noTT') || urlParams.get('noTF');
+    
+    // Fungsi format Rupiah
+    function formatRupiah(angka) {
+        if (angka === undefined || angka === null || isNaN(angka)) return 'Rp 0';
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }).format(angka);
+    }
+    
+    // Fungsi format tanggal
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        } catch {
+            return dateStr;
+        }
+    }
+    
+    // Escape HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Load data dari API
+    async function loadData() {
+        if (!noTT) {
+            document.getElementById('content').innerHTML = `
+                <div class="error-message">
+                    ❌ Tidak ada nomor Tanda Terima<br>
+                    <small>Parameter noTT atau noTF tidak ditemukan</small>
+                </div>
+            `;
+            return;
+        }
+        
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getTandaTerima' })
+            });
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // Cari data TT berdasarkan noTT
+                const tt = result.data.find(item => item.noTT === noTT);
+                
+                if (!tt) {
+                    document.getElementById('content').innerHTML = `
+                        <div class="error-message">
+                            ❌ Data tidak ditemukan untuk No. TT: ${escapeHtml(noTT)}<br>
+                            <small>Pastikan nomor Tanda Terima benar</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Tampilkan data
+                displayPrintContent(tt);
+            } else {
+                document.getElementById('content').innerHTML = `
+                    <div class="error-message">
+                        ❌ Gagal memuat data: ${result.error || 'Unknown error'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('content').innerHTML = `
+                <div class="error-message">
+                    ❌ Error koneksi: ${error.message}
+                </div>
+            `;
+        }
+    }
+    
+    // Tampilkan konten cetak
+    function displayPrintContent(tt) {
+        // Kumpulkan invoice
+        let invoices = [];
+        if (tt.invoices && tt.invoices.length > 0) {
+            invoices = tt.invoices;
+        } else if (tt.invoice1 || tt.invoice2 || tt.invoice3 || tt.invoice4 || tt.invoice5) {
+            for (let i = 1; i <= 5; i++) {
+                const invNo = tt[`invoice${i}`];
+                if (invNo && invNo !== '') {
+                    invoices.push({ no: invNo, nominal: 0 });
+                }
+            }
+        }
+        
+        // Data customer
+        const pic = tt.customerPic || tt.pic || '-';
+        const hp = tt.customerHP || tt.customerTelepon || tt.hp || '-';
+        const customerNama = tt.customerNama || '-';
+        const customerAlamat = tt.customerAlamat || '-';
+        const tanggal = tt.tanggal || new Date().toISOString().split('T')[0];
+        const total = tt.total || 0;
+        const ptName = tt.ptName || tt.ptCode || '-';
+        
+        // Buat tabel invoice
+        let invoiceRows = '';
+        if (invoices.length > 0) {
+            invoices.forEach((inv, idx) => {
+                invoiceRows += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${escapeHtml(inv.no)}</td>
+                        <td style="text-align: right;">${formatRupiah(inv.nominal)}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            invoiceRows = `
+                <tr>
+                    <td colspan="3" style="text-align: center;">- Tidak ada faktur -</td>
+                </tr>
+            `;
+        }
+        
+        const html = `
+            <div class="header">
+                <h1>TANDA TERIMA / TUKAR FAKTUR</h1>
+                <h3>No. ${escapeHtml(tt.noTT)}</h3>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-row">
+                    <div class="info-label">Tanggal</div>
+                    <div class="info-value">: ${formatDate(tanggal)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Customer</div>
+                    <div class="info-value">: ${escapeHtml(customerNama)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Alamat</div>
+                    <div class="info-value">: ${escapeHtml(customerAlamat)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">PIC</div>
+                    <div class="info-value">: ${escapeHtml(pic)}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">HP / Telepon</div>
+                    <div class="info-value">: ${escapeHtml(hp)}</div>
+                </div>
+            </div>
+            
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th width="10%">No</th>
+                        <th width="70%">Nomor Faktur</th>
+                        <th width="20%">Nilai</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${invoiceRows}
+                </tbody>
+            </table>
+            
+            <div class="total-row">
+                <strong>TOTAL:</strong> <span class="total-amount">${formatRupiah(total)}</span>
+            </div>
+            
+            <div class="signature">
+                <div>
+                    <div>Hormat kami,</div>
+                    <div class="line"></div>
+                    <div>(Marketing)</div>
+                </div>
+                <div>
+                    <div>Customer,</div>
+                    <div class="line"></div>
+                    <div>(${escapeHtml(customerNama.split(' ')[0]) || 'Customer'})</div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Dicetak pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</p>
+                <p>APLIKASI AL - Tukar Faktur</p>
+                <p style="font-size: 8pt;">*Tanda terima ini adalah bukti sah penyerahan faktur</p>
+            </div>
+        `;
+        
+        document.getElementById('content').innerHTML = html;
+        
+        // Auto print (opsional, bisa diaktifkan)
+        // setTimeout(() => window.print(), 500);
+    }
+    
+    // Load data saat halaman dibuka
+    loadData();
+</script>
+</body>
+</html>

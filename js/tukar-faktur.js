@@ -284,7 +284,7 @@ function updateInvoiceDisplay() {
     if (selectedInvoices.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Belum ada faktur dipilih</div>';
         totalSpan.innerText = formatRupiah(0);
-        document.getElementById('noTT').innerText = 'TF---';
+        document.getElementById('noTT').innerText = 'TT---';
         return;
     }
     
@@ -306,34 +306,66 @@ function updateInvoiceDisplay() {
     container.innerHTML = html;
     totalSpan.innerText = formatRupiah(total);
     
-    generateNoTF();
+    generateNoTT();
 }
 
 // =====================================================
-// 7. GENERATE NO TUKAR FAKTUR
+// 7. GENERATE NO TUKAR FAKTUR (CEK DARI DATABASE)
 // =====================================================
-async function generateNoTF() {
+async function generateNoTT() {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     
-    let lastNumber = await getLastTFNumber();
+    // Ambil nomor terakhir dari database
+    let lastNumber = await getLastTTNumber();
     let newNumber = lastNumber + 1;
     
-    document.getElementById('noTT').innerText = `TF/${year}/${month}/${String(newNumber).padStart(3, '0')}`;
+    // Format: TT/2025/01/001
+    const noTT = `TT/${year}/${month}/${String(newNumber).padStart(3, '0')}`;
+    document.getElementById('noTT').innerText = noTT;
+    
+    return noTT;
 }
 
-async function getLastTFNumber() {
+// =====================================================
+// AMBIL NOMOR TERAKHIR DARI DATABASE TANDA TERIMA
+// =====================================================
+async function getLastTTNumber() {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'getLastTTNumber' })
+            body: JSON.stringify({ type: 'getTandaTerima' })
         });
         const result = await response.json();
-        return result.success ? result.number : 0;
+        
+        if (result.success && result.data && result.data.length > 0) {
+            // Cari nomor TT terbesar
+            let maxNumber = 0;
+            const currentYear = new Date().getFullYear();
+            
+            for (const tt of result.data) {
+                const noTT = tt.noTT || '';
+                // Cek format TT/2025/01/001
+                const match = noTT.match(/TT\/(\d{4})\/\d{2}\/(\d{3})/);
+                if (match) {
+                    const year = parseInt(match[1]);
+                    const num = parseInt(match[2]);
+                    // Hanya hitung yang tahunnya sama dengan tahun ini
+                    if (year === currentYear && num > maxNumber) {
+                        maxNumber = num;
+                    }
+                }
+            }
+            
+            console.log(`Nomor TT terakhir tahun ${currentYear}: ${maxNumber}`);
+            return maxNumber;
+        }
+        
+        return 0;
     } catch (error) {
-        console.error('Error get last TF number:', error);
+        console.error('Error get last TT number:', error);
         return 0;
     }
 }
@@ -368,11 +400,12 @@ async function simpanTukarFaktur() {
         return;
     }
     
-    const noTF = document.getElementById('noTT').innerText;
+    // Generate nomor baru sebelum simpan (biar dapat nomor terbaru)
+    const noTT = await generateNoTT();
     
     const data = {
         type: 'saveTandaTerima',
-        noTT: noTF,
+        noTT: noTT,
         tanggal: tanggal,
         customerNomor: selectedCustomer.nomor || '',
         customerNama: selectedCustomer.nama || '',
@@ -404,16 +437,18 @@ async function simpanTukarFaktur() {
         const result = await response.json();
         
         if (result.success) {
-            alert(`✅ Tukar Faktur No. ${noTF} berhasil disimpan!`);
+            alert(`✅ Tukar Faktur No. ${noTT} berhasil disimpan!`);
             
             resetInvoices();
             selectedCustomer = null;
             document.getElementById('selectedCustomerInfo').style.display = 'none';
             document.getElementById('searchCustomer').value = '';
-            await generateNoTF();
+            
+            // Generate nomor baru untuk form berikutnya
+            await generateNoTT();
             
             if (confirm('🖨️ Cetak Tukar Faktur sekarang?')) {
-                window.open(`../print/print-tf.html?noTF=${noTF}`, '_blank');
+                window.open(`../print/print-tt.html?noTT=${encodeURIComponent(noTT)}`, '_blank');
             }
         } else {
             alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
