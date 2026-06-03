@@ -219,6 +219,7 @@ function escapeHtml(str) {
     });
 }
 
+// Ganti fungsi loadCustomers
 async function loadCustomers() {
     const tbody = document.getElementById('customerTableBody');
     tbody.innerHTML = '<tr><td colspan="7">📡 Memuat data customer...</td></tr>';
@@ -231,9 +232,8 @@ async function loadCustomers() {
         });
         const result = await response.json();
         
-        console.log('Data dari API:', result);
-        
         if (result.success && result.data && result.data.length > 0) {
+            // LANGSUNG PAKAI, TANPA FILTER
             allCustomersData = result.data;
             renderTable(allCustomersData);
         } else {
@@ -242,7 +242,7 @@ async function loadCustomers() {
         }
     } catch (error) {
         console.error('Error:', error);
-        tbody.innerHTML = '<tr><td colspan="7">❌ Gagal memuat data: ' + error.message + '</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7">❌ Gagal memuat data: ${error.message}</td></tr>`;
     }
 }
 
