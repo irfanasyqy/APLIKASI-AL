@@ -272,63 +272,89 @@ function uploadFromCamera() {
 // Ganti CONFIG.API_URL dengan APPS_SCRIPT_URL langsung
 
 async function uploadFileToDrive(file, noTT, fileName) {
-    let fileToUpload = file;
-
-    if (file.type.startsWith('image/')) {
-        document.getElementById('uploadStatus').innerHTML = '🔄 Mengkonversi gambar ke PDF...';
-        try {
-            fileToUpload = await convertImageToPDF(file, fileName);
-        } catch (error) {
-            alert('❌ Gagal mengkonversi gambar ke PDF.');
-            return;
-        }
+    if (!file) {
+        alert('❌ File tidak ditemukan!');
+        return;
     }
-
-    const reader = new FileReader();
     
-    reader.onload = async function(e) {
-        const base64 = e.target.result.split(',')[1];
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    if (progressBar) progressBar.style.display = 'block';
+    if (progressFill) progressFill.style.width = '30%';
+    if (uploadStatus) {
+        uploadStatus.innerHTML = '📤 Memproses file...';
+        uploadStatus.style.color = '#3498db';
+    }
+    
+    try {
+        let finalBlob = file;
+        let finalFileName = fileName || `Bukti_${noTT}`;
+        finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_');
         
-        const payload = {
-            action: 'upload',
-            noTT: noTT,
-            fileName: fileName,
-            fileBase64: base64,
-            mimeType: fileToUpload.type
-        };
-        
-        document.getElementById('uploadStatus').innerHTML = '📤 Mengupload ke Google Drive...';
-        
-        try {
-            // LANGSUNG KE APPS SCRIPT (LEWATI WORKER)
-            const response = await fetch(CONFIG.API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                document.getElementById('uploadStatus').innerHTML = '✅ Upload berhasil!';
-                alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n🔗 URL: ${result.url}`);
-                await simpanBuktiUrl(noTT, result.url);
-                closeUploadModal();
-            } else {
-                throw new Error(result.error || 'Upload gagal');
+        // Konversi gambar ke PDF jika perlu
+        if (file.type.startsWith('image/')) {
+            if (uploadStatus) {
+                uploadStatus.innerHTML = '🔄 Mengkonversi gambar ke PDF...';
+                uploadStatus.style.color = '#f39c12';
             }
-        } catch (error) {
-            console.error('Error upload:', error);
-            document.getElementById('uploadStatus').innerHTML = '❌ Upload gagal';
-            alert('❌ Gagal upload: ' + error.message);
+            if (progressFill) progressFill.style.width = '50%';
+            finalBlob = await convertImageToPDFBlob(file);
         }
-    };
-    
-    reader.onerror = function() {
-        alert('❌ Gagal membaca file');
-    };
-    
-    reader.readAsDataURL(fileToUpload);
+        
+        if (progressFill) progressFill.style.width = '70%';
+        if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
+        
+        // PAKAI FORM DATA (bukan base64)
+        const formData = new FormData();
+        formData.append('action', 'upload');
+        formData.append('noTT', noTT);
+        formData.append('fileName', finalFileName);
+        formData.append('file', finalBlob, `${finalFileName}.pdf`);
+        
+        // Kirim ke Worker
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (progressFill) progressFill.style.width = '90%';
+        
+        const result = await response.json();
+        console.log('Upload result:', result);
+        
+        if (progressFill) progressFill.style.width = '100%';
+        
+        if (result.success) {
+            if (uploadStatus) {
+                uploadStatus.innerHTML = '✅ Upload berhasil!';
+                uploadStatus.style.color = '#27ae60';
+            }
+            
+            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}`);
+            
+            // Simpan URL ke database
+            await simpanBuktiUrl(noTT, result.url);
+            
+            setTimeout(() => {
+                closeUploadModal();
+                loadTandaTerima();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Upload gagal');
+        }
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        if (progressBar) progressBar.style.display = 'none';
+        
+        if (uploadStatus) {
+            uploadStatus.innerHTML = '❌ ' + error.message;
+            uploadStatus.style.color = 'red';
+        }
+        alert('❌ Gagal upload: ' + error.message);
+    }
 }
 
 // =====================================================
