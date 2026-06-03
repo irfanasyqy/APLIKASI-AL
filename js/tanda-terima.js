@@ -255,7 +255,7 @@ async function uploadFile() {
         const base64 = e.target.result.split(',')[1];
         
         try {
-            const response = await fetch(UPLOAD_API_URL, {
+            const response = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
