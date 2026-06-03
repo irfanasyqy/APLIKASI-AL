@@ -2,124 +2,134 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Customer Data - APLIKASI AL</title>
-    
-    <!-- Import CSS yang sudah ada -->
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/menu.css">
-    <link rel="stylesheet" href="../css/card.css">
-    <link rel="stylesheet" href="../css/form.css">
-    <link rel="stylesheet" href="../css/table.css">
-    <link rel="stylesheet" href="../css/print.css">
-    
     <style>
-        .preview-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border-left: 4px solid #27ae60;
-        }
-        .preview-panel h3 {
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        .form-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            z-index: 1000;
-            width: 90%;
-            max-width: 500px;
-        }
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-        .btn-tambah {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .btn-tambah:hover { background: #219a52; }
-        .btn-edit {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-        .btn-edit:hover { background: #2980b9; }
-        .btn-hapus {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .btn-hapus:hover { background: #c0392b; }
-        .btn-simpan {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-        .btn-batal {
-            background: #95a5a6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50; }
-        .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 12px; }
-        .form-group input:focus { outline: none; border-color: #e74c3c; }
-        #customerTableBody tr { cursor: pointer; }
-        #customerTableBody tr:hover { background: #f5f5f5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .app-header { text-align: center; margin-bottom: 20px; }
+        .app-title { font-size: 28px; font-weight: bold; color: #2c3e50; }
+        .app-title span { color: #e74c3c; }
+        .subtitle { color: #7f8c8d; margin-top: 5px; }
+        .btn-back { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { margin-bottom: 20px; color: #2c3e50; }
+        .search-box { margin-bottom: 20px; display: flex; gap: 10px; }
+        .search-box input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-tambah { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
+        .btn-edit { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-right: 5px; }
+        .btn-hapus { background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: #2c3e50; color: white; }
+        tr:hover { background: #f5f5f5; cursor: pointer; }
         .total-data { margin-top: 15px; text-align: right; font-size: 12px; color: #666; }
+        .preview-panel { margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 12px; border-left: 4px solid #27ae60; }
+        .form-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 1000; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-simpan { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px; }
+        .btn-batal { background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        
+        /* ========== PENGATURAN LEBAR KOLOM DESKTOP ========== */
+        /* No */
+        th:nth-child(1), td:nth-child(1) {
+            width: 50px;
+        }
+        
+        /* Nama Perusahaan */
+        th:nth-child(2), td:nth-child(2) {
+            min-width: 180px;
+            max-width: 250px;
+        }
+        
+        /* Alamat */
+        th:nth-child(3), td:nth-child(3) {
+            min-width: 250px;
+            max-width: 350px;
+        }
+        
+        /* Jadwal Tukar Faktur */
+        th:nth-child(4), td:nth-child(4) {
+            min-width: 140px;
+            max-width: 200px;
+        }
+        
+        /* PIC + Telepon (lebar seperti alamat) */
+        th:nth-child(5), td:nth-child(5) {
+            min-width: 220px;
+            max-width: 320px;
+            white-space: normal;
+            word-break: break-word;
+        }
+        
+        /* Email / Keterangan */
+        th:nth-child(6), td:nth-child(6) {
+            min-width: 150px;
+            max-width: 220px;
+        }
+        
+        /* Kolom Aksi */
+        th:nth-child(7), td:nth-child(7) {
+            width: 100px;
+            white-space: nowrap;
+        }
+        
+        /* ========== MOBILE ========== */
+        @media (max-width: 768px) {
+            th, td { padding: 8px 5px; font-size: 12px; }
+            .btn-edit, .btn-hapus { padding: 4px 8px; font-size: 11px; }
+            
+            /* Mobile: semua kolom auto, tapi PIC + Telepon sama dengan Nama Perusahaan */
+            th:nth-child(1), td:nth-child(1) { width: 40px; }
+            
+            /* Nama Perusahaan dan PIC + Telepon - sama-sama auto dan bisa wrap */
+            th:nth-child(2), td:nth-child(2),
+            th:nth-child(5), td:nth-child(5) {
+                min-width: auto;
+                max-width: none;
+                white-space: normal;
+                word-break: break-word;
+            }
+            
+            /* Kolom lainnya juga auto */
+            th:nth-child(3), td:nth-child(3),
+            th:nth-child(4), td:nth-child(4),
+            th:nth-child(6), td:nth-child(6),
+            th:nth-child(7), td:nth-child(7) {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+        
+        /* ========== TABLET ========== */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            th:nth-child(2), td:nth-child(2) { min-width: 150px; max-width: 200px; }
+            th:nth-child(3), td:nth-child(3) { min-width: 200px; max-width: 280px; }
+            th:nth-child(4), td:nth-child(4) { min-width: 120px; max-width: 160px; }
+            th:nth-child(5), td:nth-child(5) { min-width: 180px; max-width: 260px; }
+            th:nth-child(6), td:nth-child(6) { min-width: 120px; max-width: 180px; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="app-header">
         <div class="app-title">APLIKASI <span>AL</span></div>
-        <p class="subtitle">Customer Data - Alamat dan Kontak</p>
+        <p class="subtitle">Customer Data</p>
     </div>
 
     <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
     
     <div class="card">
         <h2>👥 DATA CUSTOMER</h2>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Cari customer...">
+        </div>
         
         <button class="btn-tambah" id="btnTambahCustomer">➕ TAMBAH CUSTOMER</button>
         
@@ -146,7 +156,7 @@
         
         <div class="preview-panel" id="previewPanel" style="display: none;">
             <h3>🔍 PREVIEW DATA CUSTOMER</h3>
-            <div id="previewContent"></div>
+            <div class="preview-content" id="previewContent"></div>
         </div>
     </div>
 </div>
@@ -154,15 +164,15 @@
 <!-- POPUP FORM -->
 <div class="overlay" id="overlay"></div>
 <div class="form-popup" id="customerForm">
-    <h3 id="formTitle" style="margin-bottom: 20px; color: #2c3e50;">Tambah Customer</h3>
+    <h3 id="formTitle">Tambah Customer</h3>
     <input type="hidden" id="editId" value="">
     <div class="form-group">
-        <label>Nama Perusahaan <span style="color: red;">*</span></label>
-        <input type="text" id="namaCustomer" placeholder="Nama perusahaan" required>
+        <label>Nama Perusahaan *</label>
+        <input type="text" id="namaCustomer">
     </div>
     <div class="form-group">
         <label>Alamat Kirim Faktur</label>
-        <input type="text" id="alamatCustomer" placeholder="Alamat lengkap">
+        <textarea id="alamatCustomer" rows="2"></textarea>
     </div>
     <div class="form-group">
         <label>Jadwal Tukar Faktur</label>
@@ -170,19 +180,23 @@
     </div>
     <div class="form-group">
         <label>PIC</label>
-        <input type="text" id="picCustomer" placeholder="Person in charge">
+        <input type="text" id="picCustomer">
     </div>
     <div class="form-group">
         <label>No HP</label>
-        <input type="text" id="hpCustomer" placeholder="Nomor telepon">
+        <input type="text" id="hpCustomer">
     </div>
     <div class="form-group">
-        <label>Email / Keterangan</label>
-        <input type="text" id="emailCustomer" placeholder="email@example.com">
+        <label>Email / Keterangan 1</label>
+        <input type="text" id="emailCustomer">
     </div>
     <div class="form-group">
-        <label>Catatan (Opsional)</label>
-        <input type="text" id="catatanCustomer" placeholder="Catatan tambahan">
+        <label>Keterangan 2 (Catatan)</label>
+        <textarea id="catatanCustomer" rows="2"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Nama Pasar</label>
+        <input type="text" id="namaPasarCustomer">
     </div>
     <div style="text-align: right;">
         <button class="btn-simpan" id="btnSimpan">💾 SIMPAN</button>
@@ -191,6 +205,276 @@
 </div>
 
 <script src="../config.js"></script>
-<script src="../js/customer.js"></script>
+<script>
+// ========== CUSTOMER JS ==========
+let allCustomersData = [];
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+async function loadCustomers() {
+    const tbody = document.getElementById('customerTableBody');
+    tbody.innerHTML = '<tr><td colspan="7">📡 Memuat data customer...</td></tr>';
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'getCustomers' })
+        });
+        const result = await response.json();
+        
+        console.log('Data dari API:', result);
+        
+        if (result.success && result.data && result.data.length > 0) {
+            allCustomersData = result.data;
+            renderTable(allCustomersData);
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7">📭 Belum ada data customer</td></tr>';
+            document.getElementById('totalData').innerHTML = '📊 Total Data: 0 customer';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        tbody.innerHTML = '<tr><td colspan="7">❌ Gagal memuat data: ' + error.message + '</td></tr>';
+    }
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('customerTableBody');
+    
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7">📭 Tidak ada data</td></tr>';
+        document.getElementById('totalData').innerHTML = '📊 Total Data: 0 customer';
+        return;
+    }
+    
+    let html = '';
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        
+        const no = row.nomor || (i + 1);
+        const nama = row.nama || '-';
+        const alamat = row.alamat || '-';
+        const jadwal = row.jadwal || '-';
+        const pic = row.pic || '-';
+        const hp = row.hp || '-';
+        const email = row.keterangan1 || '-';
+        
+        let picHp = pic;
+        if (pic !== '-' && hp !== '-') {
+            picHp = pic + ' - ' + hp;
+        } else if (hp !== '-') {
+            picHp = hp;
+        }
+        
+        html += `
+            <tr data-index="${i}">
+                <td>${escapeHtml(String(no))}</td>
+                <td>${escapeHtml(String(nama))}</td>
+                <td>${escapeHtml(String(alamat))}</td>
+                <td>${escapeHtml(String(jadwal))}</td>
+                <td>${escapeHtml(String(picHp))}</td>
+                <td>${escapeHtml(String(email))}</td>
+                <td>
+                    <button class="btn-edit" onclick="editCustomer(${i})">✏️ Edit</button>
+                    <button class="btn-hapus" onclick="hapusCustomer(${i})">🗑️ Hapus</button>
+                </td>
+            </tr>
+        `;
+    }
+    
+    tbody.innerHTML = html;
+    document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} customer`;
+    
+    // Preview klik baris
+    document.querySelectorAll('#customerTableBody tr').forEach(row => {
+        row.addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            const idx = this.getAttribute('data-index');
+            if (idx !== null && allCustomersData[idx]) {
+                showPreview(allCustomersData[idx]);
+            }
+        });
+    });
+}
+
+function showPreview(row) {
+    const nama = row.nama || '-';
+    const alamat = row.alamat || '-';
+    const jadwal = row.jadwal || '-';
+    const pic = row.pic || '-';
+    const hp = row.hp || '-';
+    const email = row.keterangan1 || '-';
+    const catatan = row.keterangan2 || '';
+    const namaPasar = row.namaPasar || '';
+    
+    let html = `
+        <div><strong>📛 Nama:</strong> ${escapeHtml(String(nama))}</div>
+        <div><strong>📍 Alamat:</strong> ${escapeHtml(String(alamat))}</div>
+        <div><strong>📅 Jadwal:</strong> ${escapeHtml(String(jadwal))}</div>
+        <div><strong>👤 PIC:</strong> ${escapeHtml(String(pic))}</div>
+        <div><strong>📞 HP:</strong> ${escapeHtml(String(hp))}</div>
+        <div><strong>📧 Email:</strong> ${escapeHtml(String(email))}</div>
+    `;
+    if (namaPasar && namaPasar !== '-') {
+        html += `<div><strong>🏪 Nama Pasar:</strong> ${escapeHtml(String(namaPasar))}</div>`;
+    }
+    if (catatan && catatan !== '-') {
+        html += `<div><strong>📝 Catatan:</strong> ${escapeHtml(String(catatan))}</div>`;
+    }
+    
+    document.getElementById('previewContent').innerHTML = html;
+    document.getElementById('previewPanel').style.display = 'block';
+}
+
+function filterCustomers() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (!searchTerm) {
+        renderTable(allCustomersData);
+        return;
+    }
+    
+    const filtered = allCustomersData.filter(row => {
+        const nama = (row.nama || '').toLowerCase();
+        const alamat = (row.alamat || '').toLowerCase();
+        const jadwal = (row.jadwal || '').toLowerCase();
+        const pic = (row.pic || '').toLowerCase();
+        const hp = (row.hp || '').toLowerCase();
+        return nama.includes(searchTerm) || alamat.includes(searchTerm) || 
+               jadwal.includes(searchTerm) || pic.includes(searchTerm) || hp.includes(searchTerm);
+    });
+    renderTable(filtered);
+}
+
+function editCustomer(index) {
+    const row = allCustomersData[index];
+    if (!row) return;
+    
+    document.getElementById('editId').value = index;
+    document.getElementById('namaCustomer').value = row.nama || '';
+    document.getElementById('alamatCustomer').value = row.alamat || '';
+    document.getElementById('jadwalCustomer').value = row.jadwal || '';
+    document.getElementById('picCustomer').value = row.pic || '';
+    document.getElementById('hpCustomer').value = row.hp || '';
+    document.getElementById('emailCustomer').value = row.keterangan1 || '';
+    document.getElementById('catatanCustomer').value = row.keterangan2 || '';
+    document.getElementById('namaPasarCustomer').value = row.namaPasar || '';
+    
+    document.getElementById('formTitle').innerText = '✏️ Edit Customer';
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('customerForm').style.display = 'block';
+}
+
+async function hapusCustomer(index) {
+    const row = allCustomersData[index];
+    const nama = row.nama || 'customer';
+    
+    if (!confirm(`⚠️ Yakin ingin menghapus "${nama}"?`)) return;
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'deleteCustomer', rowIndex: index })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Data berhasil dihapus!');
+            loadCustomers();
+            document.getElementById('previewPanel').style.display = 'none';
+        } else {
+            alert('❌ Gagal menghapus');
+        }
+    } catch (error) {
+        alert('❌ Error koneksi');
+    }
+}
+
+async function simpanCustomer() {
+    const editId = document.getElementById('editId').value;
+    const nama = document.getElementById('namaCustomer').value.trim();
+    
+    if (!nama) {
+        alert('⚠️ Nama customer wajib diisi!');
+        return;
+    }
+    
+    const data = {
+        type: 'saveCustomer',
+        nama: nama,
+        alamat: document.getElementById('alamatCustomer').value.trim(),
+        jadwal: document.getElementById('jadwalCustomer').value.trim(),
+        pic: document.getElementById('picCustomer').value.trim(),
+        hp: document.getElementById('hpCustomer').value.trim(),
+        keterangan1: document.getElementById('emailCustomer').value.trim(),
+        keterangan2: document.getElementById('catatanCustomer').value.trim(),
+        namaPasar: document.getElementById('namaPasarCustomer').value.trim()
+    };
+    
+    if (editId !== '') {
+        data.id = parseInt(editId);
+    }
+    
+    const btn = document.getElementById('btnSimpan');
+    const originalText = btn.innerText;
+    btn.innerText = '💾 MENYIMPAN...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Data berhasil disimpan!');
+            tutupForm();
+            loadCustomers();
+        } else {
+            alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('❌ Error koneksi: ' + error.message);
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
+
+function tutupForm() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('customerForm').style.display = 'none';
+    document.getElementById('editId').value = '';
+    document.getElementById('namaCustomer').value = '';
+    document.getElementById('alamatCustomer').value = '';
+    document.getElementById('jadwalCustomer').value = '';
+    document.getElementById('picCustomer').value = '';
+    document.getElementById('hpCustomer').value = '';
+    document.getElementById('emailCustomer').value = '';
+    document.getElementById('catatanCustomer').value = '';
+    document.getElementById('namaPasarCustomer').value = '';
+    document.getElementById('formTitle').innerText = '➕ Tambah Customer';
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    loadCustomers();
+    document.getElementById('btnTambahCustomer').onclick = function() { tutupForm(); document.getElementById('overlay').style.display = 'block'; document.getElementById('customerForm').style.display = 'block'; };
+    document.getElementById('btnSimpan').onclick = simpanCustomer;
+    document.getElementById('btnBatal').onclick = tutupForm;
+    document.getElementById('overlay').onclick = tutupForm;
+    document.getElementById('searchInput').oninput = filterCustomers;
+});
+</script>
 </body>
 </html>
