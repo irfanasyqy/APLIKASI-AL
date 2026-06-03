@@ -209,11 +209,21 @@ function uploadBukti() {
 const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
 const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
 
+// =====================================================
+// UPLOAD BUKTI - 3 METODE
+// =====================================================
+
 function showUploadModal(tt) {
     currentUploadTT = tt;
+    document.getElementById('modalTTNumber').innerText = tt.noTT;
     document.getElementById('uploadModal').style.display = 'flex';
-    document.getElementById('uploadResult').style.display = 'none';
+    
+    // Reset semua area
+    document.getElementById('fileUploadArea').style.display = 'none';
+    document.getElementById('driveUrlArea').style.display = 'none';
+    document.getElementById('uploadPreview').style.display = 'none';
     document.getElementById('uploadFileInput').value = '';
+    document.getElementById('driveUrlInput').value = '';
     document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
 }
 
@@ -221,23 +231,75 @@ function closeUploadModal() {
     document.getElementById('uploadModal').style.display = 'none';
     currentUploadTT = null;
     document.getElementById('uploadFileInput').value = '';
+    document.getElementById('cameraFileInput').value = '';
 }
 
-async function uploadFile() {
-    const fileInput = document.getElementById('uploadFileInput');
+// 1. Upload dari Komputer
+function showUploadFromPC() {
+    document.getElementById('fileUploadArea').style.display = 'block';
+    document.getElementById('driveUrlArea').style.display = 'none';
+    document.getElementById('uploadFileInput').click();
+}
+
+// 2. Upload dari Kamera
+function showUploadFromCamera() {
+    document.getElementById('fileUploadArea').style.display = 'block';
+    document.getElementById('driveUrlArea').style.display = 'none';
+    document.getElementById('cameraFileInput').click();
+}
+
+// 3. Upload dari URL Google Drive
+function showUploadFromDrive() {
+    document.getElementById('fileUploadArea').style.display = 'none';
+    document.getElementById('driveUrlArea').style.display = 'block';
+}
+
+// Handle file dari PC
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Preview gambar
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('uploadPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Tampilkan tombol upload
+    const uploadBtn = document.getElementById('uploadBtn');
+    uploadBtn.style.display = 'block';
+    uploadBtn.onclick = () => uploadFile(file);
+}
+
+// Handle file dari kamera
+function handleCameraSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Preview gambar
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImage').src = e.target.result;
+        document.getElementById('uploadPreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    
+    // Upload otomatis setelah ambil foto
+    uploadFile(file);
+}
+
+// Upload file ke Google Drive via Worker
+async function uploadFile(file) {
     const uploadBtn = document.getElementById('uploadBtn');
     const resultDiv = document.getElementById('uploadResult');
     const fileNameInput = document.getElementById('fileName');
-    
-    if (!fileInput.files[0]) {
-        alert('Pilih file terlebih dahulu!');
-        return;
-    }
-    
-    const file = fileInput.files[0];
     const noTT = currentUploadTT ? currentUploadTT.noTT : 'UNKNOWN';
-    let customFileName = fileNameInput.value.trim();
     
+    let customFileName = fileNameInput.value.trim();
     let finalFileName = customFileName || `Bukti_${noTT.replace(/\//g, '_')}`;
     if (!finalFileName.toLowerCase().endsWith('.pdf') && 
         !finalFileName.toLowerCase().endsWith('.jpg') && 
@@ -267,13 +329,12 @@ async function uploadFile() {
             });
             
             const result = await response.json();
-            console.log('Upload result:', result);
             
             uploadBtn.disabled = false;
-            uploadBtn.innerHTML = '🚀 UPLOAD BUKTI';
+            uploadBtn.innerHTML = '🚀 UPLOAD';
             
             if (result.success) {
-                resultDiv.innerHTML = `✅ <b>BERHASIL!</b><br><br>📄 ${result.fileName}<br><br><a href="${result.fileUrl}" target="_blank">📂 Buka di Google Drive</a>`;
+                resultDiv.innerHTML = `✅ <b>BERHASIL!</b><br>📄 ${result.fileName}<br><a href="${result.fileUrl}" target="_blank">📂 Buka di Drive</a>`;
                 resultDiv.style.display = 'block';
                 resultDiv.style.background = '#e6f4ea';
                 resultDiv.style.color = '#1e8e3e';
@@ -291,9 +352,8 @@ async function uploadFile() {
                 resultDiv.style.color = '#d93025';
             }
         } catch (error) {
-            console.error('Error:', error);
             uploadBtn.disabled = false;
-            uploadBtn.innerHTML = '🚀 UPLOAD BUKTI';
+            uploadBtn.innerHTML = '🚀 UPLOAD';
             resultDiv.innerHTML = `❌ Error: ${error.message}`;
             resultDiv.style.display = 'block';
             resultDiv.style.background = '#fce8e6';
@@ -302,6 +362,22 @@ async function uploadFile() {
     };
     
     reader.readAsDataURL(file);
+}
+
+// Simpan URL dari Google Drive
+async function saveDriveUrl() {
+    const driveUrl = document.getElementById('driveUrlInput').value.trim();
+    const noTT = currentUploadTT ? currentUploadTT.noTT : 'UNKNOWN';
+    
+    if (!driveUrl || !driveUrl.includes('drive.google.com')) {
+        alert('❌ URL tidak valid! Pastikan URL dari Google Drive.');
+        return;
+    }
+    
+    await simpanBuktiUrl(noTT, driveUrl);
+    alert('✅ URL bukti berhasil disimpan!');
+    closeUploadModal();
+    loadTandaTerima();
 }
 
 // =====================================================
@@ -523,9 +599,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Event listeners untuk upload modal
-document.getElementById('uploadFromDrive')?.addEventListener('click', uploadFromDrive);
-document.getElementById('uploadBtn')?.addEventListener('click', uploadFile);
-document.querySelector('.modal-close')?.addEventListener('click', closeUploadModal);
-document.getElementById('uploadModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'uploadModal') closeUploadModal();
-});
+document.getElementById('uploadFromPCBtn')?.addEventListener('click', showUploadFromPC);
+document.getElementById('uploadFromCameraBtn')?.addEventListener('click', showUploadFromCamera);
+document.getElementById('uploadFromDriveBtn')?.addEventListener('click', showUploadFromDrive);
+document.getElementById('uploadFileInput')?.addEventListener('change', handleFileSelect);
+document.getElementById('cameraFileInput')?.addEventListener('change', handleCameraSelect);
+document.getElementById('saveDriveUrlBtn')?.addEventListener('click', saveDriveUrl);

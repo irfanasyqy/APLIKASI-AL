@@ -412,38 +412,69 @@
 
 <!-- MODAL UPLOAD BUKTI -->
 <div id="uploadModal" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
             <h3>📎 Upload Bukti Tanda Terima</h3>
             <span class="modal-close">&times;</span>
         </div>
         <div class="modal-body">
-            <div class="folder-info" style="background: #e8f0fe; padding: 10px; border-radius: 4px; margin-bottom: 20px; color: #1a73e8;">
-                📂 Upload ke folder: <b>BUKTI TUKAR FAKTUR DAN RESI</b>
-            </div>
-            
-            <!-- Tambahan: menampilkan No TT yang sedang diupload -->
             <p>Upload bukti untuk No. TT: <strong id="modalTTNumber">-</strong></p>
             
-            <div id="fileNameInputGroup" style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File (opsional):</label>
-                <input type="text" id="fileName" placeholder="Kosongkan untuk otomatis" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                <small style="color: #666;">*Biarkan kosong untuk menggunakan nomor TT</small>
+            <!-- 3 Tombol Pilihan Upload -->
+            <div class="upload-options" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="uploadFromPCBtn" class="upload-option pc" style="flex: 1; background: #27ae60; padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                    💻 Komputer
+                </button>
+                <button id="uploadFromCameraBtn" class="upload-option camera" style="flex: 1; background: #e67e22; padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                    📷 Kamera
+                </button>
+                <button id="uploadFromDriveBtn" class="upload-option drive" style="flex: 1; background: #4285f4; padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                    📂 Google Drive
+                </button>
             </div>
             
-            <div class="form-group" style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Pilih File PDF/Gambar:</label>
-                <input type="file" id="uploadFileInput" accept=".pdf,image/jpeg,image/jpg,image/png" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #fafafa;">
+            <!-- Area untuk upload dari PC/Kamera -->
+            <div id="fileUploadArea" style="display: none;">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Pilih File:</label>
+                    <input type="file" id="uploadFileInput" accept=".pdf,image/jpeg,image/jpg,image/png" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #fafafa;">
+                </div>
+                
+                <div id="fileNameInputGroup" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File (opsional):</label>
+                    <input type="text" id="fileName" placeholder="Kosongkan untuk otomatis" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <small style="color: #666;">*Biarkan kosong untuk menggunakan nomor TT</small>
+                </div>
+                
+                <button id="uploadBtn" style="width: 100%; background: #ea4335; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                    🚀 UPLOAD
+                </button>
             </div>
             
-            <button id="uploadBtn" class="upload-option pc" style="width: 100%; background: #ea4335; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
-                🚀 UPLOAD BUKTI
-            </button>
+            <!-- Area untuk input URL Google Drive -->
+            <div id="driveUrlArea" style="display: none;">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">🔗 URL Google Drive:</label>
+                    <input type="text" id="driveUrlInput" placeholder="https://drive.google.com/file/d/xxxxx/view" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <small style="color: #666;">*Masukkan link file dari Google Drive</small>
+                </div>
+                
+                <button id="saveDriveUrlBtn" style="width: 100%; background: #4285f4; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                    💾 SIMPAN URL
+                </button>
+            </div>
             
-            <div id="uploadResult" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none; text-align: center;"></div>
+            <!-- Area preview & hasil -->
+            <div id="uploadPreview" style="display: none; margin-top: 15px; text-align: center;">
+                <img id="previewImage" src="" style="max-width: 100%; max-height: 100px; border-radius: 8px;">
+                <div id="uploadResult" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Input file tersembunyi untuk kamera -->
+<input type="file" id="cameraFileInput" accept="image/jpeg,image/jpg,image/png" capture="environment" style="display: none;">
 
 <!-- Input file tersembunyi -->
 <input type="file" id="fileInput" accept="image/jpeg,image/jpg,image/png,application/pdf" style="display: none;">
