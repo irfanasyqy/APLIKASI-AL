@@ -58,6 +58,7 @@ function displayTTList(data) {
         return;
     }
     
+    // Urutkan berdasarkan noTT (descending)
     filtered.sort((a, b) => {
         const numA = extractTTNumber(a.noTT);
         const numB = extractTTNumber(b.noTT);
@@ -72,11 +73,19 @@ function displayTTList(data) {
         const badgeClass = hasBukti ? 'badge-success' : 'badge-warning';
         const badgeText = hasBukti ? '✓ Ada Bukti' : '! Belum Ada Bukti';
         
+        // Pastikan total adalah angka atau string yang bisa diformat
+        let totalDisplay = tt.total;
+        if (typeof totalDisplay === 'string' && totalDisplay.includes('Rp')) {
+            totalDisplay = totalDisplay; // biarkan apa adanya
+        } else if (!isNaN(parseFloat(totalDisplay))) {
+            totalDisplay = formatRupiah(parseFloat(totalDisplay));
+        }
+        
         html += `
             <div class="list-item ${statusClass}" data-id="${tt.id || idx}" data-no="${tt.noTT}" title="${hasBukti ? 'Sudah ada bukti' : 'Belum ada bukti'}">
                 <div class="no-tt">${statusIcon} ${escapeHtml(tt.noTT || '-')}</div>
                 <div class="customer-name">👤 ${escapeHtml(tt.customerNama || '-')}</div>
-                <div class="total">💰 ${formatRupiah(tt.total || 0)}</div>
+                <div class="total">💰 ${totalDisplay}</div>
                 <div class="status-badge ${badgeClass}">${badgeText}</div>
             </div>
         `;
@@ -85,6 +94,7 @@ function displayTTList(data) {
     listContainer.innerHTML = html;
     document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} record (filtered: ${filtered.length})`;
     
+    // Attach event listeners
     document.querySelectorAll('.list-item').forEach(item => {
         item.addEventListener('click', () => {
             const noTT = item.getAttribute('data-no');
