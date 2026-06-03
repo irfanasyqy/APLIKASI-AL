@@ -303,28 +303,34 @@ async function uploadFileToDrive(file, noTT, fileName) {
             finalBlob = await convertImageToPDFBlob(file);
         }
         
-        if (progressFill) progressFill.style.width = '70%';
+        if (progressFill) progressFill.style.width = '70%');
+        if (uploadStatus) uploadStatus.innerHTML = '📦 Mengenkripsi file...';
+        
+        // KONVERSI KE BASE64
+        const base64 = await blobToBase64(finalBlob);
+        
+        if (progressFill) progressFill.style.width = '85%');
         if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
         
-        // PAKAI FORM DATA (bukan base64)
-        const formData = new FormData();
-        formData.append('action', 'upload');
-        formData.append('noTT', noTT);
-        formData.append('fileName', finalFileName);
-        formData.append('file', finalBlob, `${finalFileName}.pdf`);
-        
-        // Kirim ke Worker
+        // KIRIM SEBAGAI JSON (BUKAN FORMDATA)
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'upload',
+                noTT: noTT,
+                fileName: finalFileName,
+                fileData: base64,
+                contentType: 'application/pdf'
+            })
         });
         
-        if (progressFill) progressFill.style.width = '90%';
+        if (progressFill) progressFill.style.width = '95%');
         
         const result = await response.json();
         console.log('Upload result:', result);
         
-        if (progressFill) progressFill.style.width = '100%';
+        if (progressFill) progressFill.style.width = '100%');
         
         if (result.success) {
             if (uploadStatus) {
@@ -355,6 +361,64 @@ async function uploadFileToDrive(file, noTT, fileName) {
         }
         alert('❌ Gagal upload: ' + error.message);
     }
+}
+
+// Fungsi blobToBase64 (tambahkan jika belum ada)
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+// Fungsi convertImageToPDFBlob (tambahkan jika belum ada)
+async function convertImageToPDFBlob(imageFile) {
+    if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library tidak ditemukan');
+    }
+    
+    const { jsPDF } = window.jspdf;
+    
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                try {
+                    const orientation = img.width > img.height ? 'landscape' : 'portrait';
+                    const pdf = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
+                    
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    let width = pdfWidth;
+                    let height = (img.height * pdfWidth) / img.width;
+                    
+                    if (height > pdfHeight) {
+                        height = pdfHeight;
+                        width = (img.width * pdfHeight) / img.height;
+                    }
+                    
+                    const x = (pdfWidth - width) / 2;
+                    const y = (pdfHeight - height) / 2;
+                    
+                    pdf.addImage(img, 'JPEG', x, y, width, height);
+                    resolve(pdf.output('blob'));
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            img.onerror = () => reject(new Error('Gagal memuat gambar'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Gagal membaca file'));
+        reader.readAsDataURL(imageFile);
+    });
 }
 
 async function convertImageToPDFBlob(imageFile) {
