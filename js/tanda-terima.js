@@ -8,6 +8,7 @@ let currentUploadSource = null;
 
 // Gunakan Worker URL sebagai proxy
 const API_URL = 'https://aplikasi-al.al-asyqy.workers.dev';
+const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
 
 // =====================================================
 // 1. LOAD DATA TANDA TERIMA
@@ -203,11 +204,6 @@ function uploadBukti() {
     showUploadModal(selectedTT);
 }
 
-// =====================================================
-// UPLOAD BUKTI (LANGSUNG KE APPS SCRIPT - SUDAH BERHASIL)
-// =====================================================
-const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
-const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
 
 // =====================================================
 // UPLOAD BUKTI - 3 METODE
@@ -292,7 +288,7 @@ function handleCameraSelect(event) {
     uploadFile(file);
 }
 
-// Upload file ke Google Drive via Worker
+// Upload file ke Google Drive via Worker (dengan konversi gambar ke PDF)
 async function uploadFile(file) {
     const uploadBtn = document.getElementById('uploadBtn');
     const resultDiv = document.getElementById('uploadResult');
@@ -301,11 +297,41 @@ async function uploadFile(file) {
     
     let customFileName = fileNameInput.value.trim();
     let finalFileName = customFileName || `Bukti_${noTT.replace(/\//g, '_')}`;
-    if (!finalFileName.toLowerCase().endsWith('.pdf') && 
-        !finalFileName.toLowerCase().endsWith('.jpg') && 
-        !finalFileName.toLowerCase().endsWith('.jpeg') && 
-        !finalFileName.toLowerCase().endsWith('.png')) {
-        finalFileName += '.pdf';
+    
+    // Proses file: konversi gambar ke PDF jika perlu
+    let fileToUpload = file;
+    let finalMimeType = file.type;
+    
+    if (file.type.startsWith('image/')) {
+        // Tampilkan status konversi
+        const statusDiv = document.getElementById('uploadStatus');
+        if (statusDiv) {
+            statusDiv.innerHTML = '🔄 Mengkonversi gambar ke PDF...';
+            statusDiv.style.display = 'block';
+        }
+        
+        try {
+            fileToUpload = await convertImageToPDF(file, finalFileName);
+            finalFileName = `${finalFileName}.pdf`;
+            finalMimeType = 'application/pdf';
+        } catch (error) {
+            console.error('Konversi gagal:', error);
+            resultDiv.innerHTML = `❌ Gagal konversi gambar ke PDF: ${error.message}`;
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#fce8e6';
+            resultDiv.style.color = '#d93025';
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '🚀 UPLOAD';
+            return;
+        }
+    } else {
+        // Pastikan ekstensi file benar
+        if (!finalFileName.toLowerCase().endsWith('.pdf') && 
+            !finalFileName.toLowerCase().endsWith('.jpg') && 
+            !finalFileName.toLowerCase().endsWith('.jpeg') && 
+            !finalFileName.toLowerCase().endsWith('.png')) {
+            finalFileName += file.name.substring(file.name.lastIndexOf('.'));
+        }
     }
     
     uploadBtn.disabled = true;
@@ -352,6 +378,7 @@ async function uploadFile(file) {
                 resultDiv.style.color = '#d93025';
             }
         } catch (error) {
+            console.error('Upload error:', error);
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '🚀 UPLOAD';
             resultDiv.innerHTML = `❌ Error: ${error.message}`;
@@ -361,7 +388,16 @@ async function uploadFile(file) {
         }
     };
     
-    reader.readAsDataURL(file);
+    reader.onerror = function() {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '🚀 UPLOAD';
+        resultDiv.innerHTML = '❌ Gagal membaca file';
+        resultDiv.style.display = 'block';
+        resultDiv.style.background = '#fce8e6';
+        resultDiv.style.color = '#d93025';
+    };
+    
+    reader.readAsDataURL(fileToUpload);
 }
 
 // Simpan URL dari Google Drive
@@ -378,6 +414,78 @@ async function saveDriveUrl() {
     alert('✅ URL bukti berhasil disimpan!');
     closeUploadModal();
     loadTandaTerima();
+}
+
+// =====================================================
+// KONVERSI GAMBAR KE PDF (VERSI YANG DIPERBAIKI)
+// =====================================================
+async function convertImageToPDF(imageFile, fileName) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Load jsPDF
+            const { jsPDF } = window.jspdf;
+            
+            // Baca file sebagai data URL
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgData = e.target.result;
+                const img = new Image();
+                
+                img.onload = function() {
+                    try {
+                        // Buat PDF dengan ukuran A4
+                        const pdf = new jsPDF({
+                            orientation: img.width > img.height ? 'landscape' : 'portrait',
+                            unit: 'mm',
+                            format: 'a4'
+                        });
+                        
+                        // Hitung dimensi gambar agar muat di halaman A4
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pdfHeight = pdf.internal.pageSize.getHeight();
+                        
+                        let imgWidth = pdfWidth;
+                        let imgHeight = (img.height * imgWidth) / img.width;
+                        
+                        // Jika gambar terlalu tinggi, sesuaikan dengan tinggi halaman
+                        if (imgHeight > pdfHeight) {
+                            imgHeight = pdfHeight;
+                            imgWidth = (img.width * imgHeight) / img.height;
+                        }
+                        
+                        // Posisi tengah
+                        const x = (pdfWidth - imgWidth) / 2;
+                        const y = (pdfHeight - imgHeight) / 2;
+                        
+                        // Tambahkan gambar ke PDF
+                        pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight, undefined, 'FAST');
+                        
+                        // Konversi ke Blob
+                        const pdfBlob = pdf.output('blob');
+                        const pdfFile = new File([pdfBlob], `${fileName}.pdf`, { type: 'application/pdf' });
+                        
+                        resolve(pdfFile);
+                    } catch (err) {
+                        reject(new Error('Gagal konversi ke PDF: ' + err.message));
+                    }
+                };
+                
+                img.onerror = function() {
+                    reject(new Error('Gagal memuat gambar'));
+                };
+                
+                img.src = imgData;
+            };
+            
+            reader.onerror = function() {
+                reject(new Error('Gagal membaca file gambar'));
+            };
+            
+            reader.readAsDataURL(imageFile);
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
 
 // =====================================================
