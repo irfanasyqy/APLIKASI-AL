@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Label Customer - APLIKASI AL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Ukuran kertas Label Tom & Jerry 101 (101mm x 152mm) */
+        @page {
+            size: 101mm 152mm;
+            margin: 0;
+        }
+        
+        body {
+            font-family: 'Courier New', 'Lucida Console', monospace;
+            background: white;
+            width: 101mm;
+            height: 152mm;
+            margin: 0;
+            padding: 2mm;
+        }
+        
+        /* Container grid 2 kolom x 3 baris - ukuran tetap */
+        .labels-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 1.5mm;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Setiap label card - ukuran tetap */
+        .label-card {
+            background: white;
+            border: 0.5px solid #ccc;
+            padding: 2mm 1.5mm;
+            display: flex;
+            flex-direction: column;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            overflow: hidden;
+            /* Ukuran tetap */
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Body label untuk yang ada data */
+        .label-body {
+            font-size: 7pt;
+            line-height: 1.3;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        
+        .customer-name {
+            font-size: 9pt;
+            font-weight: bold;
+            margin-bottom: 1.5mm;
+            text-align: center;
+            border-bottom: 0.5px dotted #999;
+            padding-bottom: 0.5mm;
+            word-break: break-word;
+        }
+        
+        .customer-row {
+            margin-bottom: 1mm;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .customer-label {
+            font-weight: bold;
+            width: 22%;
+            min-width: 12mm;
+            font-size: 6.5pt;
+        }
+        
+        .customer-value {
+            width: 78%;
+            word-break: break-word;
+            font-size: 6.5pt;
+        }
+        
+        /* Label kosong - ukuran tetap, tidak membesar */
+        .label-card.empty {
+            /* Tidak ada konten, tapi ukuran tetap sama */
+        }
+        
+        /* SAAT PRINT - semua border hilang */
+        @media print {
+            body {
+                margin: 0;
+                padding: 2mm;
+            }
+            
+            /* Hilangkan border saat print */
+            .label-card {
+                border: none !important;
+                padding: 2mm 1.5mm;
+            }
+            
+            /* Hilangkan garis bawah nama customer saat print */
+            .customer-name {
+                border-bottom: none;
+            }
+            
+            .label-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            /* Pastikan grid tetap proporsional */
+            .labels-grid {
+                gap: 1.5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="labels-grid" id="labelsGrid">
+        <!-- Akan diisi oleh JavaScript -->
+    </div>
+
+    <script>
+        // Ambil data dari localStorage
+        function getLabelData() {
+            const saved = localStorage.getItem('cetakLabelData');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch(e) {
+                    return {};
+                }
+            }
+            return {};
+        }
+        
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str || str === '-' || str === '') return '-';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // Cek apakah customer memiliki data
+        function hasCustomerData(customer) {
+            return customer && customer.nama && customer.nama !== '-' && customer.nama.trim() !== '';
+        }
+        
+        // Buat HTML untuk label yang ADA DATA (tanpa footer)
+        function createDataLabel(customer) {
+            return `
+                <div class="label-card">
+                    <div class="label-body">
+                        <div class="customer-name">
+                            ${escapeHtml(customer.nama)}
+                        </div>
+                        <div class="customer-row">
+                            <div class="customer-label">Nomor:</div>
+                            <div class="customer-value">${escapeHtml(customer.nomor || '-')}</div>
+                        </div>
+                        <div class="customer-row">
+                            <div class="customer-label">Alamat:</div>
+                            <div class="customer-value">${escapeHtml(customer.alamat || '-')}</div>
+                        </div>
+                        <div class="customer-row">
+                            <div class="customer-label">HP:</div>
+                            <div class="customer-value">${escapeHtml(customer.hp || '-')}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Buat HTML untuk label KOSONG - ukuran tetap, tidak membesar
+        function createEmptyLabel() {
+            return `<div class="label-card empty"></div>`;
+        }
+        
+        // Render semua label
+        function renderLabels() {
+            const labelData = getLabelData();
+            const grid = document.getElementById('labelsGrid');
+            
+            const labelKeys = ['B3', 'I3', 'B7', 'I7', 'B11', 'I11'];
+            
+            let html = '';
+            for (const key of labelKeys) {
+                const customer = labelData[key];
+                if (hasCustomerData(customer)) {
+                    html += createDataLabel(customer);
+                } else {
+                    html += createEmptyLabel();
+                }
+            }
+            
+            grid.innerHTML = html;
+        }
+        
+        // Cetak otomatis saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            renderLabels();
+            
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        });
+    </script>
+</body>
+</html>
