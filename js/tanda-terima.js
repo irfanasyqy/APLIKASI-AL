@@ -623,11 +623,16 @@ function refreshData() {
 // UTILITY FUNCTIONS
 // =====================================================
 function formatRupiah(angka) {
+    // Jika sudah dalam format Rp, kembalikan langsung
+    if (typeof angka === 'string' && angka.includes('Rp')) return angka;
+    // Konversi ke number
+    let num = typeof angka === 'string' ? parseFloat(angka.replace(/[^0-9,-]/g, '').replace(',', '.')) : angka;
+    if (isNaN(num)) num = 0;
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0
-    }).format(angka);
+    }).format(num);
 }
 
 function formatDate(dateStr) {
