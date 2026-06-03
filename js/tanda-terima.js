@@ -10,12 +10,6 @@ let currentUploadSource = null;
 const API_URL = 'https://aplikasi-al.al-asyqy.workers.dev';
 
 // =====================================================
-// UPLOAD BUKTI KE GOOGLE DRIVE (VERSI YANG SUDAH BERHASIL)
-// =====================================================
-const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
-const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
-
-// =====================================================
 // 1. LOAD DATA TANDA TERIMA
 // =====================================================
 async function loadTandaTerima() {
