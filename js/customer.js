@@ -190,27 +190,51 @@ function editCustomer(index) {
 // Hapus customer
 async function hapusCustomer(index) {
     const row = allCustomersData[index];
-    const nama = (row[1]) ? row[1] : 'customer';
+    const nama = row.nama || 'customer';
+    const nomor = row.nomor || '';
     
-    if (!confirm(`⚠️ Yakin ingin menghapus "${nama}"?`)) return;
+    if (!confirm(`⚠️ Yakin ingin menghapus "${nama}" (No. ${nomor})?`)) return;
+    
+    // Tambahkan loading state
+    const btnHapus = event ? event.target : null;
+    if (btnHapus) {
+        btnHapus.disabled = true;
+        btnHapus.innerText = '⏳ Menghapus...';
+    }
     
     try {
+        console.log('Mengirim request hapus untuk index:', index);
+        console.log('Data row:', row);
+        
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'deleteCustomer', rowIndex: index })
+            body: JSON.stringify({ 
+                type: 'deleteCustomer', 
+                rowIndex: index 
+            })
         });
+        
+        console.log('Response status:', response.status);
+        
         const result = await response.json();
+        console.log('Response result:', result);
         
         if (result.success) {
             alert('✅ Data berhasil dihapus!');
-            loadCustomers();
+            await loadCustomers();
             document.getElementById('previewPanel').style.display = 'none';
         } else {
-            alert('❌ Gagal menghapus');
+            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
         }
     } catch (error) {
-        alert('❌ Error koneksi');
+        console.error('Error hapus:', error);
+        alert('❌ Error koneksi: ' + error.message);
+    } finally {
+        if (btnHapus) {
+            btnHapus.disabled = false;
+            btnHapus.innerText = '🗑️ Hapus';
+        }
     }
 }
 
