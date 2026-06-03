@@ -1,82 +1,156 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload ke Google Drive</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            max-width: 500px;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        p {
-            color: #666;
-            margin-bottom: 30px;
-        }
-        
-        .upload-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .upload-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(66,133,244,0.4);
-            background: #357ae8;
-        }
-        
-        .note {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #999;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload PDF ke Google Drive</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+    h2 { color: #1a73e8; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    button { padding: 12px 20px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-bottom: 10px; }
+    .btn2 { background: #34a853; }
+    .btn-upload { background: #ea4335; font-size: 18px; }
+    #result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
+    .success { background: #e6f4ea; color: #1e8e3e; }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h1>📁 Upload ke Google Drive</h1>
-        <p>Klik tombol di bawah untuk memilih file</p>
-        
-        <!-- Tombol yang membuka Apps Script di tab baru -->
-        <a href="https://script.google.com/macros/s/AKfycbznpPYCZtDJO7yRC2e7CKewDHYYB4KuSH-iB2zJuV0mT4EDFiBCiILKoH47UUPm0xvE/exec" 
-           target="_blank" 
-           class="upload-btn">
-            🚀 Pilih File untuk Upload
-        </a>
-        
-        <div class="note">
-            File akan tersimpan di Google Drive Anda<br>
-            Maksimal ukuran file: 50MB
-        </div>
+  <div class="container">
+    <h2>📤 Upload PDF ke Google Drive</h2>
+    
+    <div class="form-group">
+      <label>Pilih File PDF:</label>
+      <input type="file" id="fileInput" accept=".pdf">
     </div>
+    
+    <div class="form-group">
+      <label>Folder Tujuan:</label>
+      <select id="folderSelect">
+        <option value="">Loading...</option>
+      </select>
+    </div>
+    
+    <button onclick="loadFolders()">🔄 Refresh Folder</button>
+    
+    <div class="form-group" style="margin-top:15px;">
+      <label>Buat Folder Baru:</label>
+      <input type="text" id="newFolderName" placeholder="Nama folder...">
+    </div>
+    <button class="btn2" onclick="createNewFolder()">➕ Buat Folder</button>
+    
+    <hr>
+    
+    <button onclick="uploadFile()" class="btn-upload">🚀 UPLOAD PDF</button>
+    
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // GANTI INI DENGAN URL ANDA
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwVpOAV2_JBp19X6A65_z0Udwvx1lRwLe2_8hQtw4lblDpwft3VYoOXLMpQsilQXagc/exec';
+    
+    let foldersData = [];
+    
+    async function loadFolders() {
+      var select = document.getElementById('folderSelect');
+      select.innerHTML = '<option>Loading...</option>';
+      
+      try {
+        const response = await fetch(API_URL + '?action=getFolders');
+        const result = await response.json();
+        
+        if (result.success) {
+          foldersData = result.data;
+          select.innerHTML = '';
+          foldersData.forEach(function(f) {
+            var opt = document.createElement('option');
+            opt.value = f.id;
+            opt.text = f.name;
+            select.appendChild(opt);
+          });
+        } else {
+          select.innerHTML = '<option>Error</option>';
+        }
+      } catch (error) {
+        console.error(error);
+        select.innerHTML = '<option>Error: ' + error.message + '</option>';
+      }
+    }
+    
+    async function createNewFolder() {
+      var name = document.getElementById('newFolderName').value.trim();
+      if (!name) return;
+      
+      try {
+        const formData = new FormData();
+        formData.append('action', 'createFolder');
+        formData.append('folderName', name);
+        
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          loadFolders();
+          document.getElementById('newFolderName').value = '';
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+    
+    async function uploadFile() {
+      var fileInput = document.getElementById('fileInput');
+      var folderSelect = document.getElementById('folderSelect');
+      
+      if (!fileInput.files[0]) {
+        alert('Pilih file!');
+        return;
+      }
+      
+      var file = fileInput.files[0];
+      
+      // Convert ke base64
+      var reader = new FileReader();
+      reader.onload = async function(e) {
+        var base64 = e.target.result.split(',')[1];
+        
+        try {
+          const formData = new FormData();
+          formData.append('action', 'upload');
+          formData.append('data', base64);
+          formData.append('fileName', file.name);
+          formData.append('folderId', folderSelect.value);
+          
+          const response = await fetch(API_URL, {
+            method: 'POST',
+            body: formData
+          });
+          const result = await response.json();
+          
+          var r = document.getElementById('result');
+          if (result.success) {
+            r.innerHTML = '✅ BERHASIL!<br><a href="' + result.fileUrl + '" target="_blank">Buka File</a>';
+            r.style.display = 'block';
+            r.className = 'success';
+          } else {
+            alert('Error: ' + result.error);
+          }
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // Load folder pas halaman buka
+    loadFolders();
+  </script>
 </body>
 </html>
