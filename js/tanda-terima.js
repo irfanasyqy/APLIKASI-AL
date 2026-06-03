@@ -731,13 +731,13 @@ function formatDate(dateStr) {
 document.addEventListener('DOMContentLoaded', () => {
     loadTandaTerima();
     
-    document.getElementById('btnRefresh').addEventListener('click', refreshData);
-    document.getElementById('btnPrint').addEventListener('click', printTT);
-    document.getElementById('btnUpload').addEventListener('click', uploadBukti);
-    document.getElementById('btnBukaBukti').addEventListener('click', bukaBukti);
-    document.getElementById('btnHapusBukti').addEventListener('click', hapusBukti);
-    document.getElementById('btnHapus').addEventListener('click', hapusTT);
-    document.getElementById('searchFilter').addEventListener('input', () => {
+    document.getElementById('btnRefresh')?.addEventListener('click', refreshData);
+    document.getElementById('btnPrint')?.addEventListener('click', printTT);
+    document.getElementById('btnUpload')?.addEventListener('click', uploadBukti);
+    document.getElementById('btnBukaBukti')?.addEventListener('click', bukaBukti);
+    document.getElementById('btnHapusBukti')?.addEventListener('click', hapusBukti);
+    document.getElementById('btnHapus')?.addEventListener('click', hapusTT);
+    document.getElementById('searchFilter')?.addEventListener('input', () => {
         displayTTList(ttData);
     });
 });
