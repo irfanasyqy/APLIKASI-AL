@@ -357,6 +357,66 @@ async function uploadFileToDrive(file, noTT, fileName) {
     }
 }
 
+async function convertImageToPDFBlob(imageFile) {
+    if (typeof window.jspdf === 'undefined') {
+        throw new Error('jsPDF library tidak ditemukan. Refresh halaman.');
+    }
+    
+    const { jsPDF } = window.jspdf;
+    
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = new Image();
+            
+            img.onload = function() {
+                try {
+                    const orientation = img.width > img.height ? 'landscape' : 'portrait';
+                    const pdf = new jsPDF({
+                        orientation: orientation,
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    
+                    let width = pdfWidth;
+                    let height = (img.height * pdfWidth) / img.width;
+                    
+                    if (height > pdfHeight) {
+                        height = pdfHeight;
+                        width = (img.width * pdfHeight) / img.height;
+                    }
+                    
+                    const x = (pdfWidth - width) / 2;
+                    const y = (pdfHeight - height) / 2;
+                    
+                    pdf.addImage(img, 'JPEG', x, y, width, height);
+                    const pdfBlob = pdf.output('blob');
+                    resolve(pdfBlob);
+                    
+                } catch (err) {
+                    reject(new Error('Gagal membuat PDF: ' + err.message));
+                }
+            };
+            
+            img.onerror = function() {
+                reject(new Error('Gagal memuat gambar'));
+            };
+            
+            img.src = e.target.result;
+        };
+        
+        reader.onerror = function() {
+            reject(new Error('Gagal membaca file gambar'));
+        };
+        
+        reader.readAsDataURL(imageFile);
+    });
+}
+
 // =====================================================
 // KONVERSI GAMBAR KE PDF
 // =====================================================
