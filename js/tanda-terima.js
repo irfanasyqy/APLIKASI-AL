@@ -110,9 +110,14 @@ function displayTTList(data) {
     });
 }
 
+// =====================================================
+// ESCAPE HTML (DIPERBAIKI)
+// =====================================================
 function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    if (str === null || str === undefined || str === '') return '';
+    // Pastikan str adalah string
+    const text = String(str);
+    return text.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -128,7 +133,7 @@ function extractTTNumber(noTT) {
 }
 
 // =====================================================
-// 3. SELECT TT - TAMPILKAN DETAIL
+// 3. SELECT TT - TAMPILKAN DETAIL (DIPERBAIKI)
 // =====================================================
 function selectTT(tt) {
     selectedTT = tt;
@@ -146,45 +151,70 @@ function selectTT(tt) {
         btnHapusBukti.style.display = hasBukti ? 'flex' : 'none';
     }
     
+    // Tampilkan daftar invoice
     let invoicesHtml = '';
     if (tt.invoices && tt.invoices.length > 0) {
         invoicesHtml = '<ul class="invoice-list">';
         tt.invoices.forEach(inv => {
-            invoicesHtml += `<li>📄 ${escapeHtml(inv.no)} - ${formatRupiah(inv.nominal)}</li>`;
+            invoicesHtml += `<li>📄 <strong>${escapeHtml(inv.no)}</strong> - ${formatRupiah(inv.nominal)}</li>`;
         });
         invoicesHtml += '</ul>';
-    } else if (tt.invoiceList) {
-        invoicesHtml = `<div class="invoice-list">${escapeHtml(tt.invoiceList) || '-'}</div>`;
+    } else if (tt.invoice1 || tt.invoice2 || tt.invoice3 || tt.invoice4 || tt.invoice5) {
+        invoicesHtml = '<ul class="invoice-list">';
+        for (let i = 1; i <= 5; i++) {
+            const invNo = tt[`invoice${i}`];
+            if (invNo && invNo !== '') {
+                invoicesHtml += `<li>📄 <strong>${escapeHtml(String(invNo))}</strong></li>`;
+            }
+        }
+        invoicesHtml += '</ul>';
     } else {
-        invoicesHtml = '<div>-</div>';
+        invoicesHtml = '<div class="invoice-list">-</div>';
     }
+    
+    // Data customer dengan aman
+    const pic = (tt.customerPic || tt.pic || '-');
+    const hp = (tt.customerHP || tt.customerTelepon || tt.hp || '-');
+    const customerNama = tt.customerNama || '-';
+    const customerAlamat = tt.customerAlamat || '-';
+    const noTT = tt.noTT || '-';
+    const tanggal = tt.tanggal || '';
+    const ptName = tt.ptName || tt.ptCode || '-';
+    const total = tt.total || 0;
+    const buktiUrl = tt.buktiUrl || '';
     
     const detailHtml = `
         <div class="detail-row">
-            <div><span class="detail-label">🏷️ No. TT:</span> ${escapeHtml(tt.noTT) || '-'}</div>
+            <div><span class="detail-label">🏷️ No. TT:</span> ${escapeHtml(String(noTT))}</div>
         </div>
         <div class="detail-row">
-            <div><span class="detail-label">📅 Tanggal:</span> ${formatDate(tt.tanggal) || '-'}</div>
+            <div><span class="detail-label">📅 Tanggal:</span> ${formatDate(tanggal) || '-'}</div>
         </div>
         <div class="detail-row">
-            <div><span class="detail-label">👤 Customer:</span> ${escapeHtml(tt.customerNama) || '-'}</div>
-            <div><span class="detail-label">📍 Alamat:</span> ${escapeHtml(tt.customerAlamat) || '-'}</div>
-            <div><span class="detail-label">📞 Telp:</span> ${escapeHtml(tt.customerTelp) || '-'}</div>
-            <div><span class="detail-label">📱 HP:</span> ${escapeHtml(tt.customerHP) || '-'}</div>
+            <div><span class="detail-label">👤 Customer:</span> ${escapeHtml(String(customerNama))}</div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">📍 Alamat:</span> ${escapeHtml(String(customerAlamat))}</div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">👤 PIC:</span> ${escapeHtml(String(pic))}</div>
+        </div>
+        <div class="detail-row">
+            <div><span class="detail-label">📞 HP:</span> ${escapeHtml(String(hp))}</div>
         </div>
         <div class="detail-row">
             <div><span class="detail-label">📑 Faktur:</span></div>
             ${invoicesHtml}
         </div>
         <div class="detail-row">
-            <div><span class="detail-label">💰 Total:</span> <strong style="color: #27ae60;">${formatRupiah(tt.total || 0)}</strong></div>
+            <div><span class="detail-label">💰 Total:</span> <strong style="color: #27ae60;">${formatRupiah(total)}</strong></div>
         </div>
         <div class="detail-row">
-            <div><span class="detail-label">🏢 PT:</span> ${escapeHtml(tt.ptName || tt.ptCode) || '-'}</div>
+            <div><span class="detail-label">🏢 PT:</span> ${escapeHtml(String(ptName))}</div>
         </div>
         <div class="detail-row">
             <div>${statusHtml}</div>
-            ${tt.buktiUrl && tt.buktiUrl !== 'Belum ada bukti' ? `<div style="margin-top: 5px; font-size: 11px;">🔗 URL: ${escapeHtml(tt.buktiUrl)}</div>` : ''}
+            ${buktiUrl && buktiUrl !== 'Belum ada bukti' ? `<div style="margin-top: 5px; font-size: 11px;">🔗 URL: ${escapeHtml(String(buktiUrl))}</div>` : ''}
         </div>
     `;
     

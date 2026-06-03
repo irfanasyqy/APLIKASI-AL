@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Tukar Faktur / Tanda Terima - APLIKASI AL</title>
+    <title>Tukar Faktur - APLIKASI AL</title>
     
     <!-- Import CSS yang sudah ada -->
     <link rel="stylesheet" href="../css/main.css">
@@ -14,14 +14,12 @@
     <link rel="stylesheet" href="../css/print.css">
     
     <style>
-        /* Layout 2 kolom */
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
         
-        /* Panel pencarian customer */
         .search-panel {
             background: #f8f9fa;
             padding: 15px;
@@ -29,8 +27,7 @@
             margin-bottom: 20px;
         }
         
-        /* Listbox customer */
-        .customer-list {
+        .customer-list, .invoice-list {
             position: absolute;
             background: white;
             border: 1px solid #ccc;
@@ -42,40 +39,16 @@
             width: calc(100% - 30px);
         }
         
-        .customer-list div {
+        .customer-list div, .invoice-list div {
             padding: 8px 12px;
             cursor: pointer;
             border-bottom: 1px solid #eee;
         }
         
-        .customer-list div:hover {
+        .customer-list div:hover, .invoice-list div:hover {
             background: #e8f4fd;
         }
         
-        /* List invoice */
-        .invoice-list {
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            width: calc(100% - 30px);
-        }
-        
-        .invoice-list div {
-            padding: 8px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .invoice-list div:hover {
-            background: #e8f4fd;
-        }
-        
-        /* Invoice items yang sudah dipilih */
         .invoice-items {
             background: #f8f9fa;
             border-radius: 12px;
@@ -202,13 +175,13 @@
 <div class="container">
     <div class="app-header">
         <div class="app-title">APLIKASI <span>AL</span></div>
-        <p class="subtitle">Tukar Faktur / Input Tanda Terima</p>
+        <p class="subtitle">Tukar Faktur</p>
     </div>
 
     <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
     
     <div class="card">
-        <h2>🔄 TUKAR FAKTUR / TANDA TERIMA</h2>
+        <h2>🔄 TUKAR FAKTUR</h2>
         
         <!-- PT Aktif -->
         <div class="pt-active" id="ptActive">
@@ -263,8 +236,8 @@
                 </div>
                 
                 <div class="total-box">
-                    <div>🏷️ No. Tanda Terima</div>
-                    <div id="noTT" style="font-size: 18px; font-weight: bold;">TT---</div>
+                    <div>🏷️ No. Tukar Faktur</div>
+                    <div id="noTT" style="font-size: 18px; font-weight: bold;">TF---</div>
                     <hr style="margin: 10px 0; border-color: #555;">
                     <div>💰 TOTAL NILAI FAKTUR</div>
                     <div class="total-amount" id="totalAmount">Rp 0</div>
@@ -283,6 +256,6 @@
 </div>
 
 <script src="../config.js"></script>
-<script src="../js/tanda-terima.js"></script>
+<script src="../js/tukar-faktur.js"></script>
 </body>
 </html>

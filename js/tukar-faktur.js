@@ -1,5 +1,5 @@
-// ========== TANDA-TERIMA.JS ==========
-// Tukar Faktur / Input Tanda Terima (Konversi dari frmInput VBA)
+// ========== TUKAR-FAKTUR.JS ==========
+// Tukar Faktur
 
 // Global variables
 let selectedCustomer = null;
@@ -14,14 +14,12 @@ let ptList = [
 
 // Konfigurasi API
 const API_URL = CONFIG.API_URL;
-const CUSTOMER_API_URL = CONFIG.CUSTOMER_API_URL || API_URL;
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1iJ6NMTx3LW09ZoKXpCrJwUux4M_EeBzKu_gP7NgGW6s/export?format=tsv&gid=0';
 
 // =====================================================
 // 1. LOAD PT AKTIF
 // =====================================================
 async function loadActivePT() {
-    // Coba ambil dari localStorage dulu
     let savedPT = localStorage.getItem('activePT');
     if (savedPT && ptList.includes(savedPT)) {
         currentPT = savedPT;
@@ -42,9 +40,9 @@ function gantiPT() {
     document.getElementById('ptName').innerText = currentPT;
     alert(`PT telah diganti menjadi: ${currentPT}`);
     
-    // Reset pencarian invoice
     document.getElementById('searchInvoice').value = '';
     document.getElementById('invoiceList').style.display = 'none';
+    resetInvoices();
 }
 
 // =====================================================
@@ -59,7 +57,7 @@ async function loadCustomers(searchText) {
     }
     
     try {
-        const response = await fetch(CUSTOMER_API_URL, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'getCustomers' })
@@ -69,7 +67,7 @@ async function loadCustomers(searchText) {
         if (result.success && result.data) {
             customerData = result.data;
             const filtered = customerData.filter(c => 
-                c[1] && c[1].toLowerCase().includes(searchText.toLowerCase())
+                c.nama && c.nama.toLowerCase().includes(searchText.toLowerCase())
             );
             
             const listDiv = document.getElementById('customerList');
@@ -80,7 +78,7 @@ async function loadCustomers(searchText) {
             } else {
                 filtered.forEach((c) => {
                     const div = document.createElement('div');
-                    div.textContent = `${c[0] || ''} - ${c[1] || ''}`;
+                    div.textContent = `${c.nomor || ''} - ${c.nama || ''}`;
                     div.onclick = () => selectCustomer(c);
                     listDiv.appendChild(div);
                 });
@@ -97,20 +95,20 @@ async function loadCustomers(searchText) {
 // =====================================================
 function selectCustomer(customer) {
     selectedCustomer = customer;
-    const nomor = customer[0] || '-';
-    const nama = customer[1] || '-';
-    const alamat = customer[2] || '-';
-    const telp = customer[4] || '-';
-    const hp = customer[5] || '-';
+    
+    const nomor = customer.nomor || '-';
+    const nama = customer.nama || '-';
+    const alamat = customer.alamat || '-';
+    const pic = customer.pic || '-';
+    const hp = customer.hp || '-';
     
     document.getElementById('customerName').innerHTML = `${nomor} - ${nama}`;
     document.getElementById('customerAddress').innerHTML = `📍 Alamat: ${alamat}`;
-    document.getElementById('customerContact').innerHTML = `📞 Telp: ${telp} | HP: ${hp}`;
+    document.getElementById('customerContact').innerHTML = `👤 PIC: ${pic} | 📞 HP: ${hp}`;
     document.getElementById('selectedCustomerInfo').style.display = 'block';
     document.getElementById('customerList').style.display = 'none';
     document.getElementById('searchCustomer').value = nama;
     
-    // Reset invoice selections
     resetInvoices();
 }
 
@@ -134,18 +132,15 @@ async function searchInvoice(invoiceNumber) {
         for (let i = 0; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
             
-            let delimiter = '\t';
-            if (lines[i].includes(',')) delimiter = ',';
-            
-            const cols = lines[i].split(delimiter);
-            if (cols.length >= 6) {
+            const cols = lines[i].split('\t');
+            if (cols.length >= 9) {
                 const ptDB = (cols[3] || '').trim().toUpperCase();
                 const invDB = cleanInvoiceNumber(cols[5] || '');
                 
-                if (ptDB === searchPT && invDB.startsWith(invoiceNumber)) {
-                    let nominal = 0;
-                    const nominalStr = (cols[8] || '0').replace(/Rp/g, '').replace(/\./g, '').replace(/,/g, '.').trim();
-                    nominal = parseFloat(nominalStr) || 0;
+                if (ptDB === searchPT && invDB.includes(invoiceNumber)) {
+                    // Gunakan fungsi parseNominal
+                    let nominalRaw = cols[8] || '0';
+                    let nominal = parseNominal(nominalRaw);
                     
                     results.push({
                         no: cols[5] || '-',
@@ -154,21 +149,75 @@ async function searchInvoice(invoiceNumber) {
                         path: cols[0] || '',
                         tahun: cols[2] || '',
                         nominal: nominal,
-                        nominalDisplay: cols[8] || '0',
+                        nominalDisplay: formatRupiah(nominal),
                         terbilang: cols[7] || ''
                     });
                 }
             }
         }
         
+        results.sort((a, b) => a.no.localeCompare(b.no));
         displayInvoiceList(results);
         
     } catch (error) {
         console.error('Error search invoice:', error);
+        document.getElementById('invoiceList').innerHTML = '<div style="padding: 8px;">❌ Error membaca data</div>';
+        document.getElementById('invoiceList').style.display = 'block';
     }
 }
 
+// =====================================================
+// PARSE NOMINAL DENGAN LOGIKA
+// =====================================================
+function parseNominal(nominalRaw) {
+    if (!nominalRaw) return 0;
+    
+    let str = String(nominalRaw);
+    
+    // 1. Hapus "Rp" (case insensitive)
+    str = str.replace(/Rp/gi, '');
+    
+    // 2. Hapus semua koma (pemisah ribuan)
+    str = str.replace(/,/g, '');
+    
+    // 3. Cek bagian setelah titik
+    let hasDecimal = false;
+    let decimalValue = 0;
+    
+    if (str.includes('.')) {
+        let parts = str.split('.');
+        let afterDot = parts[1] || '';
+        
+        // Jika setelah titik adalah "00" atau kosong
+        if (afterDot === '00' || afterDot === '0' || afterDot === '') {
+            // Hapus titik dan angka setelahnya
+            str = parts[0];
+        } else {
+            // Jika setelah titik > 0, simpan sebagai desimal
+            hasDecimal = true;
+            decimalValue = parseInt(afterDot) || 0;
+            str = parts[0];
+        }
+    }
+    
+    // Konversi ke angka
+    let nominal = parseInt(str) || 0;
+    
+    // Tambahkan desimal jika ada
+    if (hasDecimal && decimalValue > 0) {
+        nominal = nominal + (decimalValue / 100);
+    }
+    
+    console.log(`Parse: "${nominalRaw}" → ${nominal}`);
+    
+    return nominal;
+}
+
+// Contoh penggunaan di searchInvoice:
+// let nominal = parseNominal(cols[8]);
+
 function cleanInvoiceNumber(inv) {
+    if (!inv) return '';
     return inv.replace(/\D/g, '');
 }
 
@@ -208,7 +257,6 @@ function addInvoice(invoice) {
         return;
     }
     
-    // Cek duplikat
     if (selectedInvoices.some(inv => inv.no === invoice.no)) {
         alert('⚠️ Faktur ini sudah dipilih!');
         return;
@@ -236,7 +284,7 @@ function updateInvoiceDisplay() {
     if (selectedInvoices.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Belum ada faktur dipilih</div>';
         totalSpan.innerText = formatRupiah(0);
-        document.getElementById('noTT').innerText = 'TT---';
+        document.getElementById('noTT').innerText = 'TF---';
         return;
     }
     
@@ -258,25 +306,24 @@ function updateInvoiceDisplay() {
     container.innerHTML = html;
     totalSpan.innerText = formatRupiah(total);
     
-    // Generate No TT
-    generateNoTT();
+    generateNoTF();
 }
 
 // =====================================================
-// 7. GENERATE NO TANDA TERIMA
+// 7. GENERATE NO TUKAR FAKTUR
 // =====================================================
-async function generateNoTT() {
+async function generateNoTF() {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     
-    let lastNumber = await getLastTTNumber();
+    let lastNumber = await getLastTFNumber();
     let newNumber = lastNumber + 1;
     
-    document.getElementById('noTT').innerText = `TT/${year}/${month}/${String(newNumber).padStart(3, '0')}`;
+    document.getElementById('noTT').innerText = `TF/${year}/${month}/${String(newNumber).padStart(3, '0')}`;
 }
 
-async function getLastTTNumber() {
+async function getLastTFNumber() {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -286,7 +333,7 @@ async function getLastTTNumber() {
         const result = await response.json();
         return result.success ? result.number : 0;
     } catch (error) {
-        console.error('Error get last TT number:', error);
+        console.error('Error get last TF number:', error);
         return 0;
     }
 }
@@ -300,9 +347,9 @@ function resetInvoices() {
 }
 
 // =====================================================
-// 9. SIMPAN TANDA TERIMA
+// 9. SIMPAN TUKAR FAKTUR
 // =====================================================
-async function saveTandaTerima() {
+async function simpanTukarFaktur() {
     if (!selectedCustomer) {
         alert('⚠️ Pilih customer terlebih dahulu!');
         document.getElementById('searchCustomer').focus();
@@ -321,17 +368,17 @@ async function saveTandaTerima() {
         return;
     }
     
-    const noTT = document.getElementById('noTT').innerText;
+    const noTF = document.getElementById('noTT').innerText;
     
     const data = {
         type: 'saveTandaTerima',
-        noTT: noTT,
+        noTT: noTF,
         tanggal: tanggal,
-        customerNomor: selectedCustomer[0],
-        customerNama: selectedCustomer[1],
-        customerAlamat: selectedCustomer[2] || '',
-        customerTelp: selectedCustomer[4] || '',
-        customerHP: selectedCustomer[5] || '',
+        customerNomor: selectedCustomer.nomor || '',
+        customerNama: selectedCustomer.nama || '',
+        customerAlamat: selectedCustomer.alamat || '',
+        customerPic: selectedCustomer.pic || '',
+        customerTelepon: selectedCustomer.hp || '',
         invoices: selectedInvoices.map(inv => ({
             no: inv.no,
             nominal: inv.nominal,
@@ -357,18 +404,16 @@ async function saveTandaTerima() {
         const result = await response.json();
         
         if (result.success) {
-            alert(`✅ Tanda Terima No. ${noTT} berhasil disimpan!`);
+            alert(`✅ Tukar Faktur No. ${noTF} berhasil disimpan!`);
             
-            // Reset form
             resetInvoices();
             selectedCustomer = null;
             document.getElementById('selectedCustomerInfo').style.display = 'none';
             document.getElementById('searchCustomer').value = '';
-            await generateNoTT();
+            await generateNoTF();
             
-            // Tanya apakah ingin cetak
-            if (confirm('🖨️ Cetak Tanda Terima sekarang?')) {
-                window.open(`../print/print-tt.html?noTT=${noTT}`, '_blank');
+            if (confirm('🖨️ Cetak Tukar Faktur sekarang?')) {
+                window.open(`../print/print-tf.html?noTF=${noTF}`, '_blank');
             }
         } else {
             alert('❌ Gagal menyimpan: ' + (result.error || 'Unknown error'));
@@ -387,7 +432,6 @@ async function saveTandaTerima() {
 // =====================================================
 function refreshData() {
     if (confirm('🔄 Refresh data dari Google Sheet?')) {
-        // Clear cache
         customerData = [];
         document.getElementById('searchCustomer').value = '';
         document.getElementById('selectedCustomerInfo').style.display = 'none';
@@ -400,13 +444,15 @@ function refreshData() {
 }
 
 // =====================================================
-// 11. UTILITY FUNCTIONS
+// 11. FORMAT RUPIAH (HANYA SATU)
 // =====================================================
 function formatRupiah(angka) {
+    if (isNaN(angka) || angka === 0) return 'Rp 0';
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
     }).format(angka);
 }
 
@@ -416,11 +462,9 @@ function formatRupiah(angka) {
 document.addEventListener('DOMContentLoaded', () => {
     loadActivePT();
     
-    // Set tanggal default = hari ini
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('tanggalTT').value = today;
     
-    // Search customer dengan debounce
     const searchInput = document.getElementById('searchCustomer');
     let typingTimer;
     searchInput.addEventListener('input', () => {
@@ -430,18 +474,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     });
     
-    // Search invoice
     const invoiceInput = document.getElementById('searchInvoice');
     invoiceInput.addEventListener('input', () => {
         searchInvoice(invoiceInput.value);
     });
     
-    // Tombol refresh
     document.getElementById('btnRefreshData').addEventListener('click', refreshData);
-    document.getElementById('btnSimpanTT').addEventListener('click', saveTandaTerima);
+    document.getElementById('btnSimpanTT').addEventListener('click', simpanTukarFaktur);
     document.getElementById('btnGantiPT').addEventListener('click', gantiPT);
     
-    // Klik di luar list untuk menutup
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#customerList') && !e.target.closest('#searchCustomer')) {
             document.getElementById('customerList').style.display = 'none';
@@ -451,14 +492,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Enter key pada search customer
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && searchInput.value.length >= 3) {
             loadCustomers(searchInput.value);
         }
     });
     
-    // Enter key pada search invoice
     invoiceInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && invoiceInput.value.length === 5) {
             searchInvoice(invoiceInput.value);
@@ -466,5 +505,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Global functions untuk onclick
+// Global functions
 window.removeInvoice = removeInvoice;
