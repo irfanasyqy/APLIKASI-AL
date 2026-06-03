@@ -22,74 +22,12 @@
             margin-top: 20px;
         }
         
-        /* Panel tombol label */
-        .label-buttons {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-        }
-        
-        .label-grid {
+        /* Grid untuk label 2x3 */
+        .labels-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .btn-label {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-        
-        .btn-label:hover {
-            background: #2980b9;
-            transform: scale(1.02);
-        }
-        
-        .btn-label.active {
-            background: #27ae60;
-            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #27ae60;
-        }
-        
-        /* Panel pencarian customer */
-        .search-panel {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .customer-list {
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            width: calc(100% - 30px);
-        }
-        
-        .customer-list div {
-            padding: 8px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .customer-list div:hover {
-            background: #e8f4fd;
-        }
-        
-        .position-relative {
-            position: relative;
+            margin-top: 20px;
         }
         
         /* Hasil data customer per label */
@@ -97,7 +35,13 @@
             background: #f8f9fa;
             border-radius: 12px;
             padding: 15px;
-            margin-bottom: 15px;
+            transition: all 0.2s ease;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .hasil-label:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: #3498db;
         }
         
         .hasil-title {
@@ -106,29 +50,154 @@
             margin-bottom: 10px;
             padding-bottom: 5px;
             border-bottom: 2px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         
         .hasil-data {
             font-size: 13px;
             line-height: 1.5;
+            margin-bottom: 10px;
         }
         
         .hasil-data div {
             margin-bottom: 5px;
+            word-break: break-word;
         }
         
-        .preview-customer {
-            background: #fff9e6;
-            border: 1px solid #f39c12;
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
+        .btn-pilih-customer {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn-pilih-customer:hover {
+            background: #219a52;
+            transform: scale(1.02);
+        }
+        
+        /* Modal Pilih Customer */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .modal-header .modal-close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        
+        .modal-header .modal-close:hover {
+            color: #e74c3c;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .customer-list-modal {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        
+        .customer-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        
+        .customer-item:hover {
+            background: #e8f4fd;
+        }
+        
+        .customer-item .nama {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .customer-item .alamat {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .no-data {
+            padding: 20px;
+            text-align: center;
+            color: #999;
         }
         
         .btn-group {
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         .btn-cetak {
@@ -141,6 +210,7 @@
             font-size: 16px;
             font-weight: bold;
             flex: 1;
+            transition: background 0.2s;
         }
         
         .btn-cetak:hover {
@@ -155,6 +225,11 @@
             border-radius: 12px;
             cursor: pointer;
             flex: 1;
+            transition: background 0.2s;
+        }
+        
+        .btn-refresh:hover {
+            background: #1a252f;
         }
         
         .btn-bersihkan {
@@ -165,20 +240,74 @@
             border-radius: 12px;
             cursor: pointer;
             flex: 1;
+            transition: background 0.2s;
         }
         
-        .info-icon {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
+        .btn-bersihkan:hover {
+            background: #c0392b;
+        }
+        
+        /* Info card styling */
+        .info-card {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 12px;
+            height: fit-content;
+        }
+        
+        .info-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .info-card ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        /* Mobile Info Card - akan muncul di atas pada mode mobile */
+        .mobile-info-card {
+            display: none;
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .mobile-info-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .mobile-info-card ol {
+            margin-left: 20px;
+            line-height: 1.6;
+            font-size: 13px;
+            margin-bottom: 0;
         }
         
         @media (max-width: 768px) {
             .two-columns {
                 grid-template-columns: 1fr;
             }
-            .label-grid {
-                grid-template-columns: 1fr;
+            
+            .labels-grid {
+                gap: 10px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            /* Sembunyikan info card di desktop mode */
+            .info-card {
+                display: none;
+            }
+            
+            /* Tampilkan mobile info card */
+            .mobile-info-card {
+                display: block;
             }
         }
     </style>
@@ -192,105 +321,103 @@
 
     <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
     
+    <!-- MOBILE: Petunjuk Penggunaan (akan tampil hanya di mobile) -->
+    <div class="mobile-info-card">
+        <h3>📌 Petunjuk Penggunaan</h3>
+        <ol>
+            <li>Klik <strong>"Pilih"</strong> pada label yang diinginkan</li>
+            <li>Cari customer (min 3 karakter)</li>
+            <li>Klik customer yang diinginkan</li>
+            <li>Data akan otomatis tersimpan</li>
+            <li>Klik <strong>CETAK LABEL</strong> untuk mencetak</li>
+        </ol>
+    </div>
+    
     <div class="card">
         <h2>🏷️ CETAK LABEL CUSTOMER</h2>
         
         <div class="two-columns">
-            <!-- KOLOM KIRI: Tombol Label & Pilih Customer -->
+            <!-- KOLOM KIRI: GRID LABEL 2x3 -->
             <div>
-                <!-- Tombol Pilih Label -->
-                <div class="label-buttons">
-                    <h3>📌 Pilih Posisi Label</h3>
-                    <div class="label-grid">
-                        <button class="btn-label" data-label="B3">🏷️ LABEL 1 (B3)</button>
-                        <button class="btn-label" data-label="I3">🏷️ LABEL 2 (I3)</button>
-                        <button class="btn-label" data-label="B7">🏷️ LABEL 3 (B7)</button>
-                        <button class="btn-label" data-label="I7">🏷️ LABEL 4 (I7)</button>
-                        <button class="btn-label" data-label="B11">🏷️ LABEL 5 (B11)</button>
-                        <button class="btn-label" data-label="I11">🏷️ LABEL 6 (I11)</button>
+                <h3>📋 DATA CUSTOMER PER LABEL</h3>
+                
+                <div class="labels-grid">
+                    <!-- Label 1 (B3) - Posisi Baris 1 Kolom 1 -->
+                    <div class="hasil-label">
+                        <div class="hasil-title">
+                            🏷️ LABEL 1 (B3)
+                            <button class="btn-pilih-customer" data-label="B3">📌 Pilih</button>
+                        </div>
+                        <div class="hasil-data" id="dataLabel1">
+                            <div>Nama: -</div>
+                            <div>Alamat: -</div>
+                            <div>HP: -</div>
+                        </div>
                     </div>
-                    <div class="info-icon">💡 Klik tombol label di atas, lalu cari customer</div>
-                </div>
-                
-                <!-- Pencarian Customer -->
-                <div class="search-panel">
-                    <h3>👤 Cari Customer</h3>
-                    <div class="form-group position-relative">
-                        <label>Cari Customer (min 3 karakter)</label>
-                        <input type="text" id="searchCustomer" class="form-control" placeholder="Ketik nama customer..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd;">
+                    
+                    <!-- Label 2 (I3) - Posisi Baris 1 Kolom 2 -->
+                    <div class="hasil-label">
+                        <div class="hasil-title">
+                            🏷️ LABEL 2 (I3)
+                            <button class="btn-pilih-customer" data-label="I3">📌 Pilih</button>
+                        </div>
+                        <div class="hasil-data" id="dataLabel2">
+                            <div>Nama: -</div>
+                            <div>Alamat: -</div>
+                            <div>HP: -</div>
+                        </div>
                     </div>
-                    <div id="customerList" class="customer-list" style="display: none;"></div>
-                    <div class="info-icon">💡 Ketik minimal 3 karakter, lalu pilih dari daftar</div>
-                </div>
-                
-                <!-- Preview Customer -->
-                <div class="preview-customer" id="previewPanel" style="display: none;">
-                    <strong>🔍 PREVIEW CUSTOMER</strong>
-                    <div id="previewContent" style="margin-top: 10px;"></div>
-                </div>
-            </div>
-            
-            <!-- KOLOM KANAN: Hasil Data per Label -->
-            <div>
-                <h3>📋 HASIL DATA CUSTOMER</h3>
-                
-                <!-- Label 1 (B3) -->
-                <div class="hasil-label" id="hasilLabel1">
-                    <div class="hasil-title">🏷️ LABEL 1 (B3)</div>
-                    <div class="hasil-data" id="dataLabel1">
-                        <div>Nama: -</div>
-                        <div>Alamat: -</div>
-                        <div>HP: -</div>
+                    
+                    <!-- Label 3 (B7) - Posisi Baris 2 Kolom 1 -->
+                    <div class="hasil-label">
+                        <div class="hasil-title">
+                            🏷️ LABEL 3 (B7)
+                            <button class="btn-pilih-customer" data-label="B7">📌 Pilih</button>
+                        </div>
+                        <div class="hasil-data" id="dataLabel3">
+                            <div>Nama: -</div>
+                            <div>Alamat: -</div>
+                            <div>HP: -</div>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Label 2 (I3) -->
-                <div class="hasil-label" id="hasilLabel2">
-                    <div class="hasil-title">🏷️ LABEL 2 (I3)</div>
-                    <div class="hasil-data" id="dataLabel2">
-                        <div>Nama: -</div>
-                        <div>Alamat: -</div>
-                        <div>HP: -</div>
+                    
+                    <!-- Label 4 (I7) - Posisi Baris 2 Kolom 2 -->
+                    <div class="hasil-label">
+                        <div class="hasil-title">
+                            🏷️ LABEL 4 (I7)
+                            <button class="btn-pilih-customer" data-label="I7">📌 Pilih</button>
+                        </div>
+                        <div class="hasil-data" id="dataLabel4">
+                            <div>Nama: -</div>
+                            <div>Alamat: -</div>
+                            <div>HP: -</div>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Label 3 (B7) -->
-                <div class="hasil-label" id="hasilLabel3">
-                    <div class="hasil-title">🏷️ LABEL 3 (B7)</div>
-                    <div class="hasil-data" id="dataLabel3">
-                        <div>Nama: -</div>
-                        <div>Alamat: -</div>
-                        <div>HP: -</div>
+                    
+                    <!-- Label 5 (B11) - Posisi Baris 3 Kolom 1 -->
+                    <div class="hasil-label">
+                        <div class="hasil-title">
+                            🏷️ LABEL 5 (B11)
+                            <button class="btn-pilih-customer" data-label="B11">📌 Pilih</button>
+                        </div>
+                        <div class="hasil-data" id="dataLabel5">
+                            <div>Nama: -</div>
+                            <div>Alamat: -</div>
+                            <div>HP: -</div>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Label 4 (I7) -->
-                <div class="hasil-label" id="hasilLabel4">
-                    <div class="hasil-title">🏷️ LABEL 4 (I7)</div>
-                    <div class="hasil-data" id="dataLabel4">
-                        <div>Nama: -</div>
-                        <div>Alamat: -</div>
-                        <div>HP: -</div>
-                    </div>
-                </div>
-                
-                <!-- Label 5 (B11) -->
-                <div class="hasil-label" id="hasilLabel5">
-                    <div class="hasil-title">🏷️ LABEL 5 (B11)</div>
-                    <div class="hasil-data" id="dataLabel5">
-                        <div>Nama: -</div>
-                        <div>Alamat: -</div>
-                        <div>HP: -</div>
-                    </div>
-                </div>
-                
-                <!-- Label 6 (I11) -->
-                <div class="hasil-label" id="hasilLabel6">
-                    <div class="hasil-title">🏷️ LABEL 6 (I11)</div>
-                    <div class="hasil-data" id="dataLabel6">
-                        <div>Nama: -</div>
-                        <div>Alamat: -</div>
-                        <div>HP: -</div>
+                    
+                    <!-- Label 6 (I11) - Posisi Baris 3 Kolom 2 -->
+                    <div class="hasil-label">
+                        <div class="hasil-title">
+                            🏷️ LABEL 6 (I11)
+                            <button class="btn-pilih-customer" data-label="I11">📌 Pilih</button>
+                        </div>
+                        <div class="hasil-data" id="dataLabel6">
+                            <div>Nama: -</div>
+                            <div>Alamat: -</div>
+                            <div>HP: -</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -298,8 +425,48 @@
                 <div class="btn-group">
                     <button class="btn-cetak" id="btnCetak">🖨️ CETAK LABEL</button>
                     <button class="btn-refresh" id="btnRefresh">🔄 REFRESH</button>
-                    <button class="btn-bersihkan" id="btnBersihkan">🗑️ BERSIHKAN</button>
+                    <button class="btn-bersihkan" id="btnBersihkan">🗑️ BERSIHKAN SEMUA</button>
                 </div>
+            </div>
+            
+            <!-- KOLOM KANAN: Informasi Desktop (hanya tampil di desktop) -->
+            <div>
+                <div class="info-card">
+                    <h3>📌 Petunjuk Penggunaan</h3>
+                    <ol>
+                        <li>Klik tombol <strong>"Pilih"</strong> pada label yang diinginkan</li>
+                        <li>Cari customer (min 3 karakter) di modal yang muncul</li>
+                        <li>Klik customer yang diinginkan</li>
+                        <li>Data customer akan otomatis tersimpan</li>
+                        <li>Ulangi untuk label lainnya</li>
+                        <li>Klik <strong>CETAK LABEL</strong> untuk mencetak semua label</li>
+                        <li>Gunakan <strong>REFRESH</strong> untuk memuat ulang data</li>
+                        <li>Gunakan <strong>BERSIHKAN</strong> untuk menghapus semua data</li>
+                    </ol>
+                    
+                    <hr style="margin: 15px 0;">
+                    
+                    <h4>📊 Status Label</h4>
+                    <div id="statusLabel">
+                        <span>✅ 6 slot label tersedia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PILIH CUSTOMER -->
+<div id="customerModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Pilih Customer</h3>
+            <span class="modal-close" id="modalClose">&times;</span>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="modalSearchInput" class="search-input" placeholder="🔍 Cari customer (min 3 karakter)...">
+            <div id="modalCustomerList" class="customer-list-modal">
+                <div class="no-data">Ketik minimal 3 karakter untuk mencari</div>
             </div>
         </div>
     </div>

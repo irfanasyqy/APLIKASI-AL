@@ -1,7 +1,7 @@
 // ========== CETAK-LABEL.JS ==========
-// Cetak Label Customer
+// Cetak Label Customer (dengan modal per label)
 
-let selectedLabel = null;
+let currentLabel = null;
 let customerData = [];
 let labelData = {
     B3: null, I3: null, B7: null, I7: null, B11: null, I11: null
@@ -10,12 +10,28 @@ let labelData = {
 const API_URL = CONFIG.API_URL;
 
 // =====================================================
-// 1. LOAD DATA CUSTOMER
+// 1. BUKA MODAL UNTUK LABEL TERTENTU
 // =====================================================
-async function loadCustomers(searchText) {
+function openCustomerModal(label) {
+    currentLabel = label;
+    document.getElementById('modalTitle').innerText = `Pilih Customer untuk ${label}`;
+    document.getElementById('customerModal').style.display = 'flex';
+    document.getElementById('modalSearchInput').value = '';
+    document.getElementById('modalCustomerList').innerHTML = '<div class="no-data">Ketik minimal 3 karakter untuk mencari</div>';
+    document.getElementById('modalSearchInput').focus();
+}
+
+function closeModal() {
+    document.getElementById('customerModal').style.display = 'none';
+    currentLabel = null;
+}
+
+// =====================================================
+// 2. LOAD DATA CUSTOMER DARI API
+// =====================================================
+async function loadCustomersToModal(searchText) {
     if (searchText.length < 3) {
-        const listDiv = document.getElementById('customerList');
-        if (listDiv) listDiv.style.display = 'none';
+        document.getElementById('modalCustomerList').innerHTML = '<div class="no-data">Ketik minimal 3 karakter untuk mencari</div>';
         return;
     }
     
@@ -33,38 +49,36 @@ async function loadCustomers(searchText) {
                 c.nama && c.nama.toLowerCase().includes(searchText.toLowerCase())
             );
             
-            const listDiv = document.getElementById('customerList');
-            if (!listDiv) return;
+            const listDiv = document.getElementById('modalCustomerList');
             listDiv.innerHTML = '';
             
             if (filtered.length === 0) {
-                listDiv.innerHTML = '<div style="padding: 8px; color: #999;">Tidak ada data customer</div>';
+                listDiv.innerHTML = '<div class="no-data">Tidak ada data customer</div>';
             } else {
                 filtered.forEach((c) => {
                     const div = document.createElement('div');
-                    div.textContent = `${c.nomor || ''} - ${c.nama || ''}`;
-                    div.onclick = () => selectCustomer(c);
+                    div.className = 'customer-item';
+                    div.innerHTML = `
+                        <div class="nama">📛 ${escapeHtml(c.nomor || '')} - ${escapeHtml(c.nama || '')}</div>
+                        <div class="alamat">📍 ${escapeHtml(c.alamat || '-')}</div>
+                        <div class="alamat">📞 ${escapeHtml(c.telepon || '-')} | 📱 ${escapeHtml(c.hp || '-')}</div>
+                    `;
+                    div.onclick = () => selectCustomerForLabel(c);
                     listDiv.appendChild(div);
                 });
             }
-            listDiv.style.display = 'block';
         }
     } catch (error) {
         console.error('Error load customers:', error);
+        document.getElementById('modalCustomerList').innerHTML = '<div class="no-data">Error memuat data</div>';
     }
 }
 
 // =====================================================
-// 2. SELECT CUSTOMER
+// 3. SELECT CUSTOMER UNTUK LABEL TERTENTU
 // =====================================================
-function selectCustomer(customer) {
-    if (!selectedLabel) {
-        alert('⚠️ Pilih posisi label terlebih dahulu! (klik tombol label 1-6)');
-        const listDiv = document.getElementById('customerList');
-        if (listDiv) listDiv.style.display = 'none';
-        document.getElementById('searchCustomer').value = '';
-        return;
-    }
+function selectCustomerForLabel(customer) {
+    if (!currentLabel) return;
     
     const nomor = customer.nomor || '';
     const nama = customer.nama || '';
@@ -72,7 +86,7 @@ function selectCustomer(customer) {
     const telp = customer.telepon || '';
     const hp = customer.hp || '';
     
-    labelData[selectedLabel] = {
+    labelData[currentLabel] = {
         nomor: nomor,
         nama: nama,
         alamat: alamat,
@@ -80,25 +94,15 @@ function selectCustomer(customer) {
         hp: hp
     };
     
-    updateLabelDisplay(selectedLabel, nama, alamat, hp);
+    updateLabelDisplay(currentLabel, nama, alamat, hp);
     saveToLocalStorage();
     
-    alert(`✅ Customer "${nama}" berhasil ditambahkan ke ${selectedLabel}`);
-    
-    selectedLabel = null;
-    document.getElementById('searchCustomer').value = '';
-    const listDiv = document.getElementById('customerList');
-    if (listDiv) listDiv.style.display = 'none';
-    const previewPanel = document.getElementById('previewPanel');
-    if (previewPanel) previewPanel.style.display = 'none';
-    
-    document.querySelectorAll('.btn-label').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    alert(`✅ Customer "${nama}" berhasil ditambahkan ke ${currentLabel}`);
+    closeModal();
 }
 
 // =====================================================
-// 3. UPDATE TAMPILAN HASIL LABEL
+// 4. UPDATE TAMPILAN HASIL LABEL
 // =====================================================
 function updateLabelDisplay(label, nama, alamat, hp) {
     const dataDiv = document.getElementById(`dataLabel${getLabelIndex(label)}`);
@@ -117,7 +121,7 @@ function getLabelIndex(label) {
 }
 
 // =====================================================
-// 4. LOCAL STORAGE
+// 5. LOCAL STORAGE
 // =====================================================
 function saveToLocalStorage() {
     localStorage.setItem('cetakLabelData', JSON.stringify(labelData));
@@ -134,34 +138,8 @@ function loadFromLocalStorage() {
                     updateLabelDisplay(label, value.nama, value.alamat, value.hp);
                 }
             }
-        } catch(e) {
-            console.error('Error loading from localStorage:', e);
-        }
+        } catch(e) {}
     }
-}
-
-// =====================================================
-// 5. PREVIEW CUSTOMER
-// =====================================================
-function showPreview(customer) {
-    const nomor = customer.nomor || '';
-    const nama = customer.nama || '';
-    const alamat = customer.alamat || '';
-    const telp = customer.telepon || '';
-    const hp = customer.hp || '';
-    
-    const previewHtml = `
-        <div><strong>📛 ${escapeHtml(nomor)} - ${escapeHtml(nama)}</strong></div>
-        <div>📍 Alamat: ${escapeHtml(alamat)}</div>
-        <div>📞 Telp: ${escapeHtml(telp)}</div>
-        <div>📱 HP: ${escapeHtml(hp)}</div>
-        <div style="margin-top: 10px; color: #27ae60;">✅ Klik untuk memilih ke ${selectedLabel || 'label yang dipilih'}</div>
-    `;
-    
-    const previewContent = document.getElementById('previewContent');
-    if (previewContent) previewContent.innerHTML = previewHtml;
-    const previewPanel = document.getElementById('previewPanel');
-    if (previewPanel) previewPanel.style.display = 'block';
 }
 
 // =====================================================
@@ -198,11 +176,6 @@ function bersihkanSemua() {
         }
         
         localStorage.removeItem('cetakLabelData');
-        selectedLabel = null;
-        document.querySelectorAll('.btn-label').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
         alert('✅ Semua data label telah dibersihkan!');
     }
 }
@@ -216,7 +189,7 @@ function refreshData() {
 }
 
 // =====================================================
-// 9. ESCAPE HTML (AMAN)
+// 9. ESCAPE HTML
 // =====================================================
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
@@ -235,64 +208,39 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     
-    // Tombol Label
-    document.querySelectorAll('.btn-label').forEach(btn => {
+    // Tombol Pilih Customer di setiap label
+    document.querySelectorAll('.btn-pilih-customer').forEach(btn => {
         btn.addEventListener('click', () => {
-            selectedLabel = btn.getAttribute('data-label');
-            document.querySelectorAll('.btn-label').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const searchInput = document.getElementById('searchCustomer');
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.value = '';
-            }
-            const listDiv = document.getElementById('customerList');
-            if (listDiv) listDiv.style.display = 'none';
-            const previewPanel = document.getElementById('previewPanel');
-            if (previewPanel) previewPanel.style.display = 'none';
-            alert(`📌 Silakan cari customer untuk ${selectedLabel}`);
+            const label = btn.getAttribute('data-label');
+            openCustomerModal(label);
         });
     });
     
-    // Search customer
-    const searchInput = document.getElementById('searchCustomer');
-    if (searchInput) {
-        let typingTimer;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                const searchText = searchInput.value;
-                if (searchText.length >= 3) {
-                    loadCustomers(searchText);
-                } else {
-                    const listDiv = document.getElementById('customerList');
-                    if (listDiv) listDiv.style.display = 'none';
-                    const previewPanel = document.getElementById('previewPanel');
-                    if (previewPanel) previewPanel.style.display = 'none';
-                }
-            }, 500);
-        });
-    }
+    // Search di modal
+    const searchInput = document.getElementById('modalSearchInput');
+    let typingTimer;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            loadCustomersToModal(searchInput.value);
+        }, 500);
+    });
     
-    // Tombol Aksi
-    const btnCetak = document.getElementById('btnCetak');
-    if (btnCetak) btnCetak.addEventListener('click', cetakLabel);
+    // Tombol Cetak
+    document.getElementById('btnCetak').addEventListener('click', cetakLabel);
+    document.getElementById('btnRefresh').addEventListener('click', refreshData);
+    document.getElementById('btnBersihkan').addEventListener('click', bersihkanSemua);
     
-    const btnRefresh = document.getElementById('btnRefresh');
-    if (btnRefresh) btnRefresh.addEventListener('click', refreshData);
+    // Tutup modal
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('customerModal').addEventListener('click', (e) => {
+        if (e.target.id === 'customerModal') closeModal();
+    });
     
-    const btnBersihkan = document.getElementById('btnBersihkan');
-    if (btnBersihkan) btnBersihkan.addEventListener('click', bersihkanSemua);
-    
-    // Klik di luar list untuk menutup
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#customerList') && !e.target.closest('#searchCustomer')) {
-            const listDiv = document.getElementById('customerList');
-            if (listDiv) listDiv.style.display = 'none';
+    // Enter key untuk search
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            loadCustomersToModal(searchInput.value);
         }
     });
 });
-
-// Global functions
-window.selectCustomer = selectCustomer;
-window.showPreview = showPreview;
