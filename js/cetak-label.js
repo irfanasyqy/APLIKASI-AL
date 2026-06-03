@@ -8,7 +8,6 @@ let labelData = {
 };
 
 const API_URL = CONFIG.API_URL;
-const API_CUSTOMER_TT = CONFIG.API_CUSTOMER_TT || API_URL;
 
 // =====================================================
 // 1. LOAD DATA CUSTOMER
@@ -20,7 +19,7 @@ async function loadCustomers(searchText) {
     }
     
     try {
-        const response = await fetch(API_CUSTOMER_TT, {
+        const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'getCustomers' })
