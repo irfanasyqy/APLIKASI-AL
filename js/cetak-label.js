@@ -14,7 +14,8 @@ const API_URL = CONFIG.API_URL;
 // =====================================================
 async function loadCustomers(searchText) {
     if (searchText.length < 3) {
-        document.getElementById('customerList').style.display = 'none';
+        const listDiv = document.getElementById('customerList');
+        if (listDiv) listDiv.style.display = 'none';
         return;
     }
     
@@ -33,6 +34,7 @@ async function loadCustomers(searchText) {
             );
             
             const listDiv = document.getElementById('customerList');
+            if (!listDiv) return;
             listDiv.innerHTML = '';
             
             if (filtered.length === 0) {
@@ -58,7 +60,8 @@ async function loadCustomers(searchText) {
 function selectCustomer(customer) {
     if (!selectedLabel) {
         alert('⚠️ Pilih posisi label terlebih dahulu! (klik tombol label 1-6)');
-        document.getElementById('customerList').style.display = 'none';
+        const listDiv = document.getElementById('customerList');
+        if (listDiv) listDiv.style.display = 'none';
         document.getElementById('searchCustomer').value = '';
         return;
     }
@@ -84,8 +87,10 @@ function selectCustomer(customer) {
     
     selectedLabel = null;
     document.getElementById('searchCustomer').value = '';
-    document.getElementById('customerList').style.display = 'none';
-    document.getElementById('previewPanel').style.display = 'none';
+    const listDiv = document.getElementById('customerList');
+    if (listDiv) listDiv.style.display = 'none';
+    const previewPanel = document.getElementById('previewPanel');
+    if (previewPanel) previewPanel.style.display = 'none';
     
     document.querySelectorAll('.btn-label').forEach(btn => {
         btn.classList.remove('active');
@@ -129,7 +134,9 @@ function loadFromLocalStorage() {
                     updateLabelDisplay(label, value.nama, value.alamat, value.hp);
                 }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error('Error loading from localStorage:', e);
+        }
     }
 }
 
@@ -151,8 +158,10 @@ function showPreview(customer) {
         <div style="margin-top: 10px; color: #27ae60;">✅ Klik untuk memilih ke ${selectedLabel || 'label yang dipilih'}</div>
     `;
     
-    document.getElementById('previewContent').innerHTML = previewHtml;
-    document.getElementById('previewPanel').style.display = 'block';
+    const previewContent = document.getElementById('previewContent');
+    if (previewContent) previewContent.innerHTML = previewHtml;
+    const previewPanel = document.getElementById('previewPanel');
+    if (previewPanel) previewPanel.style.display = 'block';
 }
 
 // =====================================================
@@ -207,11 +216,12 @@ function refreshData() {
 }
 
 // =====================================================
-// 9. UTILITY
+// 9. ESCAPE HTML (AMAN)
 // =====================================================
 function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
+    if (str === null || str === undefined) return '';
+    const text = String(str);
+    return text.replace(/[&<>]/g, function(m) {
         if (m === '&') return '&amp;';
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
@@ -225,44 +235,64 @@ function escapeHtml(str) {
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     
+    // Tombol Label
     document.querySelectorAll('.btn-label').forEach(btn => {
         btn.addEventListener('click', () => {
             selectedLabel = btn.getAttribute('data-label');
             document.querySelectorAll('.btn-label').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('searchCustomer').focus();
-            document.getElementById('searchCustomer').value = '';
-            document.getElementById('customerList').style.display = 'none';
-            document.getElementById('previewPanel').style.display = 'none';
+            const searchInput = document.getElementById('searchCustomer');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.value = '';
+            }
+            const listDiv = document.getElementById('customerList');
+            if (listDiv) listDiv.style.display = 'none';
+            const previewPanel = document.getElementById('previewPanel');
+            if (previewPanel) previewPanel.style.display = 'none';
             alert(`📌 Silakan cari customer untuk ${selectedLabel}`);
         });
     });
     
+    // Search customer
     const searchInput = document.getElementById('searchCustomer');
-    let typingTimer;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            const searchText = searchInput.value;
-            if (searchText.length >= 3) {
-                loadCustomers(searchText);
-            } else {
-                document.getElementById('customerList').style.display = 'none';
-                document.getElementById('previewPanel').style.display = 'none';
-            }
-        }, 500);
-    });
+    if (searchInput) {
+        let typingTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                const searchText = searchInput.value;
+                if (searchText.length >= 3) {
+                    loadCustomers(searchText);
+                } else {
+                    const listDiv = document.getElementById('customerList');
+                    if (listDiv) listDiv.style.display = 'none';
+                    const previewPanel = document.getElementById('previewPanel');
+                    if (previewPanel) previewPanel.style.display = 'none';
+                }
+            }, 500);
+        });
+    }
     
-    document.getElementById('btnCetak')?.addEventListener('click', cetakLabel);
-    document.getElementById('btnRefresh')?.addEventListener('click', refreshData);
-    document.getElementById('btnBersihkan')?.addEventListener('click', bersihkanSemua);
+    // Tombol Aksi
+    const btnCetak = document.getElementById('btnCetak');
+    if (btnCetak) btnCetak.addEventListener('click', cetakLabel);
     
+    const btnRefresh = document.getElementById('btnRefresh');
+    if (btnRefresh) btnRefresh.addEventListener('click', refreshData);
+    
+    const btnBersihkan = document.getElementById('btnBersihkan');
+    if (btnBersihkan) btnBersihkan.addEventListener('click', bersihkanSemua);
+    
+    // Klik di luar list untuk menutup
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#customerList') && !e.target.closest('#searchCustomer')) {
-            document.getElementById('customerList').style.display = 'none';
+            const listDiv = document.getElementById('customerList');
+            if (listDiv) listDiv.style.display = 'none';
         }
     });
 });
 
+// Global functions
 window.selectCustomer = selectCustomer;
 window.showPreview = showPreview;
