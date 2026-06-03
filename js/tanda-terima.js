@@ -268,12 +268,9 @@ function uploadFromCamera() {
 }
 
 // =====================================================
-// FUNGSI UPLOAD KE FOLDER INVOICE (Apps Script)
+// FUNGSI UPLOAD DENGAN BASE64 - VIA WORKER
 // =====================================================
-
-// URL Apps Script - GANTI DENGAN URL ANDA
-const INVOICE_API_URL = 'https://script.google.com/macros/s/AKfycbwVpOAV2_JBp19X6A65_z0Udwvx1lRwLe2_8hQtw4lblDpwft3VYoOXLMpQsilQXagc/exec';
-const INVOICE_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
+// Update fungsi uploadFileToDrive menjadi seperti ini:
 
 async function uploadFileToDrive(file, noTT, fileName) {
     if (!file) {
@@ -308,27 +305,24 @@ async function uploadFileToDrive(file, noTT, fileName) {
         }
         
         if (progressFill) progressFill.style.width = '70%';
-        if (uploadStatus) uploadStatus.innerHTML = '📦 Mengenkripsi file...';
+        if (uploadStatus) uploadStatus.innerHTML = '📦 Memproses file...';
         
         // KONVERSI KE BASE64
         const base64 = await blobToBase64(finalBlob);
         
         if (progressFill) progressFill.style.width = '85%';
-        if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke Apps Script...';
+        if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
         
-        // KIRIM KE APPS SCRIPT (Langsung ke Google Drive)
-        const response = await fetch(INVOICE_API_URL, {
-            redirect: "follow",
-            method: "POST",
-            body: JSON.stringify({ 
-                action: "upload", 
-                data: base64, 
-                fileName: finalFileName, 
-                folderId: INVOICE_FOLDER_ID
-            }),
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8",
-            }
+        // 🔥 KIRIM VIA WORKER (dengan format yang sesuai)
+        const response = await fetch('https://aplikasi-al.al-asyqy.workers.dev', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'upload',
+                data: base64,           // Perhatikan: pakai 'data' bukan 'fileData'
+                fileName: finalFileName,
+                folderId: ''            // Kosong = root folder, atau isi dengan folder ID
+            })
         });
         
         if (progressFill) progressFill.style.width = '95%';
@@ -344,13 +338,10 @@ async function uploadFileToDrive(file, noTT, fileName) {
                 uploadStatus.style.color = '#27ae60';
             }
             
-            // Gunakan fileUrl dari response
-            const fileUrl = result.fileUrl || `https://drive.google.com/file/d/${result.fileId}/view`;
+            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}`);
             
-            // Langsung simpan ke database
-            await simpanBuktiUrl(noTT, fileUrl);
-            
-            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}\n📂 Folder: Folder Invoice`);
+            // Simpan URL ke database
+            await simpanBuktiUrl(noTT, result.fileUrl);
             
             setTimeout(() => {
                 closeUploadModal();
@@ -372,7 +363,7 @@ async function uploadFileToDrive(file, noTT, fileName) {
     }
 }
 
-// Fungsi blobToBase64 (Tetap Sama)
+// Fungsi blobToBase64
 function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -385,7 +376,7 @@ function blobToBase64(blob) {
     });
 }
 
-// Fungsi convertImageToPDFBlob (Tetap Sama)
+// Fungsi convertImageToPDFBlob
 async function convertImageToPDFBlob(imageFile) {
     if (typeof window.jspdf === 'undefined') {
         throw new Error('jsPDF library tidak ditemukan. Pastikan library sudah di-load.');
@@ -447,7 +438,7 @@ async function convertImageToPDFBlob(imageFile) {
 }
 
 // =====================================================
-// HANDLE FILE UPLOAD DARI PC (Tetap Sama)
+// HANDLE FILE UPLOAD DARI PC
 // =====================================================
 async function handleFileUpload(event) {
     const file = event.target.files[0];
@@ -490,7 +481,7 @@ async function handleFileUpload(event) {
 }
 
 // =====================================================
-// HANDLE UPLOAD DARI KAMERA (Tetap Sama)
+// HANDLE UPLOAD DARI KAMERA
 // =====================================================
 async function handleCameraUpload(event) {
     const file = event.target.files[0];
