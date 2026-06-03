@@ -50,33 +50,39 @@
   </div>
 
   <script>
-    // GANTI INI DENGAN URL ANDA
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwVpOAV2_JBp19X6A65_z0Udwvx1lRwLe2_8hQtw4lblDpwft3VYoOXLMpQsilQXagc/exec';
-    
-    let foldersData = [];
+    // GANTI DENGAN URL ANDA
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwQiPCKDHixDwS6AEdpl1Jn4mWRa7DJHQAqK88mtFd_xMnd_R6K8B6EiDPupRCqL8ZC/exec';
     
     async function loadFolders() {
       var select = document.getElementById('folderSelect');
       select.innerHTML = '<option>Loading...</option>';
       
       try {
-        const response = await fetch(API_URL + '?action=getFolders');
-        const result = await response.json();
+        var response = await fetch(API_URL, {
+          redirect: "follow",
+          method: "POST",
+          body: JSON.stringify({ action: "getFolders" }),
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          }
+        });
+        
+        var result = await response.json();
+        console.log('Response:', result);
         
         if (result.success) {
-          foldersData = result.data;
           select.innerHTML = '';
-          foldersData.forEach(function(f) {
+          result.data.forEach(function(f) {
             var opt = document.createElement('option');
             opt.value = f.id;
             opt.text = f.name;
             select.appendChild(opt);
           });
         } else {
-          select.innerHTML = '<option>Error</option>';
+          select.innerHTML = '<option>Error: ' + result.error + '</option>';
         }
       } catch (error) {
-        console.error(error);
+        console.error('Error:', error);
         select.innerHTML = '<option>Error: ' + error.message + '</option>';
       }
     }
@@ -86,19 +92,22 @@
       if (!name) return;
       
       try {
-        const formData = new FormData();
-        formData.append('action', 'createFolder');
-        formData.append('folderName', name);
-        
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          body: formData
+        var response = await fetch(API_URL, {
+          redirect: "follow",
+          method: "POST",
+          body: JSON.stringify({ action: "createFolder", folderName: name }),
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8",
+          }
         });
-        const result = await response.json();
+        
+        var result = await response.json();
         
         if (result.success) {
           loadFolders();
           document.getElementById('newFolderName').value = '';
+        } else {
+          alert('Error: ' + result.error);
         }
       } catch (error) {
         alert('Error: ' + error.message);
@@ -116,27 +125,31 @@
       
       var file = fileInput.files[0];
       
-      // Convert ke base64
       var reader = new FileReader();
       reader.onload = async function(e) {
         var base64 = e.target.result.split(',')[1];
         
         try {
-          const formData = new FormData();
-          formData.append('action', 'upload');
-          formData.append('data', base64);
-          formData.append('fileName', file.name);
-          formData.append('folderId', folderSelect.value);
-          
-          const response = await fetch(API_URL, {
-            method: 'POST',
-            body: formData
+          var response = await fetch(API_URL, {
+            redirect: "follow",
+            method: "POST",
+            body: JSON.stringify({ 
+              action: "upload", 
+              data: base64, 
+              fileName: file.name, 
+              folderId: folderSelect.value 
+            }),
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            }
           });
-          const result = await response.json();
+          
+          var result = await response.json();
+          console.log('Upload result:', result);
           
           var r = document.getElementById('result');
           if (result.success) {
-            r.innerHTML = '✅ BERHASIL!<br><a href="' + result.fileUrl + '" target="_blank">Buka File</a>';
+            r.innerHTML = '✅ BERHASIL!<br>Nama: ' + result.fileName + '<br><a href="' + result.fileUrl + '" target="_blank">Buka File</a>';
             r.style.display = 'block';
             r.className = 'success';
           } else {
@@ -149,7 +162,7 @@
       reader.readAsDataURL(file);
     }
     
-    // Load folder pas halaman buka
+    // Load folder pas buka halaman
     loadFolders();
   </script>
 </body>
