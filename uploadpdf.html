@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload ke Google Drive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .upload-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(66,133,244,0.4);
+            background: #357ae8;
+        }
+        
+        .note {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>📁 Upload ke Google Drive</h1>
+        <p>Klik tombol di bawah untuk memilih file</p>
+        
+        <!-- Tombol yang membuka Apps Script di tab baru -->
+        <a href="https://script.google.com/macros/s/AKfycbznpPYCZtDJO7yRC2e7CKewDHYYB4KuSH-iB2zJuV0mT4EDFiBCiILKoH47UUPm0xvE/exec" 
+           target="_blank" 
+           class="upload-btn">
+            🚀 Pilih File untuk Upload
+        </a>
+        
+        <div class="note">
+            File akan tersimpan di Google Drive Anda<br>
+            Maksimal ukuran file: 50MB
+        </div>
+    </div>
+</body>
+</html>
