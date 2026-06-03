@@ -209,9 +209,14 @@ function uploadBukti() {
     showUploadModal(selectedTT);
 }
 
+// =====================================================
+// UPLOAD BUKTI (LANGSUNG KE APPS SCRIPT - SUDAH BERHASIL)
+// =====================================================
+const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
+const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
+
 function showUploadModal(tt) {
     currentUploadTT = tt;
-    document.getElementById('modalTTNumber').innerText = tt.noTT;
     document.getElementById('uploadModal').style.display = 'flex';
     document.getElementById('uploadResult').style.display = 'none';
     document.getElementById('uploadFileInput').value = '';
@@ -224,30 +229,6 @@ function closeUploadModal() {
     document.getElementById('uploadFileInput').value = '';
 }
 
-// 1. Upload dari Google Drive (ambil link)
-function uploadFromDrive() {
-    if (!currentUploadTT) return;
-    
-    const driveUrl = prompt(
-        `📂 Upload bukti untuk No. TT: ${currentUploadTT.noTT}\n\n` +
-        `1. Buka Google Drive di browser\n` +
-        `2. Klik kanan pada file bukti\n` +
-        `3. Pilih "Dapatkan link"\n` +
-        `4. Copy URL dan paste di bawah\n\n` +
-        `Masukkan URL Google Drive:`
-    );
-    
-    if (driveUrl && driveUrl.includes('drive.google.com')) {
-        simpanBuktiUrl(currentUploadTT.noTT, driveUrl);
-        closeUploadModal();
-    } else if (driveUrl) {
-        alert('❌ URL tidak valid! Pastikan URL dari Google Drive.');
-    }
-}
-
-// =====================================================
-// UPLOAD FILE (VERSI YANG SUDAH BERHASIL)
-// =====================================================
 async function uploadFile() {
     const fileInput = document.getElementById('uploadFileInput');
     const uploadBtn = document.getElementById('uploadBtn');
@@ -263,13 +244,7 @@ async function uploadFile() {
     const noTT = currentUploadTT ? currentUploadTT.noTT : 'UNKNOWN';
     let customFileName = fileNameInput.value.trim();
     
-    let finalFileName;
-    if (customFileName) {
-        finalFileName = customFileName;
-    } else {
-        finalFileName = `Bukti_${noTT.replace(/\//g, '_')}`;
-    }
-    
+    let finalFileName = customFileName || `Bukti_${noTT.replace(/\//g, '_')}`;
     if (!finalFileName.toLowerCase().endsWith('.pdf') && 
         !finalFileName.toLowerCase().endsWith('.jpg') && 
         !finalFileName.toLowerCase().endsWith('.jpeg') && 
@@ -305,7 +280,6 @@ async function uploadFile() {
             
             if (result.success) {
                 resultDiv.innerHTML = `✅ <b>BERHASIL!</b><br><br>📄 ${result.fileName}<br><br><a href="${result.fileUrl}" target="_blank">📂 Buka di Google Drive</a>`;
-                resultDiv.className = 'success';
                 resultDiv.style.display = 'block';
                 resultDiv.style.background = '#e6f4ea';
                 resultDiv.style.color = '#1e8e3e';
@@ -318,7 +292,6 @@ async function uploadFile() {
                 }, 2000);
             } else {
                 resultDiv.innerHTML = `❌ Error: ${result.error}`;
-                resultDiv.className = 'error';
                 resultDiv.style.display = 'block';
                 resultDiv.style.background = '#fce8e6';
                 resultDiv.style.color = '#d93025';
@@ -328,7 +301,6 @@ async function uploadFile() {
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '🚀 UPLOAD BUKTI';
             resultDiv.innerHTML = `❌ Error: ${error.message}`;
-            resultDiv.className = 'error';
             resultDiv.style.display = 'block';
             resultDiv.style.background = '#fce8e6';
             resultDiv.style.color = '#d93025';
