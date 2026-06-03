@@ -1,5 +1,5 @@
 // ========== CETAK-LABEL.JS ==========
-// Cetak Label Customer (Konversi dari frmCetakLabel VBA)
+// Cetak Label Customer
 
 let selectedLabel = null;
 let customerData = [];
@@ -29,7 +29,7 @@ async function loadCustomers(searchText) {
         if (result.success && result.data) {
             customerData = result.data;
             const filtered = customerData.filter(c => 
-                c[1] && c[1].toLowerCase().includes(searchText.toLowerCase())
+                c.nama && c.nama.toLowerCase().includes(searchText.toLowerCase())
             );
             
             const listDiv = document.getElementById('customerList');
@@ -40,7 +40,7 @@ async function loadCustomers(searchText) {
             } else {
                 filtered.forEach((c) => {
                     const div = document.createElement('div');
-                    div.textContent = `${c[0] || ''} - ${c[1] || ''}`;
+                    div.textContent = `${c.nomor || ''} - ${c.nama || ''}`;
                     div.onclick = () => selectCustomer(c);
                     listDiv.appendChild(div);
                 });
@@ -63,13 +63,12 @@ function selectCustomer(customer) {
         return;
     }
     
-    const nomor = customer[0] || '';
-    const nama = customer[1] || '';
-    const alamat = customer[2] || '';
-    const telp = customer[4] || '';
-    const hp = customer[5] || '';
+    const nomor = customer.nomor || '';
+    const nama = customer.nama || '';
+    const alamat = customer.alamat || '';
+    const telp = customer.telepon || '';
+    const hp = customer.hp || '';
     
-    // Simpan ke labelData
     labelData[selectedLabel] = {
         nomor: nomor,
         nama: nama,
@@ -78,21 +77,16 @@ function selectCustomer(customer) {
         hp: hp
     };
     
-    // Update tampilan hasil
     updateLabelDisplay(selectedLabel, nama, alamat, hp);
-    
-    // Simpan ke localStorage (simulasi sheet CETAK LABEL)
     saveToLocalStorage();
     
     alert(`✅ Customer "${nama}" berhasil ditambahkan ke ${selectedLabel}`);
     
-    // Reset
     selectedLabel = null;
     document.getElementById('searchCustomer').value = '';
     document.getElementById('customerList').style.display = 'none';
     document.getElementById('previewPanel').style.display = 'none';
     
-    // Hapus active class dari semua tombol label
     document.querySelectorAll('.btn-label').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -118,7 +112,7 @@ function getLabelIndex(label) {
 }
 
 // =====================================================
-// 4. SAVE TO LOCAL STORAGE (Simulasi Sheet)
+// 4. LOCAL STORAGE
 // =====================================================
 function saveToLocalStorage() {
     localStorage.setItem('cetakLabelData', JSON.stringify(labelData));
@@ -140,14 +134,14 @@ function loadFromLocalStorage() {
 }
 
 // =====================================================
-// 5. SHOW PREVIEW CUSTOMER
+// 5. PREVIEW CUSTOMER
 // =====================================================
 function showPreview(customer) {
-    const nomor = customer[0] || '';
-    const nama = customer[1] || '';
-    const alamat = customer[2] || '';
-    const telp = customer[4] || '';
-    const hp = customer[5] || '';
+    const nomor = customer.nomor || '';
+    const nama = customer.nama || '';
+    const alamat = customer.alamat || '';
+    const telp = customer.telepon || '';
+    const hp = customer.hp || '';
     
     const previewHtml = `
         <div><strong>📛 ${escapeHtml(nomor)} - ${escapeHtml(nama)}</strong></div>
@@ -165,17 +159,12 @@ function showPreview(customer) {
 // 6. CETAK LABEL
 // =====================================================
 function cetakLabel() {
-    // Cek apakah ada data
     const hasData = Object.values(labelData).some(v => v && v.nama);
     if (!hasData) {
         alert('⚠️ Belum ada data customer yang dimasukkan!');
         return;
     }
-    
-    // Simpan ke localStorage terlebih dahulu
     saveToLocalStorage();
-    
-    // Buka halaman print label
     window.open('../print/print-label.html', '_blank');
 }
 
@@ -184,12 +173,10 @@ function cetakLabel() {
 // =====================================================
 function bersihkanSemua() {
     if (confirm('⚠️ Yakin ingin membersihkan SEMUA data label?\n\nTINDAKAN INI TIDAK DAPAT DIBATALKAN!')) {
-        // Reset labelData
         labelData = {
             B3: null, I3: null, B7: null, I7: null, B11: null, I11: null
         };
         
-        // Reset tampilan
         for (let i = 1; i <= 6; i++) {
             const dataDiv = document.getElementById(`dataLabel${i}`);
             if (dataDiv) {
@@ -201,10 +188,7 @@ function bersihkanSemua() {
             }
         }
         
-        // Hapus dari localStorage
         localStorage.removeItem('cetakLabelData');
-        
-        // Reset selected label
         selectedLabel = null;
         document.querySelectorAll('.btn-label').forEach(btn => {
             btn.classList.remove('active');
@@ -223,7 +207,7 @@ function refreshData() {
 }
 
 // =====================================================
-// 9. UTILITY FUNCTIONS
+// 9. UTILITY
 // =====================================================
 function escapeHtml(str) {
     if (!str) return '';
@@ -239,29 +223,21 @@ function escapeHtml(str) {
 // 10. EVENT LISTENERS
 // =====================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Load data dari localStorage
     loadFromLocalStorage();
     
-    // Tombol Label
     document.querySelectorAll('.btn-label').forEach(btn => {
         btn.addEventListener('click', () => {
-            const label = btn.getAttribute('data-label');
-            selectedLabel = label;
-            
-            // Hapus active dari semua, lalu tambahkan ke yang dipilih
+            selectedLabel = btn.getAttribute('data-label');
             document.querySelectorAll('.btn-label').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
             document.getElementById('searchCustomer').focus();
             document.getElementById('searchCustomer').value = '';
             document.getElementById('customerList').style.display = 'none';
             document.getElementById('previewPanel').style.display = 'none';
-            
-            alert(`📌 Silakan cari customer untuk ${label}`);
+            alert(`📌 Silakan cari customer untuk ${selectedLabel}`);
         });
     });
     
-    // Search customer
     const searchInput = document.getElementById('searchCustomer');
     let typingTimer;
     searchInput.addEventListener('input', () => {
@@ -277,12 +253,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     });
     
-    // Tombol Cetak
-    document.getElementById('btnCetak').addEventListener('click', cetakLabel);
-    document.getElementById('btnRefresh').addEventListener('click', refreshData);
-    document.getElementById('btnBersihkan').addEventListener('click', bersihkanSemua);
+    document.getElementById('btnCetak')?.addEventListener('click', cetakLabel);
+    document.getElementById('btnRefresh')?.addEventListener('click', refreshData);
+    document.getElementById('btnBersihkan')?.addEventListener('click', bersihkanSemua);
     
-    // Klik di luar list untuk menutup
     document.addEventListener('click', (e) => {
         if (!e.target.closest('#customerList') && !e.target.closest('#searchCustomer')) {
             document.getElementById('customerList').style.display = 'none';
@@ -290,6 +264,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Global functions
 window.selectCustomer = selectCustomer;
 window.showPreview = showPreview;
