@@ -268,255 +268,127 @@ function uploadFromCamera() {
 }
 
 // =====================================================
-// FUNGSI UPLOAD DENGAN BASE64 - VIA WORKER
+// UPLOAD BUKTI KE GOOGLE DRIVE (VERSI YANG SUDAH BERHASIL)
 // =====================================================
-// Update fungsi uploadFileToDrive menjadi seperti ini:
+const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
+const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
 
-async function uploadFileToDrive(file, noTT, fileName) {
-    if (!file) {
-        alert('❌ File tidak ditemukan!');
-        return;
-    }
-    
-    const progressBar = document.getElementById('progressBar');
-    const progressFill = document.getElementById('progressFill');
-    const uploadStatus = document.getElementById('uploadStatus');
-    
-    if (progressBar) progressBar.style.display = 'block';
-    if (progressFill) progressFill.style.width = '30%';
-    if (uploadStatus) {
-        uploadStatus.innerHTML = '📤 Memproses file...';
-        uploadStatus.style.color = '#3498db';
-    }
-    
-    try {
-        let finalBlob = file;
-        let finalFileName = fileName || `Bukti_${noTT}`;
-        finalFileName = finalFileName.replace(/[^a-zA-Z0-9_\-]/g, '_') + '.pdf';
-        
-        // Konversi gambar ke PDF jika perlu
-        if (file.type.startsWith('image/')) {
-            if (uploadStatus) {
-                uploadStatus.innerHTML = '🔄 Mengkonversi gambar ke PDF...';
-                uploadStatus.style.color = '#f39c12';
-            }
-            if (progressFill) progressFill.style.width = '50%';
-            finalBlob = await convertImageToPDFBlob(file);
-        }
-        
-        if (progressFill) progressFill.style.width = '70%';
-        if (uploadStatus) uploadStatus.innerHTML = '📦 Memproses file...';
-        
-        // KONVERSI KE BASE64
-        const base64 = await blobToBase64(finalBlob);
-        
-        if (progressFill) progressFill.style.width = '85%';
-        if (uploadStatus) uploadStatus.innerHTML = '📡 Mengirim ke server...';
-        
-        // 🔥 KIRIM VIA WORKER (dengan format yang sesuai)
-        const response = await fetch('https://aplikasi-al.al-asyqy.workers.dev', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'upload',
-                data: base64,           // Perhatikan: pakai 'data' bukan 'fileData'
-                fileName: finalFileName,
-                folderId: ''            // Kosong = root folder, atau isi dengan folder ID
-            })
-        });
-        
-        if (progressFill) progressFill.style.width = '95%';
-        
-        const result = await response.json();
-        console.log('Upload result:', result);
-        
-        if (progressFill) progressFill.style.width = '100%';
-        
-        if (result.success) {
-            if (uploadStatus) {
-                uploadStatus.innerHTML = '✅ Upload berhasil!';
-                uploadStatus.style.color = '#27ae60';
-            }
-            
-            alert(`✅ Bukti berhasil diupload!\n📁 Nama: ${result.fileName}`);
-            
-            // Simpan URL ke database
-            await simpanBuktiUrl(noTT, result.fileUrl);
-            
-            setTimeout(() => {
-                closeUploadModal();
-                loadTandaTerima();
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Upload gagal');
-        }
-        
-    } catch (error) {
-        console.error('Upload error:', error);
-        if (progressBar) progressBar.style.display = 'none';
-        
-        if (uploadStatus) {
-            uploadStatus.innerHTML = '❌ ' + error.message;
-            uploadStatus.style.color = 'red';
-        }
-        alert('❌ Gagal upload: ' + error.message);
-    }
+// Variabel global untuk menyimpan TT yang sedang diupload
+let currentUploadTT = null;
+
+function showUploadModal(tt) {
+    currentUploadTT = tt;
+    document.getElementById('modalTTNumber').innerText = tt.noTT;
+    document.getElementById('uploadModal').style.display = 'flex';
+    document.getElementById('uploadResult').style.display = 'none';
+    document.getElementById('uploadFileInput').value = '';
+    document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
 }
 
-// Fungsi blobToBase64
-function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64 = reader.result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
+function closeUploadModal() {
+    document.getElementById('uploadModal').style.display = 'none';
+    currentUploadTT = null;
+    document.getElementById('uploadFileInput').value = '';
 }
 
-// Fungsi convertImageToPDFBlob
-async function convertImageToPDFBlob(imageFile) {
-    if (typeof window.jspdf === 'undefined') {
-        throw new Error('jsPDF library tidak ditemukan. Pastikan library sudah di-load.');
-    }
+async function uploadFile() {
+    const fileInput = document.getElementById('uploadFileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const resultDiv = document.getElementById('uploadResult');
+    const fileNameInput = document.getElementById('fileName');
     
-    const { jsPDF } = window.jspdf;
-    
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const img = new Image();
-            
-            img.onload = function() {
-                try {
-                    const orientation = img.width > img.height ? 'landscape' : 'portrait';
-                    const pdf = new jsPDF({
-                        orientation: orientation,
-                        unit: 'mm',
-                        format: 'a4'
-                    });
-                    
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    
-                    let width = pdfWidth;
-                    let height = (img.height * pdfWidth) / img.width;
-                    
-                    if (height > pdfHeight) {
-                        height = pdfHeight;
-                        width = (img.width * pdfHeight) / img.height;
-                    }
-                    
-                    const x = (pdfWidth - width) / 2;
-                    const y = (pdfHeight - height) / 2;
-                    
-                    pdf.addImage(img, 'JPEG', x, y, width, height);
-                    const pdfBlob = pdf.output('blob');
-                    resolve(pdfBlob);
-                    
-                } catch (err) {
-                    reject(new Error('Gagal membuat PDF: ' + err.message));
-                }
-            };
-            
-            img.onerror = function() {
-                reject(new Error('Gagal memuat gambar'));
-            };
-            
-            img.src = e.target.result;
-        };
-        
-        reader.onerror = function() {
-            reject(new Error('Gagal membaca file gambar'));
-        };
-        
-        reader.readAsDataURL(imageFile);
-    });
-}
-
-// =====================================================
-// HANDLE FILE UPLOAD DARI PC
-// =====================================================
-async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) {
-        alert('⚠️ Silakan pilih file terlebih dahulu!');
+    // Validasi file
+    if (!fileInput.files[0]) {
+        alert('Pilih file terlebih dahulu!');
         return;
     }
     
-    if (!currentUploadTT) {
-        alert('⚠️ Data TT tidak ditemukan!');
-        return;
+    const file = fileInput.files[0];
+    const noTT = currentUploadTT ? currentUploadTT.noTT : 'UNKNOWN';
+    let customFileName = fileNameInput.value.trim();
+    
+    // Tentukan nama file akhir
+    let finalFileName;
+    if (customFileName) {
+        finalFileName = customFileName;
+    } else {
+        finalFileName = `Bukti_${noTT.replace(/\//g, '_')}`;
     }
     
-    if (file.size > 10 * 1024 * 1024) {
-        alert('❌ Ukuran file terlalu besar! Maksimal 10MB.');
-        return;
+    // Tambahkan ekstensi jika belum ada
+    if (!finalFileName.toLowerCase().endsWith('.pdf') && 
+        !finalFileName.toLowerCase().endsWith('.jpg') && 
+        !finalFileName.toLowerCase().endsWith('.jpeg') && 
+        !finalFileName.toLowerCase().endsWith('.png')) {
+        finalFileName += '.pdf';
     }
     
-    let fileName = document.getElementById('fileName').value.trim();
-    if (!fileName) {
-        fileName = `Bukti_${currentUploadTT.noTT}`;
-    }
+    // Loading state
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '⏳ Mengupload...';
+    resultDiv.style.display = 'none';
     
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const previewImg = document.getElementById('previewImage');
-            if (previewImg) {
-                previewImg.src = e.target.result;
-                document.getElementById('uploadPreview').style.display = 'block';
-            }
-        };
-        reader.readAsDataURL(file);
-    } else if (file.type === 'application/pdf') {
-        document.getElementById('uploadPreview').style.display = 'block';
-        document.getElementById('previewImage').src = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
-    }
-    
-    await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
-}
-
-// =====================================================
-// HANDLE UPLOAD DARI KAMERA
-// =====================================================
-async function handleCameraUpload(event) {
-    const file = event.target.files[0];
-    if (!file) {
-        alert('⚠️ Silakan ambil foto terlebih dahulu!');
-        return;
-    }
-    
-    if (!currentUploadTT) {
-        alert('⚠️ Data TT tidak ditemukan!');
-        return;
-    }
-    
-    if (file.size > 10 * 1024 * 1024) {
-        alert('❌ Ukuran foto terlalu besar! Maksimal 10MB.');
-        return;
-    }
-    
-    let fileName = document.getElementById('fileName').value.trim();
-    if (!fileName) {
-        fileName = `Bukti_${currentUploadTT.noTT}`;
-    }
-    
+    // Konversi file ke base64
     const reader = new FileReader();
-    reader.onload = function(e) {
-        const previewImg = document.getElementById('previewImage');
-        if (previewImg) {
-            previewImg.src = e.target.result;
-            document.getElementById('uploadPreview').style.display = 'block';
+    reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1];
+        
+        try {
+            const response = await fetch(UPLOAD_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "upload",
+                    data: base64,
+                    fileName: finalFileName,
+                    folderId: UPLOAD_FOLDER_ID
+                })
+            });
+            
+            const result = await response.json();
+            console.log('Upload result:', result);
+            
+            // Reset button
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '🚀 UPLOAD BUKTI';
+            
+            if (result.success) {
+                resultDiv.innerHTML = `✅ <b>BERHASIL!</b><br><br>📄 ${result.fileName}<br><br><a href="${result.fileUrl}" target="_blank">📂 Buka di Google Drive</a>`;
+                resultDiv.className = 'success';
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#e6f4ea';
+                resultDiv.style.color = '#1e8e3e';
+                
+                // Simpan URL ke database
+                await simpanBuktiUrl(noTT, result.fileUrl);
+                
+                // Tutup modal setelah 2 detik
+                setTimeout(() => {
+                    closeUploadModal();
+                    loadTandaTerima(); // Refresh data
+                }, 2000);
+            } else {
+                resultDiv.innerHTML = `❌ Error: ${result.error}`;
+                resultDiv.className = 'error';
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#fce8e6';
+                resultDiv.style.color = '#d93025';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '🚀 UPLOAD BUKTI';
+            resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            resultDiv.className = 'error';
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#fce8e6';
+            resultDiv.style.color = '#d93025';
         }
     };
-    reader.readAsDataURL(file);
     
-    await uploadFileToDrive(file, currentUploadTT.noTT, fileName);
+    reader.readAsDataURL(file);
 }
+
 
 // =====================================================
 // SIMPAN URL BUKTI KE DATABASE (via Worker)
@@ -740,10 +612,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event listeners untuk upload modal
 document.getElementById('uploadFromDrive')?.addEventListener('click', uploadFromDrive);
-document.getElementById('uploadFromPC')?.addEventListener('click', uploadFromPC);
-document.getElementById('uploadFromCamera')?.addEventListener('click', uploadFromCamera);
+document.getElementById('uploadBtn')?.addEventListener('click', uploadFile);
 document.getElementById('fileInput')?.addEventListener('change', handleFileUpload);
-document.getElementById('cameraInput')?.addEventListener('change', handleCameraUpload);
 document.querySelector('.modal-close')?.addEventListener('click', closeUploadModal);
 document.getElementById('uploadModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'uploadModal') closeUploadModal();

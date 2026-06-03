@@ -410,7 +410,7 @@
     </div>
 </div>
 
-<!-- MODAL UPLOAD BUKTI -->
+<!-- MODAL UPLOAD BUKTI (VERSI HTML YANG SUDAH BERHASIL) -->
 <div id="uploadModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
@@ -418,7 +418,9 @@
             <span class="modal-close">&times;</span>
         </div>
         <div class="modal-body">
-            <p>Upload bukti untuk No. TT: <strong id="modalTTNumber">-</strong></p>
+            <div class="folder-info" style="background: #e8f0fe; padding: 10px; border-radius: 4px; margin-bottom: 20px; color: #1a73e8;">
+                📂 Upload ke folder: <b>BUKTI TUKAR FAKTUR DAN RESI</b>
+            </div>
             
             <div id="fileNameInputGroup" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">📝 Nama File (opsional):</label>
@@ -426,25 +428,16 @@
                 <small style="color: #666;">*Biarkan kosong untuk menggunakan nomor TT</small>
             </div>
             
-            <div class="upload-options">
-                <button id="uploadFromPC" class="upload-option pc">
-                    <span class="icon">💻</span> Upload dari Komputer
-                </button>
-                <button id="uploadFromCamera" class="upload-option camera">
-                    <span class="icon">📷</span> Ambil Foto
-                </button>
-                <button id="uploadFromDrive" class="upload-option drive">
-                    <span class="icon">📂</span> Link Google Drive
-                </button>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Pilih File PDF/Gambar:</label>
+                <input type="file" id="uploadFileInput" accept=".pdf,image/jpeg,image/jpg,image/png" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #fafafa;">
             </div>
             
-            <div id="uploadPreview" style="display: none; margin-top: 15px; text-align: center;">
-                <img id="previewImage" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px;">
-                <div class="progress-bar" id="progressBar" style="display: none;">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-                <p id="uploadStatus" style="margin-top: 10px; font-size: 12px;"></p>
-            </div>
+            <button id="uploadBtn" class="upload-option pc" style="width: 100%; background: #ea4335; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                🚀 UPLOAD BUKTI
+            </button>
+            
+            <div id="uploadResult" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none; text-align: center;"></div>
         </div>
     </div>
 </div>
