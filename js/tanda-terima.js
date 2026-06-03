@@ -10,11 +10,17 @@ let currentUploadSource = null;
 const API_URL = 'https://aplikasi-al.al-asyqy.workers.dev';
 
 // =====================================================
+// UPLOAD BUKTI KE GOOGLE DRIVE (VERSI YANG SUDAH BERHASIL)
+// =====================================================
+const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
+const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
+
+// =====================================================
 // 1. LOAD DATA TANDA TERIMA
 // =====================================================
 async function loadTandaTerima() {
     const listContainer = document.getElementById('ttList');
-    listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">📡 Memuat data...</div>';
+    listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">📡 Memuat数据...</div>';
     
     try {
         const response = await fetch(API_URL, {
@@ -59,7 +65,6 @@ function displayTTList(data) {
         return;
     }
     
-    // Urutkan berdasarkan noTT (descending)
     filtered.sort((a, b) => {
         const numA = extractTTNumber(a.noTT);
         const numB = extractTTNumber(b.noTT);
@@ -74,19 +79,11 @@ function displayTTList(data) {
         const badgeClass = hasBukti ? 'badge-success' : 'badge-warning';
         const badgeText = hasBukti ? '✓ Ada Bukti' : '! Belum Ada Bukti';
         
-        // Pastikan total adalah angka atau string yang bisa diformat
-        let totalDisplay = tt.total;
-        if (typeof totalDisplay === 'string' && totalDisplay.includes('Rp')) {
-            totalDisplay = totalDisplay; // biarkan apa adanya
-        } else if (!isNaN(parseFloat(totalDisplay))) {
-            totalDisplay = formatRupiah(parseFloat(totalDisplay));
-        }
-        
         html += `
             <div class="list-item ${statusClass}" data-id="${tt.id || idx}" data-no="${tt.noTT}" title="${hasBukti ? 'Sudah ada bukti' : 'Belum ada bukti'}">
                 <div class="no-tt">${statusIcon} ${escapeHtml(tt.noTT || '-')}</div>
                 <div class="customer-name">👤 ${escapeHtml(tt.customerNama || '-')}</div>
-                <div class="total">💰 ${totalDisplay}</div>
+                <div class="total">💰 ${formatRupiah(tt.total || 0)}</div>
                 <div class="status-badge ${badgeClass}">${badgeText}</div>
             </div>
         `;
@@ -95,7 +92,6 @@ function displayTTList(data) {
     listContainer.innerHTML = html;
     document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} record (filtered: ${filtered.length})`;
     
-    // Attach event listeners
     document.querySelectorAll('.list-item').forEach(item => {
         item.addEventListener('click', () => {
             const noTT = item.getAttribute('data-no');
@@ -217,19 +213,15 @@ function showUploadModal(tt) {
     currentUploadTT = tt;
     document.getElementById('modalTTNumber').innerText = tt.noTT;
     document.getElementById('uploadModal').style.display = 'flex';
-    document.getElementById('uploadPreview').style.display = 'none';
-    document.getElementById('previewImage').src = '';
-    document.getElementById('uploadStatus').innerHTML = '';
-    document.getElementById('fileNameInputGroup').style.display = 'block';
+    document.getElementById('uploadResult').style.display = 'none';
+    document.getElementById('uploadFileInput').value = '';
     document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
-    currentUploadSource = null;
 }
 
 function closeUploadModal() {
     document.getElementById('uploadModal').style.display = 'none';
     currentUploadTT = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('cameraInput').value = '';
+    document.getElementById('uploadFileInput').value = '';
 }
 
 // 1. Upload dari Google Drive (ambil link)
@@ -253,51 +245,15 @@ function uploadFromDrive() {
     }
 }
 
-// 2. Upload dari PC
-function uploadFromPC() {
-    if (!currentUploadTT) return;
-    currentUploadSource = 'pc';
-    document.getElementById('fileInput').click();
-}
-
-// 3. Upload dari Kamera
-function uploadFromCamera() {
-    if (!currentUploadTT) return;
-    currentUploadSource = 'camera';
-    document.getElementById('cameraInput').click();
-}
-
 // =====================================================
-// UPLOAD BUKTI KE GOOGLE DRIVE (VERSI YANG SUDAH BERHASIL)
+// UPLOAD FILE (VERSI YANG SUDAH BERHASIL)
 // =====================================================
-const UPLOAD_API_URL = 'https://script.google.com/macros/s/AKfycbwrZ3lVtwitHHg8aFQesvPzn6OvqPulGf8Qctwh3NFQOJBH_LY9vGgcofVPjvwB9sRs/exec';
-const UPLOAD_FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
-
-// Variabel global untuk menyimpan TT yang sedang diupload
-let currentUploadTT = null;
-
-function showUploadModal(tt) {
-    currentUploadTT = tt;
-    document.getElementById('modalTTNumber').innerText = tt.noTT;
-    document.getElementById('uploadModal').style.display = 'flex';
-    document.getElementById('uploadResult').style.display = 'none';
-    document.getElementById('uploadFileInput').value = '';
-    document.getElementById('fileName').value = `Bukti_${tt.noTT.replace(/\//g, '_')}`;
-}
-
-function closeUploadModal() {
-    document.getElementById('uploadModal').style.display = 'none';
-    currentUploadTT = null;
-    document.getElementById('uploadFileInput').value = '';
-}
-
 async function uploadFile() {
     const fileInput = document.getElementById('uploadFileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const resultDiv = document.getElementById('uploadResult');
     const fileNameInput = document.getElementById('fileName');
     
-    // Validasi file
     if (!fileInput.files[0]) {
         alert('Pilih file terlebih dahulu!');
         return;
@@ -307,7 +263,6 @@ async function uploadFile() {
     const noTT = currentUploadTT ? currentUploadTT.noTT : 'UNKNOWN';
     let customFileName = fileNameInput.value.trim();
     
-    // Tentukan nama file akhir
     let finalFileName;
     if (customFileName) {
         finalFileName = customFileName;
@@ -315,7 +270,6 @@ async function uploadFile() {
         finalFileName = `Bukti_${noTT.replace(/\//g, '_')}`;
     }
     
-    // Tambahkan ekstensi jika belum ada
     if (!finalFileName.toLowerCase().endsWith('.pdf') && 
         !finalFileName.toLowerCase().endsWith('.jpg') && 
         !finalFileName.toLowerCase().endsWith('.jpeg') && 
@@ -323,12 +277,10 @@ async function uploadFile() {
         finalFileName += '.pdf';
     }
     
-    // Loading state
     uploadBtn.disabled = true;
     uploadBtn.innerHTML = '⏳ Mengupload...';
     resultDiv.style.display = 'none';
     
-    // Konversi file ke base64
     const reader = new FileReader();
     reader.onload = async function(e) {
         const base64 = e.target.result.split(',')[1];
@@ -348,7 +300,6 @@ async function uploadFile() {
             const result = await response.json();
             console.log('Upload result:', result);
             
-            // Reset button
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '🚀 UPLOAD BUKTI';
             
@@ -359,13 +310,11 @@ async function uploadFile() {
                 resultDiv.style.background = '#e6f4ea';
                 resultDiv.style.color = '#1e8e3e';
                 
-                // Simpan URL ke database
                 await simpanBuktiUrl(noTT, result.fileUrl);
                 
-                // Tutup modal setelah 2 detik
                 setTimeout(() => {
                     closeUploadModal();
-                    loadTandaTerima(); // Refresh data
+                    loadTandaTerima();
                 }, 2000);
             } else {
                 resultDiv.innerHTML = `❌ Error: ${result.error}`;
@@ -389,9 +338,8 @@ async function uploadFile() {
     reader.readAsDataURL(file);
 }
 
-
 // =====================================================
-// SIMPAN URL BUKTI KE DATABASE (via Worker)
+// SIMPAN URL BUKTI KE DATABASE
 // =====================================================
 async function simpanBuktiUrl(noTT, url) {
     try {
@@ -555,7 +503,7 @@ async function hapusTT() {
         }
     } catch (error) {
         console.error('Error hapus:', error);
-        alert('❌ Error koneksi saat menghapus');
+        alert('❌ Error koneksi saat hapus');
     }
 }
 
@@ -570,9 +518,7 @@ function refreshData() {
 // UTILITY FUNCTIONS
 // =====================================================
 function formatRupiah(angka) {
-    // Jika sudah dalam format Rp, kembalikan langsung
     if (typeof angka === 'string' && angka.includes('Rp')) return angka;
-    // Konversi ke number
     let num = typeof angka === 'string' ? parseFloat(angka.replace(/[^0-9,-]/g, '').replace(',', '.')) : angka;
     if (isNaN(num)) num = 0;
     return new Intl.NumberFormat('id-ID', {
@@ -613,7 +559,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Event listeners untuk upload modal
 document.getElementById('uploadFromDrive')?.addEventListener('click', uploadFromDrive);
 document.getElementById('uploadBtn')?.addEventListener('click', uploadFile);
-document.getElementById('fileInput')?.addEventListener('change', handleFileUpload);
 document.querySelector('.modal-close')?.addEventListener('click', closeUploadModal);
 document.getElementById('uploadModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'uploadModal') closeUploadModal();
