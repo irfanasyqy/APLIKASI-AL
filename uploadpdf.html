@@ -6,130 +6,76 @@
   <title>Upload PDF ke Google Drive</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
-    h2 { color: #1a73e8; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { color: #1a73e8; margin-bottom: 10px; }
+    .folder-info { background: #e8f0fe; padding: 10px; border-radius: 4px; margin-bottom: 20px; color: #1a73e8; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-    button { padding: 12px 20px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; margin-bottom: 10px; }
-    .btn2 { background: #34a853; }
-    .btn-upload { background: #ea4335; font-size: 18px; }
-    #result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
-    .success { background: #e6f4ea; color: #1e8e3e; }
+    input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+    button { padding: 15px 20px; background: #ea4335; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    #result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; text-align: center; }
+    .success { background: #e6f4ea; color: #1e8e3e; display: block; }
+    .error { background: #fce8e6; color: #d93025; display: block; }
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>📤 Upload PDF ke Google Drive</h2>
+    <div class="folder-info">📂 Folder Tujuan: <b>Folder Invoice</b></div>
     
     <div class="form-group">
       <label>Pilih File PDF:</label>
       <input type="file" id="fileInput" accept=".pdf">
     </div>
     
-    <div class="form-group">
-      <label>Folder Tujuan:</label>
-      <select id="folderSelect">
-        <option value="">Loading...</option>
-      </select>
-    </div>
-    
-    <button onclick="loadFolders()">🔄 Refresh Folder</button>
-    
-    <div class="form-group" style="margin-top:15px;">
-      <label>Buat Folder Baru:</label>
-      <input type="text" id="newFolderName" placeholder="Nama folder...">
-    </div>
-    <button class="btn2" onclick="createNewFolder()">➕ Buat Folder</button>
-    
-    <hr>
-    
-    <button onclick="uploadFile()" class="btn-upload">🚀 UPLOAD PDF</button>
+    <button id="uploadBtn" onclick="uploadFile()">🚀 UPLOAD PDF</button>
     
     <div id="result"></div>
   </div>
 
   <script>
-    // GANTI DENGAN URL ANDA
+    // ==================== GANTI URL INI ====================
+    // Copy dari Apps Script > Deploy > Web App > URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbztdZZtnGx7OIcUYuIUT6Vyo14y8O0zQ2KPA9iGpFi0SIuLgusM5VSV755h7Byi8OZy/exec';
+    // =========================================================
     
-    async function loadFolders() {
-      var select = document.getElementById('folderSelect');
-      select.innerHTML = '<option>Loading...</option>';
-      
-      try {
-        var response = await fetch(API_URL, {
-          redirect: "follow",
-          method: "POST",
-          body: JSON.stringify({ action: "getFolders" }),
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8",
-          }
-        });
-        
-        var result = await response.json();
-        console.log('Response:', result);
-        
-        if (result.success) {
-          select.innerHTML = '';
-          result.data.forEach(function(f) {
-            var opt = document.createElement('option');
-            opt.value = f.id;
-            opt.text = f.name;
-            select.appendChild(opt);
-          });
-        } else {
-          select.innerHTML = '<option>Error: ' + result.error + '</option>';
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        select.innerHTML = '<option>Error: ' + error.message + '</option>';
-      }
-    }
-    
-    async function createNewFolder() {
-      var name = document.getElementById('newFolderName').value.trim();
-      if (!name) return;
-      
-      try {
-        var response = await fetch(API_URL, {
-          redirect: "follow",
-          method: "POST",
-          body: JSON.stringify({ action: "createFolder", folderName: name }),
-          headers: {
-            "Content-Type": "text/plain;charset=utf-8",
-          }
-        });
-        
-        var result = await response.json();
-        
-        if (result.success) {
-          loadFolders();
-          document.getElementById('newFolderName').value = '';
-        } else {
-          alert('Error: ' + result.error);
-        }
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
-    }
+    // Folder ID tujuan (dari Google Drive URL)
+    const FOLDER_ID = '1uOqu-94ECuorCf1frMgtOooJY_-4nUqQ';
     
     async function uploadFile() {
       var fileInput = document.getElementById('fileInput');
-      var folderSelect = document.getElementById('folderSelect');
+      var uploadBtn = document.getElementById('uploadBtn');
+      var resultDiv = document.getElementById('result');
       
+      // Validasi file
       if (!fileInput.files[0]) {
-        alert('Pilih file!');
+        alert('Pilih file terlebih dahulu!');
         return;
       }
       
       var file = fileInput.files[0];
       
+      // Validasi PDF
+      if (file.type !== 'application/pdf') {
+        alert('Hanya file PDF yang diperbolehkan!');
+        return;
+      }
+      
+      // Loading state
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '⏳ Mengupload...';
+      resultDiv.style.display = 'none';
+      
+      // Convert file ke base64
       var reader = new FileReader();
       reader.onload = async function(e) {
         var base64 = e.target.result.split(',')[1];
         
         try {
+          // Fetch ke Apps Script
           var response = await fetch(API_URL, {
             redirect: "follow",
             method: "POST",
@@ -137,33 +83,46 @@
               action: "upload", 
               data: base64, 
               fileName: file.name, 
-              folderId: folderSelect.value 
+              folderId: FOLDER_ID
             }),
             headers: {
               "Content-Type": "text/plain;charset=utf-8",
             }
           });
           
+          // Parse response
           var result = await response.json();
-          console.log('Upload result:', result);
+          console.log('Result:', result);
           
-          var r = document.getElementById('result');
+          // Reset button
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = '🚀 UPLOAD PDF';
+          
+          // Tampilkan hasil
           if (result.success) {
-            r.innerHTML = '✅ BERHASIL!<br>Nama: ' + result.fileName + '<br><a href="' + result.fileUrl + '" target="_blank">Buka File</a>';
-            r.style.display = 'block';
-            r.className = 'success';
+            resultDiv.innerHTML = '✅ <b>BERHASIL!</b><br><br>📄 ' + result.fileName + '<br><br><a href="' + result.fileUrl + '" target="_blank">📂 Buka di Google Drive</a>';
+            resultDiv.className = 'success';
+            resultDiv.style.display = 'block';
+            
+            // Reset input
+            fileInput.value = '';
           } else {
-            alert('Error: ' + result.error);
+            resultDiv.innerHTML = '❌ Error: ' + result.error;
+            resultDiv.className = 'error';
+            resultDiv.style.display = 'block';
           }
         } catch (error) {
-          alert('Error: ' + error.message);
+          console.error('Error:', error);
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = '🚀 UPLOAD PDF';
+          resultDiv.innerHTML = '❌ Error: ' + error.message;
+          resultDiv.className = 'error';
+          resultDiv.style.display = 'block';
         }
       };
+      
       reader.readAsDataURL(file);
     }
-    
-    // Load folder pas buka halaman
-    loadFolders();
   </script>
 </body>
 </html>
