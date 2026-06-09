@@ -46,7 +46,6 @@ function gantiPT() {
 // =====================================================
 // 3. LOAD CUSTOMER LIST
 // =====================================================
-let customerData = [];
 
 async function loadCustomers(searchText) {
     if (searchText.length < 3) {
