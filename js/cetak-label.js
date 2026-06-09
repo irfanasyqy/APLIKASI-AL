@@ -7,8 +7,6 @@ let labelData = {
     B3: null, I3: null, B7: null, I7: null, B11: null, I11: null
 };
 
-const API_URL = CONFIG.API_URL;
-
 // =====================================================
 // 1. BUKA MODAL UNTUK LABEL TERTENTU
 // =====================================================
@@ -36,7 +34,7 @@ async function loadCustomersToModal(searchText) {
     }
     
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'getCustomers' })
