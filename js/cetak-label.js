@@ -200,45 +200,71 @@ function escapeHtml(str) {
     });
 }
 
-// =====================================================
-// 10. EVENT LISTENERS
-// =====================================================
+// ========== CETAK-LABEL.JS ==========
+// Di bagian akhir, ganti dengan ini:
+
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     
-    // Tombol Pilih Customer di setiap label
-    document.querySelectorAll('.btn-pilih-customer').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const label = btn.getAttribute('data-label');
-            openCustomerModal(label);
+    // Tombol Pilih Customer di setiap label - PASTIKAN ELEMENNYA ADA
+    const customerButtons = document.querySelectorAll('.btn-pilih-customer');
+    if (customerButtons.length > 0) {
+        customerButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const label = btn.getAttribute('data-label');
+                openCustomerModal(label);
+            });
         });
-    });
+    } else {
+        console.warn('Tidak ada tombol .btn-pilih-customer di halaman ini');
+    }
     
-    // Search di modal
+    // Search di modal - CEK APAKAH ELEMEN ADA
     const searchInput = document.getElementById('modalSearchInput');
-    let typingTimer;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            loadCustomersToModal(searchInput.value);
-        }, 500);
-    });
+    if (searchInput) {
+        let typingTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                loadCustomersToModal(searchInput.value);
+            }, 500);
+        });
+        
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadCustomersToModal(searchInput.value);
+            }
+        });
+    }
     
-    // Tombol Cetak
-    document.getElementById('btnCetak').addEventListener('click', cetakLabel);
-    document.getElementById('btnRefresh').addEventListener('click', refreshData);
-    document.getElementById('btnBersihkan').addEventListener('click', bersihkanSemua);
+    // Tombol Cetak - CEK ELEMEN
+    const btnCetak = document.getElementById('btnCetak');
+    if (btnCetak) {
+        btnCetak.addEventListener('click', cetakLabel);
+    }
     
-    // Tutup modal
-    document.getElementById('modalClose').addEventListener('click', closeModal);
-    document.getElementById('customerModal').addEventListener('click', (e) => {
-        if (e.target.id === 'customerModal') closeModal();
-    });
+    // Tombol Refresh - CEK ELEMEN
+    const btnRefresh = document.getElementById('btnRefresh');
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', refreshData);
+    }
     
-    // Enter key untuk search
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            loadCustomersToModal(searchInput.value);
-        }
-    });
+    // Tombol Bersihkan - CEK ELEMEN
+    const btnBersihkan = document.getElementById('btnBersihkan');
+    if (btnBersihkan) {
+        btnBersihkan.addEventListener('click', bersihkanSemua);
+    }
+    
+    // Modal elements - CEK APAKAH ADA
+    const modalClose = document.getElementById('modalClose');
+    if (modalClose) {
+        modalClose.addEventListener('click', closeModal);
+    }
+    
+    const customerModal = document.getElementById('customerModal');
+    if (customerModal) {
+        customerModal.addEventListener('click', (e) => {
+            if (e.target.id === 'customerModal') closeModal();
+        });
+    }
 });

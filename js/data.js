@@ -3,58 +3,135 @@ let suppliers = [];
 
 async function loadSuppliers() {
     try {
-        const res = await fetch(CONFIG.API_URL + '?type=getSuppliers');
-        const result = await res.json();
-        if (result.success) {
-            suppliers = result.data.map((s, index) => ({
-        id: index,
-        ...s
-    }));
-            updateDropdowns();
-            renderSupplierTable();
-        } else {
-            console.error('Gagal:', result.error);
-            let tbody = document.getElementById('supplierTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="7">Gagal load data: ' + (result.error || 'Unknown error') + '</td></tr>';
+        if (typeof CONFIG === 'undefined') {
+            console.error('CONFIG tidak ditemukan!');
+            showErrorInTable('Konfigurasi tidak ditemukan');
+            return;
         }
+
+        console.log('📡 Mengambil data supplier...');
+        
+        // Gunakan POST method seperti di kode lain Anda
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'getSuppliers' })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Supplier response:', result);
+        
+        // Cek struktur response
+        if (result && result.success === true) {
+            // Pastikan result.data adalah array
+            if (result.data && Array.isArray(result.data)) {
+                suppliers = result.data.map((s, index) => ({
+                    id: index,
+                    no: s.no || s.id || (index + 1).toString(),
+                    nama: s.nama || s.name || '-',
+                    account: s.account || '-',
+                    currency: s.currency || 'IDR',
+                    alamat: s.alamat || '',
+                    bankName: s.bankName || s.bank || '-',
+                    bankAlamat: s.bankAlamat || '',
+                    swift: s.swift || '-',
+                    country: s.country || 'Indonesia',
+                    ...s
+                }));
+                
+                console.log(`✅ ${suppliers.length} supplier(s) loaded`);
+            } else {
+                console.warn('Data supplier bukan array:', result.data);
+                suppliers = [];
+            }
+        } else {
+            console.warn('Response tidak memiliki success=true:', result);
+            suppliers = [];
+        }
+        
+        // Update dropdowns dan tabel
+        updateDropdowns();
+        renderSupplierTable();
+        
     } catch(e) {
-        console.error('Error:', e);
-        let tbody = document.getElementById('supplierTableBody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="7">Error: ' + e.message + '</td></tr>';
+        console.error('❌ Error load suppliers:', e);
+        suppliers = [];
+        updateDropdowns();
+        renderSupplierTable();
+        showErrorInTable('Error: ' + e.message);
+    }
+}
+
+function showErrorInTable(message) {
+    let tbody = document.getElementById('supplierTableBody');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color: red; text-align: center;">❌ ${message}</td></tr>`;
     }
 }
 
 function updateDropdowns() {
-    let options = '<option value="">-- Pilih --</option>';
-    for (let i = 0; i < suppliers.length; i++) {
-        options += '<option value="' + i + '">' + suppliers[i].nama + '</option>';
+    let options = '<option value="">-- Pilih Supplier --</option>';
+    
+    if (suppliers && Array.isArray(suppliers) && suppliers.length > 0) {
+        for (let i = 0; i < suppliers.length; i++) {
+            const s = suppliers[i];
+            const nama = s.nama || 'Unknown';
+            options += `<option value="${i}">${escapeHtml(nama)}</option>`;
+        }
+    } else {
+        options = '<option value="">-- Tidak ada data supplier --</option>';
     }
-    let selects = ['supplierSelect', 'ttSupplierSelect', 'labelSupplierSelect', 'editSupplierSelect', 'fakturSupplierSelect'];
+    
+    // Update dropdowns
+    const selects = ['supplierSelect', 'ttSupplierSelect', 'labelSupplierSelect', 'editSupplierSelect', 'fakturSupplierSelect'];
     for (let i = 0; i < selects.length; i++) {
-        let el = document.getElementById(selects[i]);
-        if (el) el.innerHTML = options;
+        const el = document.getElementById(selects[i]);
+        if (el) {
+            el.innerHTML = options;
+        }
     }
 }
 
 function renderSupplierTable() {
-    let tbody = document.getElementById('supplierTableBody');
+    const tbody = document.getElementById('supplierTableBody');
     if (!tbody) return;
-    if (suppliers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">Tidak ada data supplier</td></tr>';
+    
+    if (!suppliers || suppliers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7">📋 Tidak ada data supplier</td></tr>';
         return;
     }
+    
     let html = '';
     for (let i = 0; i < suppliers.length; i++) {
-        let s = suppliers[i];
+        const s = suppliers[i];
         html += '<tr>';
-        html += '<td>' + (s.no || '-') + '</td>';
-        html += '<td>' + (s.nama || '-') + '</td>';
-        html += '<td>' + (s.account || '-') + '</td>';
-        html += '<td>' + (s.currency || '-') + '</td>';
-        html += '<td>' + (s.bankName || '-') + '</td>';
-        html += '<td>' + (s.swift || '-') + '</td>';
-        html += '<td>' + (s.country || '-') + '</td>';
+        html += '<td>' + escapeHtml(s.no || (i + 1)) + '</td>';
+        html += '<td>' + escapeHtml(s.nama || '-') + '</td>';
+        html += '<td>' + escapeHtml(s.account || '-') + '</td>';
+        html += '<td>' + escapeHtml(s.currency || '-') + '</td>';
+        html += '<td>' + escapeHtml(s.bankName || '-') + '</td>';
+        html += '<td>' + escapeHtml(s.swift || '-') + '</td>';
+        html += '<td>' + escapeHtml(s.country || '-') + '</td>';
         html += '</tr>';
     }
     tbody.innerHTML = html;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Load suppliers jika halaman memiliki tabel supplier
+if (document.getElementById('supplierTableBody')) {
+    loadSuppliers();
 }

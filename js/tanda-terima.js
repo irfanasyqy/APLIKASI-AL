@@ -47,7 +47,16 @@ async function loadTandaTerima() {
         console.error('Error load TT:', error);
         listContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">❌ Gagal memuat data</div>';
     }
+        // Juga tambahkan pengecekan saat attach event
+    document.addEventListener('DOMContentLoaded', () => {
+        // Hanya load jika elemennya ada
+        if (document.getElementById('ttList')) {
+            loadTandaTerima();
+        }
+    });
 }
+
+
 
 // =====================================================
 // 2. TAMPILKAN DAFTAR TT

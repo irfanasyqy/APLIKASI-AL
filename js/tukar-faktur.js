@@ -12,8 +12,6 @@ let ptList = [
     'CV. PRIMA MAJU PERKASA'
 ];
 
-// Konfigurasi API
-const API_URL = CONFIG.API_URL;
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1iJ6NMTx3LW09ZoKXpCrJwUux4M_EeBzKu_gP7NgGW6s/export?format=tsv&gid=0';
 
 // =====================================================
@@ -57,7 +55,7 @@ async function loadCustomers(searchText) {
     }
     
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'getCustomers' })
@@ -333,7 +331,7 @@ async function generateNoTT() {
 // =====================================================
 async function getLastTTNumber() {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type: 'getTandaTerima' })
@@ -429,7 +427,7 @@ async function simpanTukarFaktur() {
     btnSimpan.disabled = true;
     
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
