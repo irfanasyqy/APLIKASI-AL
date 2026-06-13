@@ -2,8 +2,35 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>APLIKASI AL</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="APLIKASI AL">
+        <!-- ========== PWA ICONS & MANIFEST ========== -->
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#1e3c72">
+    <!-- ========== END PWA ========== -->
+    
     <style>
         body {
             background: linear-gradient(135deg, #1e3c72, #2c3e50);
@@ -29,6 +56,30 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .install-btn {
+            background: white;
+            color: #27ae60;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            margin-top: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -37,8 +88,45 @@
         <p>APLIKASI AL</p>
         <p>Mengalihkan...</p>
     </div>
+    
+    <div id="installPrompt" class="install-prompt">
+        <span>📱 Install Aplikasi AL di HP Anda!</span>
+        <button id="installBtn" class="install-btn">Install Now</button>
+    </div>
+    
     <script>
-        // Cek apakah sudah login
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered', reg))
+                .catch(err => console.log('Service Worker error', err));
+        }
+        
+        // PWA Installation
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installBtn = document.getElementById('installBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installPrompt.style.display = 'block';
+        });
+        
+        installBtn.addEventListener('click', () => {
+            installPrompt.style.display = 'none';
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        });
+        
+        // Redirect
         if (localStorage.getItem('isLoggedIn') === 'true') {
             window.location.href = 'dashboard.html';
         } else {
