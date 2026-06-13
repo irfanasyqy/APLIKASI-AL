@@ -1,13 +1,13 @@
 // ========== SERVICE WORKER ==========
 const CACHE_NAME = 'al-app-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/login.html',
-  '/dashboard.html',
-  '/config.js',
-  '/css/style.css',
-  '/css/login.css'
+  '/APLIKASI-AL/',
+  '/APLIKASI-AL/index.html',
+  '/APLIKASI-AL/login.html',
+  '/APLIKASI-AL/dashboard.html',
+  '/APLIKASI-AL/config.js',
+  '/APLIKASI-AL/css/style.css',
+  '/APLIKASI-AL/css/login.css'
   // Hapus file JS dan pages/ dulu karena bisa error
 ];
 

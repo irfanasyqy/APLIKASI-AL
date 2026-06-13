@@ -2,7 +2,7 @@
   "name": "APLIKASI AL",
   "short_name": "AL App",
   "description": "Aplikasi Transfer Bank & Dokumentasi",
-  "start_url": "/APLIKASI-AL/",
+  "start_url": "/APLIKASI-AL/?utm_source=pwa",
   "scope": "/APLIKASI-AL/",
   "display": "standalone",
   "theme_color": "#1e3c72",
