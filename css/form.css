@@ -1,3 +1,5 @@
+/* ========== FORM.CSS ========== */
+
 .form-group {
     margin-bottom: 18px;
 }
@@ -18,6 +20,7 @@ input, select, textarea {
     font-size: 0.9rem;
     font-family: inherit;
     background: #fff;
+    transition: 0.2s;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -34,6 +37,7 @@ input:focus, select:focus, textarea:focus {
 
 .row .form-group {
     flex: 1;
+    min-width: 120px;
 }
 
 .bank-option {
@@ -73,8 +77,24 @@ button {
     width: 100%;
 }
 
+button:hover {
+    background: #0f2b4f;
+}
+
 .btn-success {
     background: #27ae60;
+}
+
+.btn-success:hover {
+    background: #1e8449;
+}
+
+.btn-danger {
+    background: #e74c3c;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
 }
 
 .supplier-info {
@@ -91,80 +111,6 @@ button {
     border-radius: 18px;
     font-size: 0.8rem;
     color: #7d6608;
-}
-/* Modal Styles */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 85%;
-    overflow: auto;
-    animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: #1e3c72;
-}
-
-.modal-close {
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #7f8c8d;
-}
-
-.modal-close:hover {
-    color: #e74c3c;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.modal-footer {
-    display: flex;
-    gap: 10px;
-    padding: 15px 20px;
-    border-top: 1px solid #e2e8f0;
-}
-
-.modal-footer button {
-    flex: 1;
-    margin: 0;
 }
 
 .btn-add-supplier {
@@ -193,61 +139,60 @@ button {
     margin-top: 8px;
 }
 
-/* Untuk row dengan 3 kolom */
-.row {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.row .form-group {
-    flex: 1;
-    min-width: 120px;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .row {
-        flex-direction: column;
-        gap: 10px;
-    }
-}
-
-/* ========== MODAL UPLOAD ========== */
+/* ========== MODAL STYLES (GABUNGAN) ========== */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 2000;
-    display: flex;
+    background: rgba(0,0,0,0.6);
+    z-index: 10000;
+    display: none;
     align-items: center;
     justify-content: center;
+    overflow-y: auto;
 }
 
 .modal-content {
     background: white;
-    border-radius: 20px;
+    border-radius: 24px;
     width: 90%;
-    max-width: 400px;
-    overflow: hidden;
-    animation: slideUp 0.3s ease;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s ease;
+    margin: 20px auto;
 }
 
-@keyframes slideUp {
-    from { transform: translateY(50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .modal-header {
-    padding: 15px 20px;
-    background: #2c3e50;
-    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 18px 22px;
+    background: #2c3e50;
+    color: white;
+    border-radius: 24px 24px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: white;
 }
 
 .modal-header .modal-close {
@@ -255,6 +200,8 @@ button {
     font-weight: bold;
     cursor: pointer;
     line-height: 1;
+    color: white;
+    transition: 0.2s;
 }
 
 .modal-header .modal-close:hover {
@@ -262,9 +209,47 @@ button {
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 22px;
+    overflow-y: auto;
 }
 
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 15px 22px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 0 0 24px 24px;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.modal-footer button {
+    flex: 1;
+    margin: 0;
+}
+
+/* Scrollbar untuk modal */
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ========== UPLOAD OPTIONS (DI DALAM MODAL) ========== */
 .upload-options {
     display: flex;
     flex-direction: column;
@@ -307,4 +292,34 @@ button {
 .upload-option:hover {
     transform: scale(1.02);
     filter: brightness(0.95);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 600px) {
+    .row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .modal-header {
+        padding: 14px 18px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .modal-footer {
+        padding: 12px 16px;
+    }
+}
+
+/* Agar body tidak scroll saat modal terbuka */
+body.modal-open {
+    overflow: hidden;
 }

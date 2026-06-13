@@ -1,7 +1,11 @@
 // ========== DATA.JS ==========
+console.log('🔥 data.js BERHASIL DI-LOAD!');
+
 let suppliers = [];
 
 async function loadSuppliers() {
+    console.log('🚀 loadSuppliers DIPANGGIL!');
+    
     try {
         if (typeof CONFIG === 'undefined') {
             console.error('CONFIG tidak ditemukan!');
@@ -11,7 +15,6 @@ async function loadSuppliers() {
 
         console.log('📡 Mengambil data supplier...');
         
-        // Gunakan POST method seperti di kode lain Anda
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -25,9 +28,7 @@ async function loadSuppliers() {
         const result = await response.json();
         console.log('Supplier response:', result);
         
-        // Cek struktur response
         if (result && result.success === true) {
-            // Pastikan result.data adalah array
             if (result.data && Array.isArray(result.data)) {
                 suppliers = result.data.map((s, index) => ({
                     id: index,
@@ -66,6 +67,21 @@ async function loadSuppliers() {
     }
 }
 
+// ========== PERBAIKAN: Auto-load jika ada elemen yang membutuhkan supplier ==========
+// Cek apakah ada elemen yang membutuhkan data supplier
+const needSupplier = document.getElementById('supplierSelect') || 
+                    document.getElementById('supplierTableBody') ||
+                    document.getElementById('ttSupplierSelect') ||
+                    document.getElementById('editSupplierSelect');
+
+if (needSupplier) {
+    console.log('📌 Elemen supplier ditemukan, memanggil loadSuppliers()');
+    loadSuppliers();
+} else {
+    console.log('📌 Tidak ada elemen supplier, skip loadSuppliers');
+}
+
+// ========== SISANYA SAMA ==========
 function showErrorInTable(message) {
     let tbody = document.getElementById('supplierTableBody');
     if (tbody) {
@@ -129,9 +145,4 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
-}
-
-// Load suppliers jika halaman memiliki tabel supplier
-if (document.getElementById('supplierTableBody')) {
-    loadSuppliers();
 }

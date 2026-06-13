@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Manajemen User - APLIKASI AL</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .user-role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .role-admin {
+            background: #e74c3c;
+            color: white;
+        }
+        .role-user {
+            background: #3498db;
+            color: white;
+        }
+        .user-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-active {
+            background: #27ae60;
+        }
+        .status-inactive {
+            background: #95a5a6;
+        }
+        .btn-reset {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Manajemen User</p>
+    </div>
+
+    <button class="btn-back" onclick="window.location.href='../dashboard.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>👥 MANAJEMEN USER</h2>
+        
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+            <button id="btnAddUser" class="btn-add-supplier">➕ Tambah User</button>
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Username</th>
+                        <th>Nama</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <tr><td colspan="7">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT USER -->
+<div id="userModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="userModalTitle">➕ Tambah User</h3>
+            <span class="modal-close" id="userModalClose">&times;</span>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="userEditId" value="">
+            <div class="form-group">
+                <label>Username *</label>
+                <input type="text" id="userUsername" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="userPassword" placeholder="Password">
+                <small id="passwordNote" style="color: #666;">Kosongkan jika tidak ingin mengubah password</small>
+            </div>
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="userFullname" placeholder="Nama lengkap">
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="userRole">
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="userStatus">
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Nonaktif</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="userSaveBtn" class="btn-success">💾 Simpan</button>
+            <button id="userCancelBtn" class="btn-secondary">Batal</button>
+        </div>
+    </div>
+</div>
+
+<script src="../config.js"></script>
+<script>
+    // Data users (default)
+    let users = [
+        { id: 1, username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin', status: 'active', lastLogin: null },
+        { id: 2, username: 'user', password: 'user123', name: 'User', role: 'user', status: 'active', lastLogin: null },
+        { id: 3, username: 'al', password: 'al123', name: 'AL Team', role: 'admin', status: 'active', lastLogin: null }
+    ];
+    
+    let nextId = 4;
+    
+    // Load users from localStorage
+    function loadUsersFromStorage() {
+        const stored = localStorage.getItem('app_users');
+        if (stored) {
+            users = JSON.parse(stored);
+            nextId = Math.max(...users.map(u => u.id), 0) + 1;
+        }
+        renderUserTable();
+    }
+    
+    // Save users to localStorage
+    function saveUsersToStorage() {
+        localStorage.setItem('app_users', JSON.stringify(users));
+    }
+    
+    // Render tabel user
+    function renderUserTable() {
+        const tbody = document.getElementById('userTableBody');
+        if (!tbody) return;
+        
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7">Tidak ada data user</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        users.forEach((user, idx) => {
+            const roleClass = user.role === 'admin' ? 'role-admin' : 'role-user';
+            const roleText = user.role === 'admin' ? 'Admin' : 'User';
+            const statusClass = user.status === 'active' ? 'status-active' : 'status-inactive';
+            const statusText = user.status === 'active' ? 'Aktif' : 'Nonaktif';
+            const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('id-ID') : '-';
+            
+            html += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${escapeHtml(user.username)}</td>
+                    <td>${escapeHtml(user.name || '-')}</td>
+                    <td><span class="user-role-badge ${roleClass}">${roleText}</span></td>
+                    <td><span class="user-status ${statusClass}"></span>${statusText}</td>
+                    <td>${lastLogin}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editUser(${user.id})">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteUser(${user.id})">🗑️ Hapus</button>
+                        <button class="btn-reset" onclick="resetPassword(${user.id})">🔑 Reset</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+    
+    // Escape HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+    
+    // Buka modal tambah user
+    function openAddUserModal() {
+        document.getElementById('userModalTitle').innerText = '➕ Tambah User';
+        document.getElementById('userEditId').value = '';
+        document.getElementById('userUsername').value = '';
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userFullname').value = '';
+        document.getElementById('userRole').value = 'user';
+        document.getElementById('userStatus').value = 'active';
+        document.getElementById('passwordNote').style.display = 'block';
+        document.getElementById('userModal').style.display = 'flex';
+    }
+    
+    // Edit user
+    function editUser(id) {
+        const user = users.find(u => u.id === id);
+        if (!user) return;
+        
+        document.getElementById('userModalTitle').innerText = '✏️ Edit User';
+        document.getElementById('userEditId').value = user.id;
+        document.getElementById('userUsername').value = user.username;
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userFullname').value = user.name || '';
+        document.getElementById('userRole').value = user.role;
+        document.getElementById('userStatus').value = user.status;
+        document.getElementById('passwordNote').style.display = 'block';
+        document.getElementById('userModal').style.display = 'flex';
+    }
+    
+    // Delete user
+    function deleteUser(id) {
+        const user = users.find(u => u.id === id);
+        if (!user) return;
+        
+        if (user.username === 'admin') {
+            alert('❌ User admin tidak dapat dihapus!');
+            return;
+        }
+        
+        if (confirm(`Yakin ingin menghapus user "${user.username}"?`)) {
+            users = users.filter(u => u.id !== id);
+            saveUsersToStorage();
+            renderUserTable();
+            alert('✅ User berhasil dihapus!');
+        }
+    }
+    
+    // Reset password
+    function resetPassword(id) {
+        const user = users.find(u => u.id === id);
+        if (!user) return;
+        
+        const newPassword = prompt(`Reset password untuk "${user.username}"\nMasukkan password baru (minimal 4 karakter):`);
+        if (newPassword && newPassword.length >= 4) {
+            user.password = newPassword;
+            saveUsersToStorage();
+            alert(`✅ Password untuk ${user.username} berhasil direset!`);
+        } else if (newPassword) {
+            alert('❌ Password minimal 4 karakter!');
+        }
+    }
+    
+    // Simpan user
+    async function saveUser() {
+        const editId = document.getElementById('userEditId').value;
+        const username = document.getElementById('userUsername').value.trim();
+        const password = document.getElementById('userPassword').value;
+        const fullname = document.getElementById('userFullname').value.trim();
+        const role = document.getElementById('userRole').value;
+        const status = document.getElementById('userStatus').value;
+        
+        if (!username) {
+            alert('Username wajib diisi!');
+            return;
+        }
+        
+        // Cek duplikat username
+        const existingUser = users.find(u => u.username === username && u.id != editId);
+        if (existingUser) {
+            alert('Username sudah digunakan!');
+            return;
+        }
+        
+        if (editId) {
+            // Edit existing user
+            const index = users.findIndex(u => u.id == editId);
+            if (index !== -1) {
+                users[index].username = username;
+                if (password) users[index].password = password;
+                users[index].name = fullname;
+                users[index].role = role;
+                users[index].status = status;
+                saveUsersToStorage();
+                alert('✅ User berhasil diupdate!');
+            }
+        } else {
+            // Add new user
+            if (!password) {
+                alert('Password wajib diisi untuk user baru!');
+                return;
+            }
+            if (password.length < 4) {
+                alert('Password minimal 4 karakter!');
+                return;
+            }
+            
+            users.push({
+                id: nextId++,
+                username: username,
+                password: password,
+                name: fullname,
+                role: role,
+                status: status,
+                lastLogin: null
+            });
+            saveUsersToStorage();
+            alert('✅ User berhasil ditambahkan!');
+        }
+        
+        closeUserModal();
+        renderUserTable();
+    }
+    
+    // Tutup modal
+    function closeUserModal() {
+        document.getElementById('userModal').style.display = 'none';
+        document.getElementById('userUsername').value = '';
+        document.getElementById('userPassword').value = '';
+        document.getElementById('userFullname').value = '';
+    }
+    
+    // Event listeners
+    document.getElementById('btnAddUser')?.addEventListener('click', openAddUserModal);
+    document.getElementById('userSaveBtn')?.addEventListener('click', saveUser);
+    document.getElementById('userModalClose')?.addEventListener('click', closeUserModal);
+    document.getElementById('userCancelBtn')?.addEventListener('click', closeUserModal);
+    
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('userModal');
+        if (e.target === modal) closeUserModal();
+    });
+    
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+        loadUsersFromStorage();
+    });
+    
+    // Export functions for global access
+    window.editUser = editUser;
+    window.deleteUser = deleteUser;
+    window.resetPassword = resetPassword;
+</script>
+</body>
+</html>

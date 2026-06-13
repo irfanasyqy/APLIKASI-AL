@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Login - APLIKASI AL</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">🏦</div>
+                <h2>APLIKASI AL</h2>
+                <p>Transfer Bank & Dokumentasi</p>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Masukkan username" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Masukkan password">
+            </div>
+            
+            <button class="btn-login" id="btnLogin">🔐 LOGIN</button>
+            
+            <div class="info-text">
+                Demo: admin / admin123
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default users jika belum ada
+        const DEFAULT_USERS = [
+            { id: 1, username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin', status: 'active', lastLogin: null },
+            { id: 2, username: 'user', password: 'user123', name: 'User', role: 'user', status: 'active', lastLogin: null },
+            { id: 3, username: 'al', password: 'al123', name: 'AL Team', role: 'admin', status: 'active', lastLogin: null }
+        ];
+        
+        // Initialize users di localStorage
+        function initUsers() {
+            if (!localStorage.getItem('app_users')) {
+                localStorage.setItem('app_users', JSON.stringify(DEFAULT_USERS));
+            }
+        }
+        
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('app_users') || '[]');
+        }
+        
+        function saveUsers(users) {
+            localStorage.setItem('app_users', JSON.stringify(users));
+        }
+        
+        // Login attempt limit
+        let loginAttempts = JSON.parse(localStorage.getItem('loginAttempts') || '{}');
+        const MAX_ATTEMPTS = 3;
+        const BLOCK_TIME = 5 * 60 * 1000;
+        
+        function getBlockedStatus() {
+            const blockUntil = loginAttempts.blockUntil;
+            if (blockUntil && Date.now() < blockUntil) {
+                const remaining = Math.ceil((blockUntil - Date.now()) / 1000);
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                return { blocked: true, remaining: `${minutes}:${seconds.toString().padStart(2,'0')}` };
+            }
+            return { blocked: false };
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function login() {
+            const blocked = getBlockedStatus();
+            if (blocked.blocked) {
+                showError(`Terlalu banyak percobaan gagal. Coba lagi setelah ${blocked.remaining}`);
+                return;
+            }
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showError('Username dan password wajib diisi!');
+                return;
+            }
+            
+            initUsers();
+            const users = getUsers();
+            const user = users.find(u => u.username === username && u.password === password && u.status === 'active');
+            
+            if (user) {
+                // Update last login
+                user.lastLogin = new Date().toISOString();
+                saveUsers(users);
+                
+                // Reset login attempts
+                loginAttempts = {};
+                localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
+                
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userName', user.name || user.username);
+                localStorage.setItem('userRole', user.role);
+                localStorage.setItem('userUsername', user.username);
+                localStorage.setItem('loginTime', new Date().toISOString());
+                
+                window.location.href = 'dashboard.html';
+            } else {
+                // Cek apakah user inactive
+                const inactiveUser = users.find(u => u.username === username && u.status === 'inactive');
+                if (inactiveUser) {
+                    showError('Akun Anda dinonaktifkan. Silakan hubungi administrator!');
+                    return;
+                }
+                
+                // Hitung percobaan gagal
+                const failedAttempts = (loginAttempts[username] || 0) + 1;
+                loginAttempts[username] = failedAttempts;
+                
+                if (failedAttempts >= MAX_ATTEMPTS) {
+                    loginAttempts.blockUntil = Date.now() + BLOCK_TIME;
+                    showError(`Terlalu banyak percobaan gagal. Silakan coba lagi setelah 5 menit.`);
+                } else {
+                    showError(`Username atau password salah! (Percobaan ${failedAttempts} dari ${MAX_ATTEMPTS})`);
+                }
+                
+                localStorage.setItem('loginAttempts', JSON.stringify(loginAttempts));
+            }
+        }
+        
+        document.getElementById('btnLogin').addEventListener('click', login);
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+        
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 // ========== SUPPLIER.JS ==========
 // Halaman Data Supplier dengan Edit & Hapus
 
+// ========== DEKLARASI VARIABEL MODAL ==========
+const modal = document.getElementById('supplierModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalEditId = document.getElementById('modalEditId');
 const btnAddSupplier = document.getElementById('btnAddSupplier');
@@ -13,7 +15,7 @@ function renderSupplierTable() {
     let tbody = document.getElementById('supplierTableBody');
     if (!tbody) return;
     if (suppliers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">Tidak ada data supplier</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">Tidak ada data supplier</td><tr>';
         return;
     }
     let html = '';
@@ -57,7 +59,8 @@ if (btnAddSupplier) {
     btnAddSupplier.addEventListener('click', () => {
         modalTitle.textContent = '➕ Tambah Supplier Baru';
         modalEditId.value = '';
-        document.getElementById('modalNo').value = '';
+        
+        // Reset semua field (tanpa kolom No)
         document.getElementById('modalNama').value = '';
         document.getElementById('modalAccount').value = '';
         document.getElementById('modalCurrency').value = 'USD';
@@ -66,6 +69,7 @@ if (btnAddSupplier) {
         document.getElementById('modalBankAlamat').value = '';
         document.getElementById('modalSwift').value = '';
         document.getElementById('modalCountry').value = '';
+        
         if (modal) modal.style.display = 'flex';
     });
 }
@@ -77,7 +81,8 @@ function editSupplier(id) {
     
     modalTitle.textContent = '✏️ Edit Supplier';
     modalEditId.value = id;
-    document.getElementById('modalNo').value = s.no || '';
+    
+    // Isi semua field (tanpa kolom No)
     document.getElementById('modalNama').value = s.nama || '';
     document.getElementById('modalAccount').value = s.account || '';
     document.getElementById('modalCurrency').value = s.currency || 'USD';
@@ -112,7 +117,7 @@ async function deleteSupplier(id) {
         
         if (result.success) {
             alert('✅ Supplier berhasil dihapus!');
-            loadSuppliers(); // Refresh data
+            if (typeof loadSuppliers === 'function') loadSuppliers();
         } else {
             alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
         }
@@ -125,11 +130,32 @@ async function deleteSupplier(id) {
 // Tutup modal
 function closeModal() {
     if (modal) modal.style.display = 'none';
+    
+    // Reset form (tanpa kolom No)
+    const modalNama = document.getElementById('modalNama');
+    const modalAccount = document.getElementById('modalAccount');
+    const modalCurrency = document.getElementById('modalCurrency');
+    const modalAlamat = document.getElementById('modalAlamat');
+    const modalBankName = document.getElementById('modalBankName');
+    const modalBankAlamat = document.getElementById('modalBankAlamat');
+    const modalSwift = document.getElementById('modalSwift');
+    const modalCountry = document.getElementById('modalCountry');
+    
+    if (modalNama) modalNama.value = '';
+    if (modalAccount) modalAccount.value = '';
+    if (modalCurrency) modalCurrency.value = 'USD';
+    if (modalAlamat) modalAlamat.value = '';
+    if (modalBankName) modalBankName.value = '';
+    if (modalBankAlamat) modalBankAlamat.value = '';
+    if (modalSwift) modalSwift.value = '';
+    if (modalCountry) modalCountry.value = '';
 }
 
+// Event listener modal
 if (modalClose) modalClose.addEventListener('click', closeModal);
 if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
 
+// Klik di luar modal
 window.addEventListener('click', (e) => {
     if (e.target === modal) closeModal();
 });
@@ -146,9 +172,9 @@ if (modalSaveBtn) {
         const editId = modalEditId.value;
         const isEdit = editId !== '';
         
+        // Data supplier (tanpa nomor)
         const supplierData = {
             type: 'saveSupplier',
-            no: document.getElementById('modalNo').value,
             nama: nama,
             account: document.getElementById('modalAccount').value,
             currency: document.getElementById('modalCurrency').value,
@@ -159,7 +185,7 @@ if (modalSaveBtn) {
             country: document.getElementById('modalCountry').value
         };
         
-        // Jika edit, tambahkan data lama untuk referensi
+        // Jika edit, kirim editId
         if (isEdit) {
             supplierData.editId = editId;
             supplierData.oldNama = suppliers[editId]?.nama;
@@ -179,7 +205,7 @@ if (modalSaveBtn) {
             if (result.success) {
                 alert(isEdit ? '✅ Supplier berhasil diupdate!' : '✅ Supplier berhasil ditambahkan!');
                 closeModal();
-                loadSuppliers(); // Refresh data supplier
+                if (typeof loadSuppliers === 'function') loadSuppliers();
             } else {
                 alert('❌ Gagal: ' + (result.error || 'Unknown error'));
             }
@@ -195,5 +221,7 @@ if (modalSaveBtn) {
 
 // Panggil loadSuppliers saat halaman dimuat
 if (document.getElementById('supplierTableBody')) {
-    loadSuppliers();
+    if (typeof loadSuppliers === 'function') {
+        loadSuppliers();
+    }
 }

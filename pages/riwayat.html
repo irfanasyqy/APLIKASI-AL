@@ -13,15 +13,160 @@
         <p class="subtitle">Riwayat Transaksi</p>
     </div>
 
-    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    <button class="btn-back" onclick="window.location.href='../dashboard.html'">← KEMBALI KE MENU</button>
     
     <div class="card">
         <h2>📋 RIWAYAT</h2>
+        
+        <!-- Tombol Export -->
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button id="btnExportTransfer" class="btn-success" style="width: auto;">📊 Export Transfer</button>
+            <button id="btnExportTT" class="btn-success" style="width: auto;">📊 Export Tanda Terima</button>
+            <button id="btnExportValas" class="btn-success" style="width: auto;">📊 Export Valas</button>
+        </div>
+        
         <div class="riwayat-tabs">
             <button id="riwayatTransferBtn" class="riwayat-tab active">TRANSFER</button>
             <button id="riwayatTTBtn" class="riwayat-tab">TANDA TERIMA</button>
             <button id="riwayatValasBtn" class="riwayat-tab">VALAS</button>
         </div>
+                <!-- Tambahkan di card, sebelum tabel -->
+        <div class="search-advanced" style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="searchKeyword" placeholder="🔍 Cari (No, Nama, Bank)..." style="flex: 2;">
+                <input type="date" id="searchDateFrom" placeholder="Dari tanggal" style="flex: 1;">
+                <input type="date" id="searchDateTo" placeholder="Sampai tanggal" style="flex: 1;">
+                <select id="searchCurrency" style="flex: 1;">
+                    <option value="">Semua Currency</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="IDR">IDR</option>
+                </select>
+                <button id="btnSearch" class="btn-success" style="width: auto;">🔍 Cari</button>
+                <button id="btnReset" class="btn-secondary" style="width: auto;">🔄 Reset</button>
+            </div>
+        </div>
+
+        <script>
+            // Pencarian Lanjutan
+            let originalTransferData = [];
+            
+            async function loadRiwayatTransferWithSearch() {
+                try {
+                    const response = await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: 'getRiwayatTransfer' })
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        originalTransferData = result.data;
+                        applySearch();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+            
+            function applySearch() {
+                const keyword = document.getElementById('searchKeyword')?.value.toLowerCase() || '';
+                const dateFrom = document.getElementById('searchDateFrom')?.value;
+                const dateTo = document.getElementById('searchDateTo')?.value;
+                const currency = document.getElementById('searchCurrency')?.value;
+                
+                let filtered = [...originalTransferData];
+                
+                // Filter keyword
+                if (keyword) {
+                    filtered = filtered.filter(row => {
+                        const noLoa = (row[2] || '').toLowerCase();
+                        const penerima = (row[4] || '').toLowerCase();
+                        const bank = (row[3] || '').toLowerCase();
+                        return noLoa.includes(keyword) || penerima.includes(keyword) || bank.includes(keyword);
+                    });
+                }
+                
+                // Filter tanggal
+                if (dateFrom) {
+                    filtered = filtered.filter(row => {
+                        const tgl = row[1] || '';
+                        const [day, month, year] = tgl.split('/');
+                        const rowDate = `${year}-${month}-${day}`;
+                        return rowDate >= dateFrom;
+                    });
+                }
+                
+                if (dateTo) {
+                    filtered = filtered.filter(row => {
+                        const tgl = row[1] || '';
+                        const [day, month, year] = tgl.split('/');
+                        const rowDate = `${year}-${month}-${day}`;
+                        return rowDate <= dateTo;
+                    });
+                }
+                
+                // Filter currency
+                if (currency) {
+                    filtered = filtered.filter(row => row[6] === currency);
+                }
+                
+                renderFilteredTransferTable(filtered);
+            }
+            
+            function renderFilteredTransferTable(data) {
+                const tbody = document.getElementById('riwayatTransferBody');
+                if (!tbody) return;
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7">Tidak ada data yang cocok</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
+                    html += `
+                        <tr>
+                            <td>${row[1] || '-'}</td>
+                            <td>${row[2] || '-'}</td>
+                            <td>${row[3] || '-'}</td>
+                            <td>${row[4] || '-'}</td>
+                            <td>${parseFloat(row[7] || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            <td>${row[6] || '-'}</td>
+                            <td><button class="btn-print-ulang" data-index="${i}" data-type="transfer">🖨️ Print</button></td>
+                        </tr>
+                    `;
+                }
+                tbody.innerHTML = html;
+                
+                // Re-attach event listeners
+                document.querySelectorAll('.btn-print-ulang').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const idx = btn.getAttribute('data-index');
+                        if (originalTransferData[idx]) {
+                            printUlangTransfer(originalTransferData[idx]);
+                        }
+                    });
+                });
+            }
+            
+            function resetSearch() {
+                document.getElementById('searchKeyword').value = '';
+                document.getElementById('searchDateFrom').value = '';
+                document.getElementById('searchDateTo').value = '';
+                document.getElementById('searchCurrency').value = '';
+                renderFilteredTransferTable(originalTransferData);
+            }
+            
+            // Event listeners
+            document.getElementById('btnSearch')?.addEventListener('click', applySearch);
+            document.getElementById('btnReset')?.addEventListener('click', resetSearch);
+            
+            // Override loadRiwayatTransfer
+            const originalLoad = loadRiwayatTransfer;
+            window.loadRiwayatTransfer = loadRiwayatTransferWithSearch;
+        </script>
         
         <!-- TABEL RIWAYAT TRANSFER -->
         <div id="riwayatTransferList" style="overflow-x:auto;">
@@ -40,7 +185,7 @@
                 <tbody id="riwayatTransferBody">
                     <tr><td colspan="7">Loading...</td></tr>
                 </tbody>
-            </table>
+             </table>
         </div>
         
         <!-- TABEL RIWAYAT TANDA TERIMA -->
@@ -55,12 +200,12 @@
                         <th>Jumlah</th>
                         <th>Currency</th>
                         <th>Aksi</th>
-                    </tr>
+                     </tr>
                 </thead>
                 <tbody id="riwayatTTBody">
                     <tr><td colspan="7">Loading...</td></tr>
                 </tbody>
-            </table>
+             </table>
         </div>
         
         <!-- TABEL RIWAYAT VALAS -->
@@ -76,25 +221,28 @@
                         <th>Kurs</th>
                         <th>Jumlah Dapat</th>
                         <th>Aksi</th>
-                    </tr>
+                     </tr>
                 </thead>
                 <tbody id="riwayatValasBody">
                     <tr><td colspan="8">Loading...</td></tr>
                 </tbody>
-            </table>
+             </table>
         </div>
     </div>
 </div>
 
+<!-- Scripts -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="../config.js"></script>
 <script src="../js/data.js"></script>
-<script src="../js/ui.js"></script>
-<script src="../js/transfer.js"></script>
-<script src="../js/tanda-terima.js"></script>
-<script src="../js/cetak-label.js"></script>
-<script src="../js/edit-data.js"></script>
 <script src="../js/riwayat.js"></script>
-<script src="../js/tukar-faktur.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/export.js"></script>
+
+<script>
+    // Event listener untuk tombol export
+    document.getElementById('btnExportTransfer')?.addEventListener('click', exportTransferHistory);
+    document.getElementById('btnExportTT')?.addEventListener('click', exportTTHistory);
+    document.getElementById('btnExportValas')?.addEventListener('click', exportValasHistory);
+</script>
 </body>
 </html>

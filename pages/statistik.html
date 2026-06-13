@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Statistik - APLIKASI AL</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Chart.js untuk grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .stat-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .stat-card .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .stat-card.primary .stat-value { color: #3498db; }
+        .stat-card.warning .stat-value { color: #f39c12; }
+        .stat-card.danger .stat-value { color: #e74c3c; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-left: 4px solid #27ae60;
+            padding-left: 12px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .top-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .top-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .top-list .rank {
+            width: 30px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .top-list .name {
+            flex: 1;
+        }
+        
+        .top-list .value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .date-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .date-filter input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .btn-filter {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Dashboard Statistik</p>
+    </div>
+
+    <button class="btn-back" onclick="window.location.href='../dashboard.html'">← KEMBALI KE MENU</button>
+    
+    <!-- Filter Tanggal -->
+    <div class="card" style="margin-bottom: 20px;">
+        <div class="date-filter">
+            <input type="month" id="filterMonth" value="">
+            <button class="btn-filter" id="applyFilter">📊 Tampilkan</button>
+            <button class="btn-filter" id="resetFilter" style="background: #95a5a6;">🔄 Reset</button>
+        </div>
+    </div>
+    
+    <!-- Stat Cards -->
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="totalTransfer">-</div>
+            <div class="stat-label">Total Transfer (USD)</div>
+        </div>
+        <div class="stat-card primary">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="totalTT">-</div>
+            <div class="stat-label">Total Tanda Terima</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-icon">💱</div>
+            <div class="stat-value" id="totalValas">-</div>
+            <div class="stat-label">Total Pembelian Valas</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-value" id="totalSupplier">-</div>
+            <div class="stat-label">Total Supplier</div>
+        </div>
+    </div>
+    
+    <!-- Grafik -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>📈 Tren Transfer per Bulan</h3>
+            <div class="chart-container">
+                <canvas id="transferChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>💱 Perbandingan Mata Uang</h3>
+            <div class="chart-container">
+                <canvas id="currencyChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Lists -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>🏆 Top 5 Supplier</h3>
+            <ul class="top-list" id="topSupplierList">
+                <li>Loading...</li>
+            </ul>
+        </div>
+        <div class="chart-card">
+            <h3>👥 Top 5 Customer (Tukar Faktur)</h3>
+            <ul class="top-list" id="topCustomerList">
+                <li>Loading...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script src="../config.js"></script>
+<script>
+    let transferChart = null;
+    let currencyChart = null;
+    let currentFilter = '';
+    
+    // ========== CEK LOGIN ==========
+    function checkLogin() {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        if (isLoggedIn !== 'true') {
+            window.location.href = '../login.html';
+            return false;
+        }
+        return true;
+    }
+    
+    // ========== FORMAT RUPIAH ==========
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(angka);
+    }
+    
+    // ========== LOAD STATISTIK ==========
+    async function loadStatistics() {
+        try {
+            // Load Supplier
+            const supplierRes = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getSuppliers' })
+            });
+            const supplierData = await supplierRes.json();
+            const totalSupplier = supplierData.success ? supplierData.data.length : 0;
+            document.getElementById('totalSupplier').innerText = totalSupplier;
+            
+            // Load Transfer
+            const transferRes = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getRiwayatTransfer' })
+            });
+            const transferData = await transferRes.json();
+            
+            let totalTransfer = 0;
+            let monthlyData = {};
+            let currencyCount = { USD: 0, EUR: 0, IDR: 0, OTHER: 0 };
+            let supplierAmount = {};
+            
+            if (transferData.success && transferData.data) {
+                transferData.data.forEach(row => {
+                    const jumlah = parseFloat(row[7]) || 0;
+                    const currency = row[6] || 'USD';
+                    const tanggal = row[1] || '';
+                    const namaPenerima = row[4] || '';
+                    
+                    totalTransfer += jumlah;
+                    
+                    // Count currency
+                    if (currency === 'USD') currencyCount.USD += jumlah;
+                    else if (currency === 'EUR') currencyCount.EUR += jumlah;
+                    else if (currency === 'IDR') currencyCount.IDR += jumlah;
+                    else currencyCount.OTHER += jumlah;
+                    
+                    // Monthly data
+                    if (tanggal) {
+                        const month = tanggal.split('/')[1] + '/' + tanggal.split('/')[2];
+                        if (monthlyData[month]) {
+                            monthlyData[month] += jumlah;
+                        } else {
+                            monthlyData[month] = jumlah;
+                        }
+                    }
+                    
+                    // Top supplier
+                    if (namaPenerima) {
+                        if (supplierAmount[namaPenerima]) {
+                            supplierAmount[namaPenerima] += jumlah;
+                        } else {
+                            supplierAmount[namaPenerima] = jumlah;
+                        }
+                    }
+                });
+            }
+            
+            document.getElementById('totalTransfer').innerText = totalTransfer.toLocaleString('en-US', {minimumFractionDigits: 2});
+            
+            // Load TT
+            const ttRes = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getRiwayatTT' })
+            });
+            const ttData = await ttRes.json();
+            const totalTT = ttData.success ? ttData.data.length : 0;
+            document.getElementById('totalTT').innerText = totalTT;
+            
+            // Load Valas
+            const valasRes = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getRiwayatValas' })
+            });
+            const valasData = await valasRes.json();
+            const totalValas = valasData.success ? valasData.data.length : 0;
+            document.getElementById('totalValas').innerText = totalValas;
+            
+            // Load Customer untuk top list
+            const customerRes = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getCustomers' })
+            });
+            const customerData = await customerRes.json();
+            
+            // Render Charts
+            renderTransferChart(monthlyData);
+            renderCurrencyChart(currencyCount);
+            renderTopSupplier(supplierAmount);
+            renderTopCustomer(customerData.data || []);
+            
+        } catch (error) {
+            console.error('Error loading statistics:', error);
+        }
+    }
+    
+    function renderTransferChart(monthlyData) {
+        const ctx = document.getElementById('transferChart').getContext('2d');
+        
+        // Sort months
+        const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
+            const [monthA, yearA] = a.split('/');
+            const [monthB, yearB] = b.split('/');
+            return new Date(yearA, monthA - 1) - new Date(yearB, monthB - 1);
+        });
+        
+        const values = sortedMonths.map(m => monthlyData[m]);
+        
+        if (transferChart) transferChart.destroy();
+        
+        transferChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sortedMonths,
+                datasets: [{
+                    label: 'Jumlah Transfer (USD)',
+                    data: values,
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#27ae60',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `USD ${context.raw.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderCurrencyChart(currencyCount) {
+        const ctx = document.getElementById('currencyChart').getContext('2d');
+        
+        const labels = Object.keys(currencyCount).filter(k => currencyCount[k] > 0);
+        const values = labels.map(l => currencyCount[l]);
+        
+        if (currencyChart) currencyChart.destroy();
+        
+        const colors = {
+            USD: '#27ae60',
+            EUR: '#3498db',
+            IDR: '#f39c12',
+            OTHER: '#95a5a6'
+        };
+        
+        currencyChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: labels.map(l => colors[l] || '#95a5a6'),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = values.reduce((a,b) => a + b, 0);
+                                const percentage = ((context.raw / total) * 100).toFixed(1);
+                                return `${context.label}: USD ${context.raw.toLocaleString('en-US', {minimumFractionDigits: 2})} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderTopSupplier(supplierAmount) {
+        const listEl = document.getElementById('topSupplierList');
+        const sorted = Object.entries(supplierAmount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+        
+        if (sorted.length === 0) {
+            listEl.innerHTML = '<li>Belum ada data</li>';
+            return;
+        }
+        
+        listEl.innerHTML = sorted.map(([name, amount], idx) => `
+            <li>
+                <span class="rank">${idx + 1}</span>
+                <span class="name">${name.length > 30 ? name.substring(0, 30) + '...' : name}</span>
+                <span class="value">USD ${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+            </li>
+        `).join('');
+    }
+    
+    function renderTopCustomer(customers) {
+        const listEl = document.getElementById('topCustomerList');
+        
+        if (!customers || customers.length === 0) {
+            listEl.innerHTML = '<li>Belum ada data</li>';
+            return;
+        }
+        
+        // Sort by jadwal or just show all
+        const topCustomers = customers.slice(0, 5);
+        
+        listEl.innerHTML = topCustomers.map((c, idx) => `
+            <li>
+                <span class="rank">${idx + 1}</span>
+                <span class="name">${c.nama || '-'}</span>
+                <span class="value">📅 ${c.jadwal || '-'}</span>
+            </li>
+        `).join('');
+    }
+    
+    // ========== SET FILTER ==========
+    function setFilter() {
+        const month = document.getElementById('filterMonth').value;
+        if (month) {
+            currentFilter = month;
+        }
+        loadStatistics();
+    }
+    
+    function resetFilter() {
+        document.getElementById('filterMonth').value = '';
+        currentFilter = '';
+        loadStatistics();
+    }
+    
+    // Set default month to current
+    const today = new Date();
+    const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('filterMonth').value = defaultMonth;
+    
+    // Event listeners
+    document.getElementById('applyFilter')?.addEventListener('click', setFilter);
+    document.getElementById('resetFilter')?.addEventListener('click', resetFilter);
+    
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+        if (checkLogin()) {
+            loadStatistics();
+        }
+    });
+</script>
+</body>
+</html>

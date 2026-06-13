@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Dashboard - APLIKASI AL</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Tambahan style untuk notifikasi */
+        .user-info {
+            background: #e8f4fd;
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .user-info .user-name {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+        
+        .btn-logout {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        
+        .btn-logout:hover {
+            background: #c0392b;
+        }
+        
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        /* Notifikasi Popup */
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 350px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .notification-popup .icon {
+            font-size: 24px;
+        }
+        
+        .notification-popup .content {
+            flex: 1;
+        }
+        
+        .notification-popup .title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .notification-popup .message {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .notification-popup .close {
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+        
+        .notification-popup .close:hover {
+            opacity: 1;
+        }
+        
+        /* Session warning */
+        .session-warning {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f39c12;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 40px;
+            font-size: 12px;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Slideshow container */
+        .slideshow-container {
+            background: linear-gradient(135deg, #1e2a3a, #2c3e50);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 30px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .slideshow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .slideshow-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .day-badge {
+            background: #27ae60;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .day-badge.tomorrow {
+            background: #f39c12;
+        }
+        
+        .slideshow-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .slideshow-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .slideshow-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 8px;
+        }
+        
+        .slideshow-card .pt-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .slideshow-card .pt-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem;
+        }
+        
+        .slideshow-card .pt-item:last-child {
+            border-bottom: none;
+        }
+        
+        .slideshow-card .pt-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .slideshow-card .pt-schedule {
+            font-size: 0.7rem;
+            color: #ddd;
+        }
+        
+        .empty-message {
+            text-align: center;
+            color: #ccc;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        .nav-arrows {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-arrow {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 6px 14px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-arrow:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .page-indicator {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #ddd;
+        }
+        
+        /* ========== MODAL EXPORT ========== */
+        .export-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .export-modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            animation: modalFadeIn 0.3s ease;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .export-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+        }
+        
+        .export-modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .export-modal-close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: 0.2s;
+        }
+        
+        .export-modal-close:hover {
+            color: #e74c3c;
+        }
+        
+        .export-modal-body {
+            padding: 20px;
+        }
+        
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .export-option:hover {
+            background: #e8f4fd;
+            border-color: #27ae60;
+            transform: translateX(5px);
+        }
+        
+        .export-option-icon {
+            font-size: 28px;
+        }
+        
+        .export-option-info {
+            flex: 1;
+        }
+        
+        .export-option-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+        
+        .export-option-desc {
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .slideshow-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+                /* ========== MENU GRID - SERAGAMKAN UKURAN ========== */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 0; /* Penting untuk grid agar konsisten */
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .menu-card .menu-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .menu-card .menu-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .menu-card .menu-desc {
+            font-size: 11px;
+            color: #7f8c8d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Dark Mode Toggle */
+            .dark-mode-toggle {
+                margin-right: 10px;
+            }
+            
+            .btn-darkmode {
+                background: #2c3e50;
+                color: white;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 40px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: 0.2s;
+            }
+            
+            .btn-darkmode:hover {
+                background: #1e3c72;
+                transform: scale(1.05);
+            }
+            
+            /* Dark Mode Styles */
+            body.dark-mode {
+                background: #1a1a2e;
+            }
+            
+            body.dark-mode .container {
+                background: transparent;
+            }
+            
+            body.dark-mode .card {
+                background: #16213e;
+                color: #eee;
+            }
+            
+            body.dark-mode .menu-card {
+                background: #0f3460;
+                color: #eee;
+            }
+            
+            body.dark-mode .menu-card .menu-desc {
+                color: #aaa;
+            }
+            
+            body.dark-mode .slideshow-container {
+                background: linear-gradient(135deg, #0f3460, #16213e);
+            }
+            
+            body.dark-mode .user-info {
+                background: #0f3460;
+                color: #eee;
+            }
+            
+            body.dark-mode .btn-logout {
+                background: #e74c3c;
+            }
+            
+            body.dark-mode .btn-darkmode {
+                background: #f39c12;
+                color: #1a1a2e;
+            }
+            
+            body.dark-mode table {
+                background: #16213e;
+                color: #eee;
+            }
+            
+            body.dark-mode th {
+                background: #0f3460;
+                color: #eee;
+            }
+            
+            body.dark-mode td {
+                border-bottom-color: #2c3e50;
+            }
+            
+            body.dark-mode input, 
+            body.dark-mode select, 
+            body.dark-mode textarea {
+                background: #0f3460;
+                border-color: #2c3e50;
+                color: #eee;
+            }
+            
+            body.dark-mode .export-modal-content {
+                background: #16213e;
+                color: #eee;
+            }
+            
+            body.dark-mode .export-option {
+                background: #0f3460;
+                border-color: #2c3e50;
+                color: #eee;
+            }
+            
+            body.dark-mode .export-option-title {
+                color: #eee;
+            }
+            
+            body.dark-mode .export-option-desc {
+                color: #aaa;
+            }
+            
+            body.dark-mode .export-option:hover {
+                background: #1e3c72;
+            }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-flex">
+        <div class="app-header" style="margin-bottom: 0;">
+            <div class="app-title">APLIKASI <span>AL</span></div>
+            <p class="subtitle">Transfer Bank & Dokumentasi</p>
+        </div>
+        <!-- Tambahkan di header-flex, sebelum user-info -->
+        <div class="dark-mode-toggle">
+            <button id="darkModeBtn" class="btn-darkmode">🌙</button>
+        </div>
+
+        <script>
+            // Dark Mode Toggle
+            function initDarkMode() {
+                const savedMode = localStorage.getItem('darkMode');
+                if (savedMode === 'enabled') {
+                    document.body.classList.add('dark-mode');
+                    document.getElementById('darkModeBtn').innerHTML = '☀️';
+                }
+            }
+            
+            function toggleDarkMode() {
+                const body = document.body;
+                const btn = document.getElementById('darkModeBtn');
+                
+                if (body.classList.contains('dark-mode')) {
+                    body.classList.remove('dark-mode');
+                    localStorage.setItem('darkMode', 'disabled');
+                    btn.innerHTML = '🌙';
+                } else {
+                    body.classList.add('dark-mode');
+                    localStorage.setItem('darkMode', 'enabled');
+                    btn.innerHTML = '☀️';
+                }
+            }
+            
+            document.getElementById('darkModeBtn')?.addEventListener('click', toggleDarkMode);
+            initDarkMode();
+        </script>
+        <div class="user-info">
+            <span>👤</span>
+            <span class="user-name" id="userNameDisplay"></span>
+            <span id="sessionTimer" style="font-size: 11px; color: #666;"></span>
+            <button class="btn-logout" id="btnLogout">🚪 LOGOUT</button>
+        </div>
+    </div>
+
+    <div class="menu-grid">
+        <div class="menu-card" onclick="window.location.href='pages/transfer.html'">
+            <div class="menu-icon">🏦</div>
+            <div class="menu-title">TRANSFER BANK</div>
+            <div class="menu-desc">Transfer ke supplier luar negeri</div>
+        </div>
+        
+        <div class="menu-card" onclick="window.location.href='pages/supplier.html'">
+            <div class="menu-icon">📦</div>
+            <div class="menu-title">SUPPLIER DATA</div>
+            <div class="menu-desc">Lihat data supplier</div>
+        </div>
+        
+        <div class="menu-card" onclick="window.location.href='pages/customer.html'">
+            <div class="menu-icon">👥</div>
+            <div class="menu-title">CUSTOMER DATA</div>
+            <div class="menu-desc">Lihat & kelola data customer</div>
+        </div>
+        
+        <div class="menu-card" onclick="window.location.href='pages/tukar-faktur.html'">
+            <div class="menu-icon">🔄</div>
+            <div class="menu-title">TUKAR FAKTUR</div>
+            <div class="menu-desc">Input penukaran faktur / invoice</div>
+        </div>
+
+        <div class="menu-card" onclick="window.location.href='pages/tanda-terima.html'">
+            <div class="menu-icon">📋</div>
+            <div class="menu-title">TANDA TERIMA</div>
+            <div class="menu-desc">Lihat & kelola tanda terima</div>
+        </div>
+        
+        <div class="menu-card" onclick="window.location.href='pages/cetak-label.html'">
+            <div class="menu-icon">🏷️</div>
+            <div class="menu-title">CETAK LABEL</div>
+            <div class="menu-desc">Cetak label alamat</div>
+        </div>
+        
+        
+        
+        <div class="menu-card" onclick="window.location.href='pages/edit-data.html'">
+            <div class="menu-icon">✏️</div>
+            <div class="menu-title">EDIT DATA</div>
+            <div class="menu-desc">Edit supplier</div>
+        </div>
+        
+        <div class="menu-card" onclick="window.location.href='pages/riwayat.html'">
+            <div class="menu-icon">📋</div>
+            <div class="menu-title">RIWAYAT</div>
+            <div class="menu-desc">History transfer</div>
+        </div>
+
+        <!-- Tambahkan di menu-grid, sebelum STATISTIK -->
+        <div class="menu-card" onclick="window.location.href='pages/users.html'" id="userMenu">
+            <div class="menu-icon">👥</div>
+            <div class="menu-title">MANAJEMEN USER</div>
+            <div class="menu-desc">Kelola pengguna sistem</div>
+        </div>
+
+            <!-- Tambahkan di menu-grid, sebelum EXPORT DATA -->
+        <div class="menu-card" onclick="window.location.href='pages/statistik.html'">
+            <div class="menu-icon">📊</div>
+            <div class="menu-title">STATISTIK</div>
+            <div class="menu-desc">Grafik & ringkasan data</div>
+        </div>
+
+        <!-- EXPORT MENU (Modal) -->
+        <div class="menu-card" id="exportMenuBtn" style="background: linear-gradient(135deg, #27ae60, #219a52); cursor: pointer;">
+            <div class="menu-icon">📊</div>
+            <div class="menu-title">EXPORT DATA</div>
+            <div class="menu-desc">Export ke Excel</div>
+        </div>
+        <!-- Tambahkan di menu-grid -->
+        <div class="menu-card" onclick="window.location.href='pages/backup.html'">
+            <div class="menu-icon">💾</div>
+            <div class="menu-title">BACKUP & RESTORE</div>
+            <div class="menu-desc">Backup & restore semua data</div>
+        </div>
+    </div>
+
+    <div class="slideshow-container" id="slideshowContainer">
+        <div class="slideshow-header">
+            <h3>📅 Jadwal Tukar Faktur</h3>
+            <div class="nav-arrows">
+                <button class="nav-arrow" onclick="changeDay(-1)">◀ Sebelumnya</button>
+                <button class="nav-arrow" onclick="changeDay(1)">Berikutnya ▶</button>
+            </div>
+        </div>
+        <div id="slideshowContent">
+            <div style="text-align: center; padding: 40px;">Memuat data...</div>
+        </div>
+        <div class="page-indicator" id="pageIndicator"></div>
+    </div>
+</div>
+
+<!-- Modal Export -->
+<div id="exportModal" class="export-modal">
+    <div class="export-modal-content">
+        <div class="export-modal-header">
+            <h3>📊 EXPORT DATA</h3>
+            <span class="export-modal-close" id="exportModalClose">&times;</span>
+        </div>
+        <div class="export-modal-body">
+            <div class="export-option" onclick="exportSuppliers(); closeExportModal();">
+                <div class="export-option-icon">📦</div>
+                <div class="export-option-info">
+                    <div class="export-option-title">Export Supplier</div>
+                    <div class="export-option-desc">Ekspor data supplier ke Excel</div>
+                </div>
+                <span>📎</span>
+            </div>
+            <div class="export-option" onclick="exportTransferHistory(); closeExportModal();">
+                <div class="export-option-icon">💰</div>
+                <div class="export-option-info">
+                    <div class="export-option-title">Export Riwayat Transfer</div>
+                    <div class="export-option-desc">Ekspor riwayat transfer ke Excel</div>
+                </div>
+                <span>📎</span>
+            </div>
+            <div class="export-option" onclick="exportTTHistory(); closeExportModal();">
+                <div class="export-option-icon">📋</div>
+                <div class="export-option-info">
+                    <div class="export-option-title">Export Tanda Terima</div>
+                    <div class="export-option-desc">Ekspor riwayat tanda terima ke Excel</div>
+                </div>
+                <span>📎</span>
+            </div>
+            <div class="export-option" onclick="exportValasHistory(); closeExportModal();">
+                <div class="export-option-icon">💱</div>
+                <div class="export-option-info">
+                    <div class="export-option-title">Export Riwayat Valas</div>
+                    <div class="export-option-desc">Ekspor riwayat pembelian valas ke Excel</div>
+                </div>
+                <span>📎</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Session warning -->
+<div id="sessionWarning" class="session-warning">
+    <span>⏰</span>
+    <span>Sesi akan berakhir dalam <span id="sessionCountdown">5:00</span></span>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="js/export.js"></script>
+<script>
+        // Sembunyikan menu user jika bukan admin
+        const userRole = localStorage.getItem('userRole');
+        const userMenu = document.getElementById('userMenu');
+        if (userRole !== 'admin' && userMenu) {
+            userMenu.style.display = 'none';
+        }
+    </script>
+
+<script>
+    // ========== KONFIGURASI ==========
+    const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 menit
+    let sessionTimeout;
+    let warningTimeout;
+    let activityInterval;
+    
+    // ========== FUNGSI MODAL EXPORT ==========
+    function openExportModal() {
+        const modal = document.getElementById('exportModal');
+        if (modal) modal.style.display = 'flex';
+    }
+    
+    function closeExportModal() {
+        const modal = document.getElementById('exportModal');
+        if (modal) modal.style.display = 'none';
+    }
+    
+    // ========== CEK LOGIN ==========
+    function checkLogin() {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        if (isLoggedIn !== 'true') {
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        const loginTime = localStorage.getItem('loginTime');
+        if (loginTime) {
+            const elapsed = Date.now() - new Date(loginTime).getTime();
+            if (elapsed > SESSION_TIMEOUT) {
+                logout('Sesi berakhir, silakan login kembali');
+                return false;
+            }
+        }
+        
+        const userName = localStorage.getItem('userName') || 'User';
+        document.getElementById('userNameDisplay').innerText = userName;
+        
+        resetSessionTimer();
+        startActivityMonitoring();
+        
+        return true;
+    }
+    
+    // ========== SESSION TIMER ==========
+    function resetSessionTimer() {
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+        if (warningTimeout) clearTimeout(warningTimeout);
+        
+        warningTimeout = setTimeout(showSessionWarning, SESSION_TIMEOUT - 60000);
+        sessionTimeout = setTimeout(() => {
+            logout('Sesi berakhir karena tidak ada aktivitas');
+        }, SESSION_TIMEOUT);
+        
+        updateSessionDisplay();
+    }
+    
+    function updateSessionDisplay() {
+        const loginTime = localStorage.getItem('loginTime');
+        if (loginTime) {
+            const elapsed = Date.now() - new Date(loginTime).getTime();
+            const remaining = SESSION_TIMEOUT - elapsed;
+            if (remaining > 0) {
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                const timerElem = document.getElementById('sessionTimer');
+                if (timerElem) timerElem.innerText = `${minutes}:${seconds.toString().padStart(2,'0')}`;
+                
+                const countdownElem = document.getElementById('sessionCountdown');
+                if (countdownElem && remaining <= 60000) {
+                    countdownElem.innerText = `${Math.ceil(remaining / 1000)} detik`;
+                }
+            }
+        }
+    }
+    
+    function showSessionWarning() {
+        const warning = document.getElementById('sessionWarning');
+        if (warning) warning.style.display = 'flex';
+        
+        const interval = setInterval(() => {
+            const loginTime = localStorage.getItem('loginTime');
+            if (loginTime) {
+                const elapsed = Date.now() - new Date(loginTime).getTime();
+                const remaining = SESSION_TIMEOUT - elapsed;
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                } else if (remaining <= 60000) {
+                    const countdownElem = document.getElementById('sessionCountdown');
+                    if (countdownElem) countdownElem.innerText = `${Math.ceil(remaining / 1000)} detik`;
+                }
+            }
+        }, 1000);
+    }
+    
+    function startActivityMonitoring() {
+        if (activityInterval) clearInterval(activityInterval);
+        
+        activityInterval = setInterval(() => {
+            updateSessionDisplay();
+        }, 1000);
+        
+        const events = ['click', 'keypress', 'mousemove', 'scroll', 'touchstart'];
+        events.forEach(event => {
+            document.removeEventListener(event, resetSessionTimer);
+            document.addEventListener(event, resetSessionTimer);
+        });
+    }
+    
+    // ========== LOGOUT ==========
+    function logout(message) {
+        if (message) {
+            localStorage.setItem('logoutMessage', message);
+        }
+        
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userUsername');
+        localStorage.removeItem('loginTime');
+        
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+        if (warningTimeout) clearTimeout(warningTimeout);
+        if (activityInterval) clearInterval(activityInterval);
+        
+        window.location.href = 'login.html';
+    }
+    
+    // ========== NOTIFIKASI TUKAR FAKTUR ==========
+    let shownNotifications = JSON.parse(localStorage.getItem('shownNotifications') || '{}');
+    
+    function showNotification(title, message, type = 'info') {
+        const today = new Date().toDateString();
+        const notifKey = `${title}_${today}`;
+        
+        if (shownNotifications[notifKey]) return;
+        
+        const popup = document.createElement('div');
+        popup.className = 'notification-popup';
+        popup.innerHTML = `
+            <div class="icon">${type === 'warning' ? '⚠️' : '📅'}</div>
+            <div class="content">
+                <div class="title">${title}</div>
+                <div class="message">${message}</div>
+            </div>
+            <div class="close">✖</div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        shownNotifications[notifKey] = true;
+        localStorage.setItem('shownNotifications', JSON.stringify(shownNotifications));
+        
+        setTimeout(() => {
+            popup.remove();
+        }, 7000);
+        
+        popup.querySelector('.close').addEventListener('click', () => popup.remove());
+    }
+    
+    // ========== CEK JADWAL TUKAR FAKTUR HARI INI ==========
+    async function checkTodaySchedule() {
+        try {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getCustomers' })
+            });
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                const today = new Date();
+                const dayNames = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+                const todayName = dayNames[today.getDay()];
+                
+                const todayCustomers = result.data.filter(customer => {
+                    const jadwal = customer.jadwal || '';
+                    return jadwal.toUpperCase().includes(todayName);
+                });
+                
+                if (todayCustomers.length > 0) {
+                    const names = todayCustomers.map(c => c.nama).join(', ');
+                    showNotification(
+                        '📅 Jadwal Tukar Faktur Hari Ini',
+                        `${todayCustomers.length} customer: ${names}`,
+                        'info'
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Error checking schedule:', error);
+        }
+    }
+    
+    // ========== SLIDESHOW ==========
+    let currentOffset = 0;
+    let groupedByDay = {};
+    const dayNames = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+    
+    function getTodayIndex() {
+        return new Date().getDay();
+    }
+    
+    function extractDayFromJadwal(jadwal) {
+        if (!jadwal || jadwal === '-') return null;
+        const upperJadwal = jadwal.toUpperCase();
+        for (const day of dayNames) {
+            if (upperJadwal.includes(day)) {
+                return day;
+            }
+        }
+        return null;
+    }
+    
+    async function loadCustomersForSlideshow() {
+        try {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'getCustomers' })
+            });
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                groupedByDay = {
+                    'MINGGU': [], 'SENIN': [], 'SELASA': [], 'RABU': [],
+                    'KAMIS': [], 'JUMAT': [], 'SABTU': []
+                };
+                
+                result.data.forEach(customer => {
+                    const jadwal = customer.jadwal || '';
+                    const day = extractDayFromJadwal(jadwal);
+                    if (day && groupedByDay[day]) {
+                        groupedByDay[day].push({
+                            nama: customer.nama || '-',
+                            jadwal: jadwal,
+                            hp: customer.hp || '-'
+                        });
+                    }
+                });
+                
+                renderSlideshow();
+                checkTodaySchedule();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('slideshowContent').innerHTML = '<div style="text-align: center; padding: 40px;">❌ Gagal memuat data</div>';
+        }
+    }
+    
+    function getTargetDays(offset) {
+        const todayIndex = getTodayIndex();
+        let day1Index = (todayIndex + (offset * 2)) % 7;
+        let day2Index = (todayIndex + (offset * 2) + 1) % 7;
+        return { day1: dayNames[day1Index], day2: dayNames[day2Index] };
+    }
+    
+    function getDateForDay(targetDayName) {
+        const today = new Date();
+        const todayIndex = getTodayIndex();
+        const targetIndex = dayNames.indexOf(targetDayName);
+        let diff = targetIndex - todayIndex;
+        if (diff < 0) diff += 7;
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + diff);
+        return targetDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long' });
+    }
+    
+    function renderSlideshow() {
+        const targetDays = getTargetDays(currentOffset);
+        const day1 = targetDays.day1;
+        const day2 = targetDays.day2;
+        const todayIndex = getTodayIndex();
+        
+        const customersDay1 = groupedByDay[day1] || [];
+        const customersDay2 = groupedByDay[day2] || [];
+        
+        const date1 = getDateForDay(day1);
+        const date2 = getDateForDay(day2);
+        
+        const isToday1 = (dayNames.indexOf(day1) === todayIndex);
+        const isToday2 = (dayNames.indexOf(day2) === todayIndex);
+        
+        const html = `
+            <div class="slideshow-grid">
+                <div class="slideshow-card">
+                    <h4>📌 ${day1} ${date1} ${isToday1 ? '<span class="day-badge">HARI INI</span>' : ''}</h4>
+                    <div class="pt-list">
+                        ${customersDay1.length > 0 ? customersDay1.map(c => `
+                            <div class="pt-item">
+                                <div class="pt-name">🏢 ${escapeHtml(c.nama)}</div>
+                                <div class="pt-schedule">📅 ${escapeHtml(c.jadwal)} | 📞 ${escapeHtml(c.hp)}</div>
+                            </div>
+                        `).join('') : '<div class="empty-message">Tidak ada jadwal tukar faktur</div>'}
+                    </div>
+                </div>
+                <div class="slideshow-card">
+                    <h4>📌 ${day2} ${date2} ${isToday2 ? '<span class="day-badge">HARI INI</span>' : '<span class="day-badge tomorrow">BESOK</span>'}</h4>
+                    <div class="pt-list">
+                        ${customersDay2.length > 0 ? customersDay2.map(c => `
+                            <div class="pt-item">
+                                <div class="pt-name">🏢 ${escapeHtml(c.nama)}</div>
+                                <div class="pt-schedule">📅 ${escapeHtml(c.jadwal)} | 📞 ${escapeHtml(c.hp)}</div>
+                            </div>
+                        `).join('') : '<div class="empty-message">Tidak ada jadwal tukar faktur</div>'}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('slideshowContent').innerHTML = html;
+        document.getElementById('pageIndicator').innerHTML = `Halaman ${Math.floor(currentOffset / 2) + 1} dari 4`;
+    }
+    
+    function changeDay(direction) {
+        currentOffset += direction;
+        if (currentOffset < 0) currentOffset = 0;
+        if (currentOffset > 3) currentOffset = 3;
+        renderSlideshow();
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+    
+    // Event listener untuk tombol export menu
+    document.getElementById('exportMenuBtn')?.addEventListener('click', openExportModal);
+    document.getElementById('exportModalClose')?.addEventListener('click', closeExportModal);
+    
+    // Klik di luar modal untuk menutup
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('exportModal');
+        if (e.target === modal) closeExportModal();
+    });
+    
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+        if (checkLogin()) {
+            loadCustomersForSlideshow();
+            document.getElementById('btnLogout').addEventListener('click', () => logout());
+            
+            const logoutMsg = localStorage.getItem('logoutMessage');
+            if (logoutMsg) {
+                showNotification('Info', logoutMsg, 'warning');
+                localStorage.removeItem('logoutMessage');
+            }
+        }
+    });
+</script>
+</body>
+</html>

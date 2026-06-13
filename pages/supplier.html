@@ -13,13 +13,14 @@
         <p class="subtitle">Data Supplier</p>
     </div>
 
-    <button class="btn-back" onclick="window.location.href='../index.html'">← KEMBALI KE MENU</button>
+    <button class="btn-back" onclick="window.location.href='../dashboard.html'">← KEMBALI KE MENU</button>
     
     <div class="card">
         <h2>📋 DATA SUPPLIER</h2>
         
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
             <button id="btnAddSupplier" class="btn-add-supplier">➕ Tambah Supplier</button>
+            <button id="btnExportSupplier" class="btn-success" style="width: auto; padding: 8px 16px;">📊 Export Excel</button>
         </div>
         
         <div style="overflow-x: auto;">
@@ -53,10 +54,6 @@
         </div>
         <div class="modal-body">
             <input type="hidden" id="modalEditId" value="">
-            <div class="form-group">
-                <label>No Supplier</label>
-                <input type="text" id="modalNo" placeholder="Nomor urut supplier">
-            </div>
             <div class="form-group">
                 <label>Nama Supplier *</label>
                 <input type="text" id="modalNama" placeholder="Nama supplier" required>
@@ -103,16 +100,17 @@
     </div>
 </div>
 
+<!-- Scripts -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="../config.js"></script>
 <script src="../js/data.js"></script>
 <script src="../js/ui.js"></script>
-<script src="../js/transfer.js"></script>
-<script src="../js/tanda-terima.js"></script>
-<script src="../js/cetak-label.js"></script>
-<script src="../js/edit-data.js"></script>
 <script src="../js/supplier.js"></script>
-<script src="../js/riwayat.js"></script>
-<script src="../js/tukar-faktur.js"></script>
-<script src="../js/main.js"></script>
+<script src="../js/export.js"></script>
+
+<script>
+    // Event listener untuk tombol export
+    document.getElementById('btnExportSupplier')?.addEventListener('click', exportSuppliers);
+</script>
 </body>
 </html>
