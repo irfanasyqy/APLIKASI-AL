@@ -7,27 +7,8 @@ const urlsToCache = [
   '/dashboard.html',
   '/config.js',
   '/css/style.css',
-  '/css/login.css',
-  '/js/data.js',
-  '/js/supplier.js',
-  '/js/customer.js',
-  '/js/transfer.js',
-  '/js/tukar-faktur.js',
-  '/js/tanda-terima.js',
-  '/js/riwayat.js',
-  '/js/export.js',
-  '/pages/transfer.html',
-  '/pages/supplier.html',
-  '/pages/customer.html',
-  '/pages/tukar-faktur.html',
-  '/pages/tanda-terima.html',
-  '/pages/cetak-label.html',
-  '/pages/riwayat.html',
-  '/pages/statistik.html',
-  '/pages/users.html',
-  '/pages/backup.html',
-  '/pages/notifikasi.html',
-  '/pages/activity-log.html'
+  '/css/login.css'
+  // Hapus file JS dan pages/ dulu karena bisa error
 ];
 
 // Install Service Worker
@@ -36,12 +17,17 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Cache opened');
-        return cache.addAll(urlsToCache);
+        // Cache each file individually, catch errors
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => console.log(`Failed to cache: ${url}`, err))
+          )
+        );
       })
   );
 });
 
-// Fetch dari cache
+// Fetch dari cache (dengan fallback ke network)
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
@@ -49,7 +35,10 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).catch(() => {
+          // Fallback untuk offline
+          return caches.match('/');
+        });
       })
   );
 });
