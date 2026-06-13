@@ -149,6 +149,18 @@
         if (localStorage.getItem('isLoggedIn') === 'true') {
             window.location.href = 'dashboard.html';
         }
+        // Tambahkan setelah login sukses
+        function addLog(action, description, details) {
+            const logEntry = {
+                action: action,
+                description: description,
+                details: details,
+                timestamp: new Date().toISOString()
+            };
+            const logs = JSON.parse(localStorage.getItem('userLogs') || '[]');
+            logs.push(logEntry);
+            localStorage.setItem('userLogs', JSON.stringify(logs));
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Activity Log - APLIKASI AL</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .log-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .log-filter input, .log-filter select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .log-table th, .log-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .log-table th {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .log-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .log-type.login { background: #27ae60; color: white; }
+        .log-type.logout { background: #e74c3c; color: white; }
+        .log-type.create { background: #3498db; color: white; }
+        .log-type.update { background: #f39c12; color: white; }
+        .log-type.delete { background: #e74c3c; color: white; }
+        .log-type.export { background: #9b59b6; color: white; }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card-small {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="app-header">
+        <div class="app-title">APLIKASI <span>AL</span></div>
+        <p class="subtitle">Activity Log & Laporan Bulanan</p>
+    </div>
+
+    <button class="btn-back" onclick="window.location.href='../dashboard.html'">← KEMBALI KE MENU</button>
+    
+    <div class="card">
+        <h2>📋 ACTIVITY LOG</h2>
+        
+        <!-- Filter -->
+        <div class="log-filter">
+            <input type="text" id="filterUser" placeholder="🔍 Filter user...">
+            <select id="filterType">
+                <option value="">Semua Tipe</option>
+                <option value="login">Login</option>
+                <option value="logout">Logout</option>
+                <option value="create">Create</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+                <option value="export">Export</option>
+            </select>
+            <input type="date" id="filterDate">
+            <button id="btnFilter" class="btn-success">🔍 Filter</button>
+            <button id="btnReset" class="btn-secondary">🔄 Reset</button>
+            <button id="btnExportLog" class="btn-success">📊 Export Log</button>
+        </div>
+        
+        <!-- Statistik -->
+        <div class="stats-summary" id="logStats">
+            <div class="stat-card-small">
+                <div class="stat-number" id="totalLogs">0</div>
+                <div class="stat-label">Total Aktivitas</div>
+            </div>
+            <div class="stat-card-small">
+                <div class="stat-number" id="todayLogs">0</div>
+                <div class="stat-label">Hari Ini</div>
+            </div>
+            <div class="stat-card-small">
+                <div class="stat-number" id="loginCount">0</div>
+                <div class="stat-label">Login</div>
+            </div>
+            <div class="stat-card-small">
+                <div class="stat-number" id="createCount">0</div>
+                <div class="stat-label">Create Data</div>
+            </div>
+        </div>
+        
+        <!-- Tabel Log -->
+        <div style="overflow-x: auto;">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Waktu</th>
+                        <th>User</th>
+                        <th>Tipe</th>
+                        <th>Aktivitas</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
+                    <tr><td colspan="5">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Laporan Bulanan -->
+    <div class="card" style="margin-top: 20px;">
+        <h2>📊 LAPORAN BULANAN</h2>
+        
+        <div class="log-filter">
+            <input type="month" id="reportMonth" value="">
+            <button id="btnGenerateReport" class="btn-success">📊 Generate Laporan</button>
+            <button id="btnExportReport" class="btn-success">📥 Export Laporan</button>
+        </div>
+        
+        <div id="reportContent">
+            <p>Pilih bulan untuk melihat laporan...</p>
+        </div>
+    </div>
+</div>
+
+<script src="../config.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script>
+    let activityLogs = [];
+    
+    // Inisialisasi log (simpan di localStorage)
+    function initLogs() {
+        const saved = localStorage.getItem('activity_logs');
+        if (saved) {
+            activityLogs = JSON.parse(saved);
+        } else {
+            // Sample data
+            activityLogs = [
+                { timestamp: new Date().toISOString(), user: 'admin', type: 'login', action: 'Login ke sistem', detail: 'Success' },
+                { timestamp: new Date(Date.now() - 3600000).toISOString(), user: 'admin', type: 'create', action: 'Tambah supplier', detail: 'PT. ABC INDONESIA' },
+                { timestamp: new Date(Date.now() - 7200000).toISOString(), user: 'user', type: 'export', action: 'Export data supplier', detail: '35 records' }
+            ];
+            localStorage.setItem('activity_logs', JSON.stringify(activityLogs));
+        }
+        updateStats();
+        renderLogTable();
+    }
+    
+    function addLog(type, action, detail) {
+        const user = localStorage.getItem('userUsername') || 'system';
+        const log = {
+            timestamp: new Date().toISOString(),
+            user: user,
+            type: type,
+            action: action,
+            detail: detail
+        };
+        activityLogs.unshift(log);
+        
+        // Simpan maksimal 500 log
+        if (activityLogs.length > 500) activityLogs.pop();
+        localStorage.setItem('activity_logs', JSON.stringify(activityLogs));
+        updateStats();
+        renderLogTable();
+    }
+    
+    function updateStats() {
+        const today = new Date().toDateString();
+        const todayLogs = activityLogs.filter(l => new Date(l.timestamp).toDateString() === today);
+        const loginCount = activityLogs.filter(l => l.type === 'login').length;
+        const createCount = activityLogs.filter(l => l.type === 'create').length;
+        
+        document.getElementById('totalLogs').innerText = activityLogs.length;
+        document.getElementById('todayLogs').innerText = todayLogs.length;
+        document.getElementById('loginCount').innerText = loginCount;
+        document.getElementById('createCount').innerText = createCount;
+    }
+    
+    function renderLogTable() {
+        let filtered = [...activityLogs];
+        const filterUser = document.getElementById('filterUser')?.value.toLowerCase() || '';
+        const filterType = document.getElementById('filterType')?.value || '';
+        const filterDate = document.getElementById('filterDate')?.value || '';
+        
+        if (filterUser) {
+            filtered = filtered.filter(l => l.user.toLowerCase().includes(filterUser));
+        }
+        if (filterType) {
+            filtered = filtered.filter(l => l.type === filterType);
+        }
+        if (filterDate) {
+            filtered = filtered.filter(l => {
+                const logDate = new Date(l.timestamp).toISOString().split('T')[0];
+                return logDate === filterDate;
+            });
+        }
+        
+        const tbody = document.getElementById('logTableBody');
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">Tidak ada data log</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        filtered.forEach(log => {
+            const date = new Date(log.timestamp).toLocaleString('id-ID');
+            html += `
+                <tr>
+                    <td>${date}</td>
+                    <td>${escapeHtml(log.user)}</td>
+                    <td><span class="log-type ${log.type}">${log.type.toUpperCase()}</span></td>
+                    <td>${escapeHtml(log.action)}</td>
+                    <td>${escapeHtml(log.detail)}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+    
+    function filterLogs() {
+        renderLogTable();
+    }
+    
+    function resetFilter() {
+        document.getElementById('filterUser').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterDate').value = '';
+        renderLogTable();
+    }
+    
+    function exportLog() {
+        const filtered = [...activityLogs];
+        const exportData = filtered.map(log => ({
+            Waktu: new Date(log.timestamp).toLocaleString('id-ID'),
+            User: log.user,
+            Tipe: log.type,
+            Aktivitas: log.action,
+            Detail: log.detail
+        }));
+        
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Activity Log');
+        XLSX.writeFile(wb, `activity_log_${new Date().toISOString().slice(0,10)}.xlsx`);
+        
+        addLog('export', 'Export activity log', `${exportData.length} records`);
+    }
+    
+    // ========== LAPORAN BULANAN ==========
+    async function generateReport() {
+        const month = document.getElementById('reportMonth').value;
+        if (!month) {
+            alert('Pilih bulan terlebih dahulu!');
+            return;
+        }
+        
+        const [year, monthNum] = month.split('-');
+        const monthName = new Date(year, monthNum - 1).toLocaleDateString('id-ID', { month: 'long' });
+        
+        // Ambil data dari API
+        const [supplierRes, transferRes, ttRes, valasRes] = await Promise.all([
+            fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'getSuppliers' }) }),
+            fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'getRiwayatTransfer' }) }),
+            fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'getRiwayatTT' }) }),
+            fetch(CONFIG.API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'getRiwayatValas' }) })
+        ]);
+        
+        const supplierData = await supplierRes.json();
+        const transferData = await transferRes.json();
+        const ttData = await ttRes.json();
+        const valasData = await valasRes.json();
+        
+        // Filter transfer berdasarkan bulan
+        const transfersThisMonth = (transferData.data || []).filter(t => {
+            const tgl = t[1] || '';
+            const [day, monthT, yearT] = tgl.split('/');
+            return yearT === year && monthT === monthNum;
+        });
+        
+        const totalTransfer = transfersThisMonth.reduce((sum, t) => sum + (parseFloat(t[7]) || 0), 0);
+        const totalTT = (ttData.data || []).filter(t => {
+            const tgl = t[2] || '';
+            const [day, monthT, yearT] = tgl.split('/');
+            return yearT === year && monthT === monthNum;
+        }).length;
+        
+        const totalValas = (valasData.data || []).filter(v => {
+            const tgl = v[1] || '';
+            const [day, monthT, yearT] = tgl.split('/');
+            return yearT === year && monthT === monthNum;
+        }).length;
+        
+        const reportHtml = `
+            <div class="stats-summary">
+                <div class="stat-card-small">
+                    <div class="stat-number">${supplierData.data?.length || 0}</div>
+                    <div class="stat-label">Total Supplier</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number">${transfersThisMonth.length}</div>
+                    <div class="stat-label">Transfer Bulan Ini</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number">USD ${totalTransfer.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div class="stat-label">Total Transfer</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number">${totalTT}</div>
+                    <div class="stat-label">Tanda Terima</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number">${totalValas}</div>
+                    <div class="stat-label">Pembelian Valas</div>
+                </div>
+                <div class="stat-card-small">
+                    <div class="stat-number">${activityLogs.filter(l => {
+                        const logDate = new Date(l.timestamp);
+                        return logDate.getFullYear() == year && (logDate.getMonth() + 1) == monthNum;
+                    }).length}</div>
+                    <div class="stat-label">Aktivitas User</div>
+                </div>
+            </div>
+            <p style="margin-top: 15px; text-align: center; color: #666;">Laporan bulan ${monthName} ${year}</p>
+        `;
+        
+        document.getElementById('reportContent').innerHTML = reportHtml;
+        window.currentReport = { year, month: monthNum, monthName, transfersThisMonth, totalTransfer, totalTT, totalValas };
+    }
+    
+    function exportReport() {
+        if (!window.currentReport) {
+            alert('Generate laporan terlebih dahulu!');
+            return;
+        }
+        
+        const r = window.currentReport;
+        const reportData = [{
+            'Bulan': `${r.monthName} ${r.year}`,
+            'Total Supplier': document.getElementById('totalLogs')?.innerText || '-',
+            'Jumlah Transfer': r.transfersThisMonth.length,
+            'Total Nominal Transfer': `USD ${r.totalTransfer.toLocaleString('en-US', {minimumFractionDigits: 2})}`,
+            'Jumlah Tanda Terima': r.totalTT,
+            'Jumlah Pembelian Valas': r.totalValas,
+            'Aktivitas User': activityLogs.filter(l => {
+                const d = new Date(l.timestamp);
+                return d.getFullYear() == r.year && (d.getMonth() + 1) == r.month;
+            }).length
+        }];
+        
+        const ws = XLSX.utils.json_to_sheet(reportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `Laporan_${r.year}_${r.month}`);
+        XLSX.writeFile(wb, `laporan_bulanan_${r.year}_${r.month}.xlsx`);
+        
+        addLog('export', 'Export laporan bulanan', `${r.monthName} ${r.year}`);
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+    
+    // Event listeners
+    document.getElementById('btnFilter')?.addEventListener('click', filterLogs);
+    document.getElementById('btnReset')?.addEventListener('click', resetFilter);
+    document.getElementById('btnExportLog')?.addEventListener('click', exportLog);
+    document.getElementById('btnGenerateReport')?.addEventListener('click', generateReport);
+    document.getElementById('btnExportReport')?.addEventListener('click', exportReport);
+    
+    // Set default month
+    const today = new Date();
+    document.getElementById('reportMonth').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', () => {
+        initLogs();
+    });
+    
+    // Export functions untuk digunakan di file lain
+    window.addLog = addLog;
+</script>
+</body>
+</html>

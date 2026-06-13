@@ -512,6 +512,48 @@
             body.dark-mode .export-option:hover {
                 background: #1e3c72;
             }
+
+            /* Language Switch - Simpel */
+            .language-switch {
+                display: flex;
+                gap: 5px;
+                margin-right: 10px;
+            }
+            
+            .lang-btn {
+                background: transparent;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: bold;
+                transition: 0.2s;
+                font-family: monospace;
+            }
+            
+            .lang-btn.active {
+                background: #27ae60;
+                color: white;
+            }
+            
+            .lang-btn:hover:not(.active) {
+                background: rgba(39, 174, 96, 0.2);
+            }
+            
+            /* Dark mode support */
+            body.dark-mode .lang-btn {
+                color: #eee;
+            }
+            
+            body.dark-mode .lang-btn.active {
+                background: #27ae60;
+                color: white;
+            }
+            
+            body.dark-mode .lang-btn:hover:not(.active) {
+                background: rgba(39, 174, 96, 0.3);
+            }
     </style>
 </head>
 <body>
@@ -521,6 +563,17 @@
             <div class="app-title">APLIKASI <span>AL</span></div>
             <p class="subtitle">Transfer Bank & Dokumentasi</p>
         </div>
+
+        <!-- Ganti language-switch dengan yang lebih simpel -->
+        <div class="language-switch">
+            <button id="langID" class="lang-btn ${currentLang === 'id' ? 'active' : ''}" title="Bahasa Indonesia">
+                🇮🇩 ID
+            </button>
+            <button id="langEN" class="lang-btn ${currentLang === 'en' ? 'active' : ''}" title="English">
+                🇬🇧 EN
+            </button>
+        </div>
+
         <!-- Tambahkan di header-flex, sebelum user-info -->
         <div class="dark-mode-toggle">
             <button id="darkModeBtn" class="btn-darkmode">🌙</button>
@@ -627,6 +680,13 @@
             <div class="menu-desc">Grafik & ringkasan data</div>
         </div>
 
+        <!-- Tambahkan di menu-grid -->
+        <div class="menu-card" onclick="window.location.href='pages/notifikasi.html'">
+            <div class="menu-icon">🔔</div>
+            <div class="menu-title">NOTIFIKASI</div>
+            <div class="menu-desc">Kirim pengingat via WA/Email</div>
+        </div>
+
         <!-- EXPORT MENU (Modal) -->
         <div class="menu-card" id="exportMenuBtn" style="background: linear-gradient(135deg, #27ae60, #219a52); cursor: pointer;">
             <div class="menu-icon">📊</div>
@@ -638,6 +698,12 @@
             <div class="menu-icon">💾</div>
             <div class="menu-title">BACKUP & RESTORE</div>
             <div class="menu-desc">Backup & restore semua data</div>
+        </div>
+        <!-- Tambahkan di menu-grid -->
+        <div class="menu-card" onclick="window.location.href='pages/activity-log.html'">
+            <div class="menu-icon">📊</div>
+            <div class="menu-title">ACTIVITY LOG</div>
+            <div class="menu-desc">Log aktivitas & laporan</div>
         </div>
     </div>
 
@@ -707,6 +773,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="../js/translations.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="js/export.js"></script>
 <script>
