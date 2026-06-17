@@ -240,10 +240,21 @@
             font-weight: bold;
         }
 
-        .ref-total { 
+        .ref-total-pertama { 
             position: absolute; 
             top: 69mm; 
             left: 170mm; 
+            text-align: left; 
+            font-size: 11pt; 
+            font-weight: bold; 
+            color: #000; 
+        }
+
+        /* ini baris total kedua yang dibawah kolom cek */
+        .ref-total-kedua { 
+            position: absolute; 
+            top: 80mm; 
+            left: 157mm; 
             text-align: left; 
             font-size: 11pt; 
             font-weight: bold; 
@@ -259,6 +270,12 @@
             top: 110mm;
             left: 130mm;
             width: auto;
+            font-weight: bold;
+        }
+
+        /*ini baris total di bagian paketan tapi disembunyikan*/
+        .baris-total {
+        display: none !important;
         }
 
         .rincian-wrapper {
@@ -557,7 +574,10 @@
                 <!-- KANAN -->
                 <div class="ref-no-cek">${data.noLoa}</div>
                 <div class="ref-norek-pengirim">${data.norekPengirim}</div>
-                <div class="ref-total">${totalDisplay}</div>
+                <!-- TOTAL PERTAMA (atas) -->
+                <div class="ref-total-pertama">${totalDisplay}</div>
+                <!-- TOTAL KEDUA (bawah) -->
+                <div class="ref-total-kedua">${totalDisplay}</div>
                 
                 ${rincianHtml}
             </div>
