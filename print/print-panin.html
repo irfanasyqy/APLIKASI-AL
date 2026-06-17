@@ -270,6 +270,7 @@
             top: 110mm;
             left: 130mm;
             width: auto;
+            font-size: 10pt;
             font-weight: bold;
         }
 
@@ -379,16 +380,36 @@
             jumlahIDR: parseFloat(params.get('jumlahIDR')) || 0
         };
         
-        // Format angka dengan desimal untuk USD/EUR
+        // ========== FORMAT ANGKA DENGAN DESIMAL OTOMATIS ==========
         const formatAngka = (angka, curr) => {
+            if (isNaN(angka)) return '0';
+            const hasDecimal = angka % 1 !== 0;
+            
             if (curr === 'IDR') {
-                return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                if (hasDecimal) {
+                    return angka.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                    return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                }
             } else {
-                return angka.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (hasDecimal) {
+                    return angka.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                    return angka.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                }
             }
         };
         
-        const formatKurs = (k) => k.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        // ========== FORMAT KURS DENGAN DESIMAL OTOMATIS ==========
+        const formatKurs = (angka) => {
+            if (isNaN(angka)) return '0';
+            const hasDecimal = angka % 1 !== 0;
+            if (hasDecimal) {
+                return angka.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            } else {
+                return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            }
+        };
         
         const formattedJumlah = formatAngka(data.jumlah, data.currency);
         const formattedBiayaFull = formatAngka(data.biayaFullAmount, data.currency);

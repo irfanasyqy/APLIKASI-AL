@@ -1,5 +1,4 @@
 // ========== TRANSFER.JS ==========
-
 // ========== LOAD REKENING DARI GOOGLE SHEETS ==========
 let daftarRekening = [];
 
@@ -13,31 +12,84 @@ async function loadRekening() {
         const result = await response.json();
         
         if (result.success && result.data) {
-            daftarRekening = result.data;
+            // ========== SIMPAN DATA REKENING LENGKAP DENGAN ALAMAT ==========
+            daftarRekening = result.data.map(rek => ({
+                no: rek.no || '',
+                perusahaan: rek.perusahaan || '',
+                jenisRekening: rek.jenisRekening || '',
+                noRekening: rek.noRekening || '',
+                mataUang: rek.mataUang || '',
+                bank: rek.bank || '',
+                alamatPenerima: rek.alamatPenerima || '',
+                alamatBank: rek.alamatBank || '',
+                swift: rek.swift || ''
+            }));
+            
+            console.log('Daftar rekening loaded:', daftarRekening);
             
             const dariRekening = document.getElementById('dariRekening');
             const keRekening = document.getElementById('keRekening');
             const rekeningAsalTransfer = document.getElementById('rekeningAsalTransfer');
             
-            const semuaRekening = (selectEl) => {
+            // ========== FILTER UNTUK VALAS ==========
+            const rekeningIDR = daftarRekening.filter(rek => rek.mataUang === 'IDR');
+            const rekeningNonIDR = daftarRekening.filter(rek => rek.mataUang !== 'IDR');
+            
+            // ========== FUNGSI POPULATE SELECT ==========
+            const populateSelect = (selectEl, rekeningList, label) => {
                 if (selectEl) {
-                    selectEl.innerHTML = '<option value="">-- Pilih Rekening --</option>';
-                    daftarRekening.forEach(rek => {
+                    selectEl.innerHTML = `<option value="">-- ${label} --</option>`;
+                    rekeningList.forEach((rek, index) => {
                         const option = document.createElement('option');
-                        option.value = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
-                        option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                        option.value = index;
+                        const displayText = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                        option.textContent = displayText;
+                        // ========== SIMPAN DATA ALAMAT DI ATTRIBUTE ==========
+                        option.dataset.alamatPenerima = rek.alamatPenerima || '';
+                        option.dataset.alamatBank = rek.alamatBank || '';
+                        option.dataset.swift = rek.swift || '';
+                        option.dataset.perusahaan = rek.perusahaan || '';
+                        option.dataset.noRekening = rek.noRekening || '';
+                        option.dataset.mataUang = rek.mataUang || '';
+                        option.dataset.bank = rek.bank || '';
                         selectEl.appendChild(option);
                     });
                 }
             };
             
-            semuaRekening(dariRekening);
-            semuaRekening(keRekening);
-            semuaRekening(rekeningAsalTransfer);
+            // ========== TAB TRANSFER KE SUPPLIER ==========
+            if (rekeningAsalTransfer) {
+                rekeningAsalTransfer.innerHTML = '<option value="">-- Pilih Rekening --</option>';
+                daftarRekening.forEach((rek, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                    option.dataset.alamatPenerima = rek.alamatPenerima || '';
+                    option.dataset.alamatBank = rek.alamatBank || '';
+                    option.dataset.swift = rek.swift || '';
+                    option.dataset.perusahaan = rek.perusahaan || '';
+                    option.dataset.noRekening = rek.noRekening || '';
+                    option.dataset.mataUang = rek.mataUang || '';
+                    option.dataset.bank = rek.bank || '';
+                    rekeningAsalTransfer.appendChild(option);
+                });
+            }
+            
+            // ========== TAB PEMBELIAN VALAS ==========
+            populateSelect(dariRekening, rekeningIDR, 'Pilih Rekening Sumber (IDR)');
+            populateSelect(keRekening, rekeningNonIDR, 'Pilih Rekening Tujuan (Valas)');
         }
     } catch(e) {
         console.error('Error load rekening:', e);
     }
+}
+
+// ========== FUNGSI GET REKENING BY INDEX ==========
+function getRekeningByIndex(index) {
+    if (index === undefined || index === null || index === '') return null;
+    const idx = parseInt(index);
+    if (isNaN(idx) || idx < 0 || idx >= daftarRekening.length) return null;
+    return daftarRekening[idx];
 }
 
 // ========== CEK APAKAH PERLU KURS (UNTUK TRANSFER VALAS) ==========
@@ -436,26 +488,51 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         return;
     }
     
-    const dariText = dariSelect?.options[dariSelect.selectedIndex]?.text || '';
-    const keText = keSelect?.options[keSelect.selectedIndex]?.text || '';
+    // ========== AMBIL INDEX DARI SELECT ==========
+    const dariIndex = dariSelect?.value;
+    const keIndex = keSelect?.value;
     
-    if (!dariSelect?.value || !keSelect?.value) {
+    if (!dariIndex || !keIndex) {
         alert('Pilih rekening asal dan tujuan!');
         return;
     }
     
-    // Ambil bank pengirim dari rekening asal
-    let bankPengirim = 'PANIN';
-    if (dariText.toUpperCase().includes('BCA')) {
-        bankPengirim = 'BCA';
+    // ========== AMBIL DATA REKENING DARI ARRAY ==========
+    const dariRek = daftarRekening[parseInt(dariIndex)];
+    const keRek = daftarRekening[parseInt(keIndex)];
+    
+    if (!dariRek || !keRek) {
+        alert('Data rekening tidak ditemukan!');
+        return;
     }
     
-    const mataUangTujuan = keText.split(' ')[0] || 'USD';
+    // ========== BUAT TEXT UNTUK DISPLAY ==========
+    const dariText = `${dariRek.perusahaan} - ${dariRek.jenisRekening} (${dariRek.mataUang}) - ${dariRek.noRekening} - ${dariRek.bank}`;
+    const keText = `${keRek.perusahaan} - ${keRek.jenisRekening} (${keRek.mataUang}) - ${keRek.noRekening} - ${keRek.bank}`;
+    
+    // ========== AMBIL DATA UNTUK PRINT ==========
+    const bankPengirim = dariRek.bank && dariRek.bank.toUpperCase().includes('BCA') ? 'BCA' : 'PANIN';
+    const namaPenerima = keRek.perusahaan || 'PEMBELIAN VALAS';
+    const mataUangTujuan = keRek.mataUang || 'USD';
+    const norekTujuan = keRek.noRekening || '';
+    const alamatPenerima = keRek.alamatPenerima || '';
+    const alamatBank = keRek.alamatBank || '';
+    const swiftCode = keRek.swift || '';
+    const norekPengirim = dariRek.noRekening || '';
+    const namaPengirim = dariRek.perusahaan || 'PT SINAR CAHAYA CEMERLANG';
+    
+    console.log('=== DATA REKENING TUJUAN ===');
+    console.log('Nama:', namaPenerima);
+    console.log('No Rek:', norekTujuan);
+    console.log('Alamat:', alamatPenerima);
+    console.log('Bank Alamat:', alamatBank);
+    console.log('Swift:', swiftCode);
+    
     const jumlahValasVal = parseFloat(document.getElementById('jumlahValas')?.value) || 0;
     const kurs = parseFloat(document.getElementById('kursValas')?.value) || 0;
     const jumlahIDRVal = jumlahValasVal * kurs;
-    const berita = document.getElementById('beritaValas')?.value || '-';
-    const tujuan = document.getElementById('tujuanValas')?.value || '-';
+    const berita = document.getElementById('beritaValas')?.value || '';
+    const tujuan = document.getElementById('tujuanValas')?.value || '';
     const infoTambahan = document.getElementById('infoTambahanValas')?.value || '-';
     
     if (jumlahValasVal <= 0) {
@@ -467,6 +544,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         return;
     }
     
+    // ========== DATA VALAS UNTUK DISIMPAN ==========
     const valasData = {
         type: 'saveValas',
         tanggal: new Date().toLocaleDateString('id-ID'),
@@ -483,34 +561,42 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         infoTambahan: infoTambahan
     };
     
+    // ========== SIMPAN KE DATABASE ==========
     try {
-        await fetch(CONFIG.API_URL, {
+        const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(valasData)
         });
+        const result = await response.json();
+        if (result.success) {
+            console.log('✅ Valas tersimpan!');
+        } else {
+            console.warn('⚠️ Gagal menyimpan valas:', result.error);
+        }
     } catch(e) {
-        console.error('Error saving valas:', e);
+        console.error('❌ Error saving valas:', e);
     }
     
+    // ========== PRINT ==========
     const terbilang = terbilangAngka(jumlahValasVal, mataUangTujuan);
     
     const params = new URLSearchParams({
         currency: mataUangTujuan,
         jumlah: jumlahValasVal,
         terbilang: terbilang,
-        nama: 'PEMBELIAN VALAS',
-        account: keText,
-        alamat: '-',
+        nama: namaPenerima,
+        account: norekTujuan,
+        alamat: alamatPenerima,
         bankName: bankPengirim === 'PANIN' ? 'BANK PANIN' : 'BANK BCA',
-        bankAlamat: '-',
-        swift: '-',
+        bankAlamat: alamatBank,
+        swift: swiftCode,
         country: 'INDONESIA',
         berita: berita,
         tujuan: tujuan,
         noLoa: noRef,
-        norekPengirim: dariText.split(' - ')[2] || '',
-        pengirim: dariText.split(' - ')[0] || 'PT SINAR CAHAYA CEMERLANG',
+        norekPengirim: norekPengirim,
+        pengirim: namaPengirim,
         biayaTelex: 0,
         metodeTransfer: 'SHARE',
         biayaFullAmount: 0,
@@ -520,6 +606,8 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         jumlahIDR: jumlahIDRVal,
         jenis: 'valas'
     }).toString();
+    
+    console.log('URL Print:', `../print/print-panin.html?${params}`);
     
     const printWindow = window.open(bankPengirim === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`, '_blank');
     
