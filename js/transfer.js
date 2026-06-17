@@ -62,8 +62,9 @@ async function loadRekening() {
                 rekeningAsalTransfer.innerHTML = '<option value="">-- Pilih Rekening --</option>';
                 daftarRekening.forEach((rek, index) => {
                     const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                    const displayText = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+                    option.value = displayText;
+                    option.textContent = displayText;
                     option.dataset.alamatPenerima = rek.alamatPenerima || '';
                     option.dataset.alamatBank = rek.alamatBank || '';
                     option.dataset.swift = rek.swift || '';
