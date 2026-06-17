@@ -5,306 +5,332 @@
     <title>Print Bank Panin</title>
     <style>
         /* ======================================== */
-/* RESET & DASAR */
-/* ======================================== */
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-}
+        /* RESET & DASAR */
+        /* ======================================== */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
 
-body { 
-    font-family: 'Courier New', monospace; 
-    font-size: 10pt; 
-    width: 210mm; 
-    min-height: 297mm; 
-    margin: 20px auto; 
-    padding: 10mm; 
-    background: #e0e0e0; 
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    overflow-x: auto;  /* tambahkan: biar bisa scroll jika kelebihan */
-}
+        /* ======================================== */
+        /* UKURAN KERTAS TETAP A4 - TANPA SCALING */
+        /* ======================================== */
+        @page {
+            size: A4 portrait;
+            margin: 0;
+            /* NONAKTIFKAN SCALING */
+            width: 210mm;
+            height: 297mm;
+        }
 
-.print-container { 
-    background: white; 
-    width: 100%; 
-    max-width: 210mm;
-    min-height: 277mm; 
-    position: relative; 
-    padding: 5mm;
-    margin: 0 auto;    /* tambahkan: center di web preview */
-    overflow: hidden;  /* tambahkan: potong kelebihan di dalam container */
-}
+        body { 
+            font-family: 'Courier New', monospace; 
+            font-size: 10pt; 
+            width: 210mm; 
+            min-height: 297mm; 
+            margin: 0;
+            padding: 0;
+            background: white;
+            overflow: hidden;
+        }
 
-/* ======================================== */
-/* KOLOM KIRI - DATA PENGIRIM & PENERIMA */
-/* ======================================== */
+        .print-container { 
+            background: white; 
+            width: 210mm;
+            min-height: 297mm; 
+            position: relative; 
+            padding: 5mm;
+            margin: 0;
+            overflow: hidden;
+            /* NONAKTIFKAN SCALING */
+            transform: none;
+        }
 
-/* ----- BARIS 1: MATA UANG & JUMLAH ----- */
-.currency { 
-    position: absolute; 
-    top: 43mm; 
-    left: 20mm; 
-    font-size: 11pt; 
-    font-weight: bold; 
-    white-space: nowrap; 
-}
+        /* ======================================== */
+        /* KOLOM KIRI - DATA PENGIRIM & PENERIMA */
+        /* ======================================== */
 
-.jumlah-angka { 
-    position: absolute; 
-    top: 43mm; 
-    left: 40mm; 
-    font-size: 11pt; 
-    font-weight: bold; 
-    white-space: nowrap; 
-}
+        /* ----- BARIS 1: MATA UANG & JUMLAH ----- */
+        .currency { 
+            position: absolute; 
+            top: 38mm; 
+            left: 18mm; 
+            font-size: 11pt; 
+            font-weight: bold; 
+            white-space: nowrap; 
+        }
 
-/* ----- BARIS 2: TERBILANG (bisa 2 baris) ----- */
-.terbilang { 
-    position: absolute; 
-    top: 51mm; 
-    left: 20mm; 
-    font-size: 11pt; 
-    max-width: 80mm; 
-    white-space: normal; 
-    word-wrap: break-word; 
-    line-height: 1.2; 
-    display: -webkit-box; 
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical; 
-    overflow: hidden; 
-}
+        .jumlah-angka { 
+            position: absolute; 
+            top: 38mm; 
+            left: 50mm; 
+            font-size: 11pt; 
+            font-weight: bold; 
+            white-space: nowrap; 
+        }
 
-/* ----- BARIS 3: NAMA PENERIMA ----- */
-.nama-penerima { 
-    position: absolute; 
-    top: 65mm; 
-    left: 20mm; 
-    font-weight: bold; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 2: TERBILANG (bisa 2 baris) ----- */
+        .terbilang { 
+            position: absolute; 
+            top: 43mm; 
+            left: 20mm; 
+            font-size: 11pt;
+            font-weight: bold; 
+            max-width: 80mm; 
+            white-space: normal; 
+            word-wrap: break-word; 
+            line-height: 1.2; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+        }
 
-/* ----- BARIS 4: NO REKENING PENERIMA ----- */
-.account { 
-    position: absolute; 
-    top: 73mm; 
-    left: 20mm; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 3: NAMA PENERIMA ----- */
+        .nama-penerima { 
+            position: absolute; 
+            top: 56mm; 
+            left: 18mm; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 5: ALAMAT PENERIMA (bisa 2 baris) ----- */
-.alamat { 
-    position: absolute; 
-    top: 78mm; 
-    left: 20mm; 
-    max-width: 90mm; 
-    white-space: normal; 
-    word-wrap: break-word; 
-    line-height: 1.2; 
-    display: -webkit-box; 
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical; 
-    overflow: hidden; 
-}
+        /* ----- BARIS 4: NO REKENING PENERIMA ----- */
+        .account { 
+            position: absolute; 
+            top: 60mm; 
+            left: 25mm;
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 6: NAMA BANK ----- */
-.bank-name { 
-    position: absolute; 
-    top: 90mm; 
-    left: 20mm; 
-    font-weight: bold; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 5: ALAMAT PENERIMA (bisa 2 baris) ----- */
+        .alamat { 
+            position: absolute; 
+            top: 66mm; 
+            left: 25mm; 
+            font-weight: bold; 
+            max-width: 90mm; 
+            white-space: normal; 
+            word-wrap: break-word; 
+            line-height: 1.2; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+        }
 
-/* ----- BARIS 7: ALAMAT BANK (bisa 2 baris) ----- */
-.bank-alamat { 
-    position: absolute; 
-    top: 95mm; 
-    left: 20mm; 
-    max-width: 90mm; 
-    white-space: normal; 
-    word-wrap: break-word; 
-    line-height: 1.2; 
-    display: -webkit-box; 
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical; 
-    overflow: hidden; 
-}
+        /* ----- BARIS 6: NAMA BANK ----- */
+        .bank-name { 
+            position: absolute; 
+            top: 76mm; 
+            left: 30mm; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 8: SWIFT CODE ----- */
-.swift { 
-    position: absolute; 
-    top: 103mm; 
-    left: 20mm; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 7: ALAMAT BANK (bisa 2 baris) ----- */
+        .bank-alamat { 
+            position: absolute; 
+            top: 79mm; 
+            left: 20mm; 
+            max-width: 90mm;
+            font-weight: bold; 
+            white-space: normal; 
+            word-wrap: break-word; 
+            line-height: 1.2; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+        }
 
-/* ----- BARIS 9: NEGARA ----- */
-.negara { 
-    position: absolute; 
-    top: 108mm; 
-    left: 20mm; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 8: SWIFT CODE ----- */
+        .swift { 
+            position: absolute; 
+            top: 86mm; 
+            left: 20mm; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 10: BERITA TRANSFER ----- */
-.berita { 
-    position: absolute; 
-    top: 115mm; 
-    left: 20mm; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 9: NEGARA ----- */
+        .negara { 
+            position: absolute; 
+            top: 92mm; 
+            left: 20mm; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 11: TUJUAN TRANSFER ----- */
-.tujuan { 
-    position: absolute; 
-    top: 125mm; 
-    left: 20mm; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 10: BERITA TRANSFER ----- */
+        .berita { 
+            position: absolute; 
+            top: 98mm; 
+            left: 20mm;
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 12: NAMA PENGIRIM ----- */
-.pengirim { 
-    position: absolute; 
-    top: 142mm; 
-    left: 20mm; 
-    font-weight: bold; 
-    white-space: nowrap; 
-    max-width: 90mm; 
-    overflow-x: auto; 
-}
+        /* ----- BARIS 11: TUJUAN TRANSFER ----- */
+        .tujuan { 
+            position: absolute; 
+            top: 105mm; 
+            left: 30mm; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ----- BARIS 13: NO REKENING PENGIRIM (dengan spasi) ----- */
-.deretan-angka { 
-    position: absolute; 
-    top: 152mm; 
-    left: 30mm; 
-    letter-spacing: 5px; 
-    white-space: nowrap; 
-    overflow-x: auto; 
-    max-width: 90mm; 
-}
+        /* ----- BARIS 12: NAMA PENGIRIM ----- */
+        .pengirim { 
+            position: absolute; 
+            top: 120mm; 
+            left: 28mm; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
 
-/* ======================================== */
-/* KOLOM KANAN - REFERENSI & TOTAL */
-/* ======================================== */
+        /* ----- BARIS 13: NO REKENING PENGIRIM (dengan spasi) ----- */
+        .deretan-angka { 
+            position: absolute; 
+            top: 129mm; 
+            left: 30mm; 
+            font-weight: bold; 
+            letter-spacing: 5px; 
+            white-space: nowrap; 
+            overflow-x: auto; 
+            max-width: 90mm; 
+        }
 
-.ref-no-cek { 
-    position: absolute; 
-    top: 82mm; 
-    left: 124mm; 
-    text-align: left; 
-}
+        /* ======================================== */
+        /* KOLOM KANAN - REFERENSI & TOTAL */
+        /* ======================================== */
 
-.ref-norek-pengirim { 
-    position: absolute; 
-    top: 82mm; 
-    left: 150mm; 
-    text-align: left; 
-    font-size: 11pt; 
-}
+        .ref-no-cek { 
+            position: absolute; 
+            top: 69mm; 
+            left: 114mm;
+            font-weight: bold; 
+            text-align: left; 
+        }
 
-.ref-total { 
-    position: absolute; 
-    top: 82mm; 
-    left: 170mm; 
-    text-align: left; 
-    font-size: 11pt; 
-    font-weight: bold; 
-    color: #000; 
-}
+        .ref-norek-pengirim { 
+            position: absolute; 
+            top: 69mm; 
+            left: 135mm; 
+            text-align: left; 
+            font-size: 11pt; 
+            font-weight: bold;
+        }
 
-/* ======================================== */
-/* RINCIAN BIAYA - BONGKARAN (DIV + FLEX) */
-/* ======================================== */
+        .ref-total { 
+            position: absolute; 
+            top: 69mm; 
+            left: 170mm; 
+            text-align: left; 
+            font-size: 11pt; 
+            font-weight: bold; 
+            color: #000; 
+        }
 
-/* ----- CONTAINER UTAMA ----- */
-.rincian-bongkaran {
-    position: absolute;
-    top: 127mm;
-    left: 130mm;          /* <== ATUR POSISI KIRI DI SINI */
-    width: auto;
-}
+        /* ======================================== */
+        /* RINCIAN BIAYA - BONGKARAN (DIV + FLEX) */
+        /* ======================================== */
 
-/* ----- PEMBUNGKUS DENGAN POSITION RELATIVE ----- */
-.rincian-wrapper {
-    position: relative;
-    width: 100%;
-    height: 30mm;        /* <== ATUR TINGGI TOTAL AREA RINCIAN */
-}
+        .rincian-bongkaran {
+            position: absolute;
+            top: 110mm;
+            left: 130mm;
+            width: auto;
+        }
 
-/* ----- BARIS RINCIAN & TOTAL ----- */
-.baris-rincian, .baris-total {
-    position: absolute;
-    left: 0;
-    display: flex;
-    flex-direction: row;
-    gap: 5mm;            /* <== JARAK ANTAR KOLOM */
-    white-space: nowrap;
-}
+        .rincian-wrapper {
+            position: relative;
+            width: 100%;
+            height: 30mm;
+        }
 
-/* ----- POSISI TOP & LEFT MASING-MASING BARIS ----- */
-.baris-1 { top: 0mm; left: 0mm; }      /* Baris 1: Jumlah Transfer */
-.baris-2 { top: 6mm; left: 0mm; }      /* Baris 2: Full Amount */
-.baris-3 { top: 12mm; left: 0mm; }    /* Baris 3: Biaya Telex */
-.baris-total { top: 18mm; left: 0mm; font-weight: bold; }  /* Total */
+        .baris-rincian, .baris-total {
+            position: absolute;
+            left: 0;
+            display: flex;
+            flex-direction: row;
+            gap: 5mm;
+            white-space: nowrap;
+        }
 
-/* ----- LEBAR KOLOM ----- */
-.valuta-col { width: 10mm; text-align: left; }   /* Kolom 1: Valuta Asing */
-.kurs-col   { width: 25mm; text-align: right; }  /* Kolom 2: Kurs */
-.nilai-col  { width: 12mm; text-align: right; }  /* Kolom 3: Nilai Ekuivalen */
+        .baris-1 { top: 0mm; left: 0mm; }
+        .baris-2 { top: 6mm; left: 0mm; }
+        .baris-3 { top: 12mm; left: 0mm; }
+        .baris-total { top: 18mm; left: 0mm; font-weight: bold; }
 
-/* ======================================== */
-/* KHUSUS WEB PREVIEW - MUAT SEMUA KONTEN */
-/* ======================================== */
-@media screen {
-    body { 
-        transform: scale(0.7);
-        transform-origin: top left;
-        width: 300mm;
-        margin: 20px;
-        padding: 20px;
-        overflow-x: auto;
-    }
-    
-    .print-container { 
-        margin: 0 auto;
-    }
-}
+        .valuta-col { width: 10mm; text-align: left; }
+        .kurs-col   { width: 25mm; text-align: right; }
+        .nilai-col  { width: 12mm; text-align: right; }
 
-/* ======================================== */
-/* MEDIA PRINT - SAAT DI CETAK */
-/* ======================================== */
-@media print { 
-    body { 
-        background: white; 
-        margin: 0; 
-        padding: 0; 
-        box-shadow: none; 
-    } 
-    .print-container { 
-        box-shadow: none; 
-        padding: 0; 
-    } 
-    @page { 
-        size: A4; 
-        margin: 0; 
-    } 
-}
+        /* ======================================== */
+        /* WEB PREVIEW - TETAP DENGAN UKURAN ASLI */
+        /* ======================================== */
+        @media screen {
+            body { 
+                width: 210mm;
+                min-height: 297mm;
+                margin: 20px auto;
+                padding: 0;
+                background: #e0e0e0;
+                box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                /* NONAKTIFKAN SCALING */
+                transform: none;
+                transform-origin: top left;
+            }
+            
+            .print-container { 
+                margin: 0 auto;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* ======================================== */
+        /* MEDIA PRINT - SAAT DI CETAK */
+        /* ======================================== */
+        @media print { 
+            body { 
+                background: white; 
+                margin: 0; 
+                padding: 0; 
+                box-shadow: none; 
+                width: 210mm;
+                min-height: 297mm;
+            } 
+            .print-container { 
+                box-shadow: none; 
+                padding: 5mm;
+                margin: 0;
+                width: 210mm;
+                min-height: 297mm;
+            } 
+            @page { 
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body>
