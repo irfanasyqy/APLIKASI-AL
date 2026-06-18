@@ -342,9 +342,9 @@ function populateSelect(selectEl, rekeningList, label) {
         const displayText = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
         option.value = displayText;
         option.textContent = displayText;
-        option.dataset.alamatPenerima = rek.alamatPenerima || '-';
-        option.dataset.alamatBank = rek.alamatBank || '-';
-        option.dataset.swift = rek.swift || '-';
+        option.dataset.alamatPenerima = rek.alamatPenerima || '';
+        option.dataset.alamatBank = rek.alamatBank || '';
+        option.dataset.swift = rek.swift || '';
         option.dataset.perusahaan = rek.perusahaan || '';
         option.dataset.noRekening = rek.noRekening || '';
         option.dataset.mataUang = rek.mataUang || '';
@@ -721,7 +721,7 @@ async function printUlangTransfer(rowData) {
     const bankPenerima = rowData[3] || '-';
     const terbilangText = terbilangPrint(jumlah, currency);
     
-    let alamat = '-', bankAlamat = '-', swift = '-', country = '-';
+    let alamat = '', bankAlamat = '', swift = '', country = '-';
     if (typeof suppliers === 'undefined' || !suppliers || suppliers.length === 0) {
         if (typeof loadSuppliers === 'function') {
             await loadSuppliers();
@@ -731,10 +731,10 @@ async function printUlangTransfer(rowData) {
     if (typeof suppliers !== 'undefined' && suppliers && suppliers.length) {
         const supplier = suppliers.find(s => s.nama === penerima);
         if (supplier) {
-            alamat = supplier.alamat || '-';
-            bankAlamat = supplier.bankAlamat || '-';
-            swift = supplier.swift || '-';
-            country = supplier.country || '-';
+            alamat = supplier.alamat || '';
+            bankAlamat = supplier.bankAlamat || '';
+            swift = supplier.swift || '';
+            country = supplier.country || '';
         }
     }
     
@@ -813,7 +813,7 @@ async function printUlangValas(rowData) {
     }
     
     let rekeningAsal = null, norekPengirim = '', namaPengirim = 'PT SINAR CAHAYA CEMERLANG';
-    let bankPengirim = 'PANIN', alamatPengirim = '-', alamatBankPengirim = '-', swiftPengirim = '-';
+    let bankPengirim = 'PANIN', alamatPengirim = '', alamatBankPengirim = '', swiftPengirim = '';
     
     if (dariRekeningText && dariRekeningText !== '') {
         rekeningAsal = rekeningData.find(rek => {
@@ -824,9 +824,9 @@ async function printUlangValas(rowData) {
             namaPengirim = rekeningAsal.perusahaan || 'PT SINAR CAHAYA CEMERLANG';
             norekPengirim = rekeningAsal.noRekening || '';
             bankPengirim = rekeningAsal.bank && rekeningAsal.bank.toUpperCase().includes('BCA') ? 'BCA' : 'PANIN';
-            alamatPengirim = rekeningAsal.alamatPenerima || '-';
-            alamatBankPengirim = rekeningAsal.alamatBank || '-';
-            swiftPengirim = rekeningAsal.swift || '-';
+            alamatPengirim = rekeningAsal.alamatPenerima || '';
+            alamatBankPengirim = rekeningAsal.alamatBank || '';
+            swiftPengirim = rekeningAsal.swift || '';
         }
     }
     
@@ -842,9 +842,9 @@ async function printUlangValas(rowData) {
             namaPenerima = rekeningTujuan.perusahaan || 'PEMBELIAN VALAS';
             norekTujuan = rekeningTujuan.noRekening || '';
             bankTujuan = rekeningTujuan.bank || 'PANIN';
-            alamatPenerima = rekeningTujuan.alamatPenerima || '-';
-            alamatBankTujuan = rekeningTujuan.alamatBank || '-';
-            swiftTujuan = rekeningTujuan.swift || '-';
+            alamatPenerima = rekeningTujuan.alamatPenerima || '';
+            alamatBankTujuan = rekeningTujuan.alamatBank || '';
+            swiftTujuan = rekeningTujuan.swift || '';
         }
     }
     
@@ -1278,3 +1278,51 @@ window.saveAlamatManual = saveAlamatManual;
 window.loadAlamatManualFromStorage = loadAlamatManualFromStorage;
 
 log('✅ riwayat.js selesai dimuat', 'success');
+
+// ========== AUTO PRINT SETTINGS ==========
+function initPrintSettings() {
+    // Load setting dari localStorage
+    const autoPrintEnabled = localStorage.getItem('autoPrintEnabled') !== 'false';
+    const toggle = document.getElementById('autoPrintToggle');
+    const statusText = document.getElementById('printStatus');
+    
+    if (toggle) {
+        toggle.checked = autoPrintEnabled;
+        updatePrintStatus(autoPrintEnabled);
+        
+        toggle.addEventListener('change', function() {
+            const enabled = this.checked;
+            localStorage.setItem('autoPrintEnabled', enabled);
+            updatePrintStatus(enabled);
+            log(`🖨️ Auto Print 2 Copy: ${enabled ? 'ON' : 'OFF'}`, 'print');
+        });
+    }
+}
+
+function updatePrintStatus(enabled) {
+    const statusText = document.getElementById('printStatus');
+    if (statusText) {
+        statusText.textContent = enabled ? 'ON' : 'OFF';
+        statusText.className = `status-text ${enabled ? 'on' : 'off'}`;
+    }
+}
+
+// ========== PRINT DENGAN AUTO PRINT ==========
+async function printWithAutoPrint(printUrl) {
+    const autoPrintEnabled = localStorage.getItem('autoPrintEnabled') !== 'false';
+    
+    // Tambahkan parameter autoPrint ke URL
+    const separator = printUrl.includes('?') ? '&' : '?';
+    const urlWithParam = `${printUrl}${separator}autoPrint=${autoPrintEnabled ? 'true' : 'false'}`;
+    
+    log(`🖨️ Print dengan Auto Print: ${autoPrintEnabled ? 'ON' : 'OFF'}`, 'print');
+    log(`🖨️ URL: ${urlWithParam}`, 'print');
+    
+    // Buka window print
+    const printWindow = window.open(urlWithParam, '_blank');
+    
+    if (!printWindow) {
+        alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+        return;
+    }
+}

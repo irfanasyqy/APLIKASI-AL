@@ -19,13 +19,12 @@
         @page {
             size: A4 portrait;
             margin: 0;
-            /* NONAKTIFKAN SCALING */
             width: 210mm;
             height: 297mm;
         }
 
         body { 
-            font-family: 'Courier New', monospace; 
+            font-family: 'Courier New', monospace;
             font-size: 10pt; 
             width: 210mm; 
             min-height: 297mm; 
@@ -43,7 +42,6 @@
             padding: 5mm;
             margin: 0;
             overflow: hidden;
-            /* NONAKTIFKAN SCALING */
             transform: none;
         }
 
@@ -51,7 +49,6 @@
         /* KOLOM KIRI - DATA PENGIRIM & PENERIMA */
         /* ======================================== */
 
-        /* ----- BARIS 1: MATA UANG & JUMLAH ----- */
         .currency { 
             position: absolute; 
             top: 38mm; 
@@ -70,7 +67,6 @@
             white-space: nowrap; 
         }
 
-        /* ----- BARIS 2: TERBILANG (bisa 2 baris) ----- */
         .terbilang { 
             position: absolute; 
             top: 43mm; 
@@ -87,7 +83,6 @@
             overflow: hidden; 
         }
 
-        /* ----- BARIS 3: NAMA PENERIMA ----- */
         .nama-penerima { 
             position: absolute; 
             top: 56mm; 
@@ -98,7 +93,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 4: NO REKENING PENERIMA ----- */
         .account { 
             position: absolute; 
             top: 60mm; 
@@ -109,7 +103,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 5: ALAMAT PENERIMA (bisa 2 baris) ----- */
         .alamat { 
             position: absolute; 
             top: 66mm; 
@@ -125,7 +118,6 @@
             overflow: hidden; 
         }
 
-        /* ----- BARIS 6: NAMA BANK ----- */
         .bank-name { 
             position: absolute; 
             top: 76mm; 
@@ -136,7 +128,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 7: ALAMAT BANK (bisa 2 baris) ----- */
         .bank-alamat { 
             position: absolute; 
             top: 80mm; 
@@ -152,7 +143,6 @@
             overflow: hidden; 
         }
 
-        /* ----- BARIS 8: SWIFT CODE ----- */
         .swift { 
             position: absolute; 
             top: 87mm; 
@@ -163,7 +153,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 9: NEGARA ----- */
         .negara { 
             position: absolute; 
             top: 92mm; 
@@ -174,7 +163,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 10: BERITA TRANSFER ----- */
         .berita { 
             position: absolute; 
             top: 98mm; 
@@ -185,7 +173,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 11: TUJUAN TRANSFER ----- */
         .tujuan { 
             position: absolute; 
             top: 105mm; 
@@ -196,7 +183,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 12: NAMA PENGIRIM ----- */
         .pengirim { 
             position: absolute; 
             top: 120mm; 
@@ -207,7 +193,6 @@
             overflow-x: auto; 
         }
 
-        /* ----- BARIS 13: NO REKENING PENGIRIM (dengan spasi) ----- */
         .deretan-angka { 
             position: absolute; 
             top: 129mm; 
@@ -245,24 +230,23 @@
             top: 69mm; 
             left: 170mm; 
             text-align: left; 
-            font-size: 11pt; 
+            font-size: 10pt; 
             font-weight: bold; 
             color: #000; 
         }
 
-        /* ini baris total kedua yang dibawah kolom cek */
         .ref-total-kedua { 
             position: absolute; 
             top: 80mm; 
             left: 157mm; 
             text-align: left; 
-            font-size: 11pt; 
+            font-size: 10pt; 
             font-weight: bold; 
             color: #000; 
         }
 
         /* ======================================== */
-        /* RINCIAN BIAYA - BONGKARAN (DIV + FLEX) */
+        /* RINCIAN BIAYA - BONGKARAN */
         /* ======================================== */
 
         .rincian-bongkaran {
@@ -270,13 +254,12 @@
             top: 110mm;
             left: 130mm;
             width: auto;
-            font-size: 10pt;
+            font-size: 8pt;
             font-weight: bold;
         }
 
-        /*ini baris total di bagian paketan tapi disembunyikan*/
         .baris-total {
-        display: none !important;
+            display: none !important;
         }
 
         .rincian-wrapper {
@@ -304,7 +287,7 @@
         .nilai-col  { width: 12mm; text-align: right; }
 
         /* ======================================== */
-        /* WEB PREVIEW - TETAP DENGAN UKURAN ASLI */
+        /* WEB PREVIEW */
         /* ======================================== */
         @media screen {
             body { 
@@ -314,7 +297,6 @@
                 padding: 0;
                 background: #e0e0e0;
                 box-shadow: 0 0 15px rgba(0,0,0,0.2);
-                /* NONAKTIFKAN SCALING */
                 transform: none;
                 transform-origin: top left;
             }
@@ -326,7 +308,7 @@
         }
 
         /* ======================================== */
-        /* MEDIA PRINT - SAAT DI CETAK */
+        /* MEDIA PRINT */
         /* ======================================== */
         @media print { 
             body { 
@@ -365,7 +347,7 @@
             alamat: params.get('alamat') || '-',
             bankName: params.get('bankName') || '-',
             bankAlamat: params.get('bankAlamat') || '-',
-            swift: params.get('swift') || '-',
+            swift: params.get('swift') || '',
             country: params.get('country') || '-',
             berita: params.get('berita') || '-',
             tujuan: params.get('tujuan') || '-',
@@ -379,41 +361,65 @@
             kurs: parseFloat(params.get('kurs')) || 0,
             jumlahIDR: parseFloat(params.get('jumlahIDR')) || 0
         };
-        
-        // ========== FORMAT ANGKA DENGAN DESIMAL OTOMATIS ==========
+
+        // ========== FORMAT ANGKA (FORMAT INDONESIA) ==========
+        // Pemisah ribuan = titik (.), pemisah desimal = koma (,)
+        // Desimal tetap 2 digit jika ada nilai desimal
         const formatAngka = (angka, curr) => {
-            if (isNaN(angka)) return '0';
+            if (isNaN(angka) || angka === 0) return '0';
+            
             const hasDecimal = angka % 1 !== 0;
             
-            if (curr === 'IDR') {
-                if (hasDecimal) {
-                    return angka.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                } else {
-                    return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-                }
+            // Semua currency pakai format Indonesia (titik ribuan, koma desimal)
+            if (hasDecimal) {
+                return angka.toLocaleString('id-ID', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
             } else {
-                if (hasDecimal) {
-                    return angka.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                } else {
-                    return angka.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-                }
+                return angka.toLocaleString('id-ID', { 
+                    minimumFractionDigits: 0, 
+                    maximumFractionDigits: 0 
+                });
             }
         };
-        
-        // ========== FORMAT KURS DENGAN DESIMAL OTOMATIS ==========
+        // ========== FORMAT KURS ==========
         const formatKurs = (angka) => {
-            if (isNaN(angka)) return '0';
+            if (isNaN(angka) || angka === 0) return '0';
             const hasDecimal = angka % 1 !== 0;
             if (hasDecimal) {
-                return angka.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                return angka.toLocaleString('id-ID', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
             } else {
-                return angka.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                return angka.toLocaleString('id-ID', { 
+                    minimumFractionDigits: 0, 
+                    maximumFractionDigits: 0 
+                });
             }
         };
-        
+        // ========== FORMAT ANGKA PINTAR ==========
+        const formatAngkaPintar = (angka, currency) => {
+            if (isNaN(angka) || angka === 0) return '0';
+            const hasDecimal = angka % 1 !== 0;
+            
+            // Semua currency pakai format Indonesia
+            if (hasDecimal) {
+                return angka.toLocaleString('id-ID', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
+            } else {
+                return angka.toLocaleString('id-ID', { 
+                    minimumFractionDigits: 0, 
+                    maximumFractionDigits: 0 
+                });
+            }
+        };
         const formattedJumlah = formatAngka(data.jumlah, data.currency);
         const formattedBiayaFull = formatAngka(data.biayaFullAmount, data.currency);
-        const formattedBiayaTelex = data.biayaTelex.toLocaleString('id-ID', {minimumFractionDigits: 0});
+        const formattedBiayaTelex = data.biayaTelex.toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0});
         const formattedKurs = formatKurs(data.kurs);
         
         // Hitung nilai IDR untuk full amount jika ada kurs
@@ -504,8 +510,8 @@
                 totalNilaiEkuivalen += data.biayaTelex;
             }
             
-            // TOTAL
-            let totalValue = `IDR ${totalNilaiEkuivalen.toLocaleString('id-ID', {minimumFractionDigits: 0})}`;
+            // TOTAL - PAKAI formatAngka
+            let totalValue = `IDR ${formatAngka(totalNilaiEkuivalen, 'IDR')}`;
             rowsHtml += `
                 <div class="baris-total">
                     <span class="valuta-col">Total</span>
@@ -523,10 +529,13 @@
             let totalNilaiEkuivalenUSD = 0;
             let rowsHtml = '';
             
+            // ========== HIDE VALAS UNTUK KONDISI 3 ==========
+            const hideValas = true;
+            
             // BARIS 1: Jumlah Transfer
             rowsHtml += `
                 <div class="baris-rincian baris-1">
-                    <span class="valuta-col">${data.currency} ${formattedJumlah}</span>
+                    <span class="valuta-col">${hideValas ? '' : data.currency + ' ' + formattedJumlah}</span>
                     <span class="kurs-col"></span>
                     <span class="nilai-col">${data.currency} ${formattedJumlah}</span>
                 </div>
@@ -537,7 +546,7 @@
             if (showBiayaFull) {
                 rowsHtml += `
                     <div class="baris-rincian baris-2">
-                        <span class="valuta-col">${data.currency} ${formattedBiayaFull}</span>
+                        <span class="valuta-col">${hideValas ? '' : data.currency + ' ' + formattedBiayaFull}</span>
                         <span class="kurs-col"></span>
                         <span class="nilai-col">${data.currency} ${formattedBiayaFull}</span>
                     </div>
@@ -556,11 +565,11 @@
                 `;
             }
             
-            // TOTAL
-            let totalValue = `${data.currency} ${totalNilaiEkuivalenUSD.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            // TOTAL - PAKAI formatAngka
+            let totalValue = `${data.currency} ${formatAngka(totalNilaiEkuivalenUSD, data.currency)}`;
             rowsHtml += `
                 <div class="baris-total">
-                    <span class="valuta-col">Total</span>
+                    <span class="valuta-col">${hideValas ? '' : 'Total'}</span>
                     <span class="kurs-col"></span>
                     <span class="nilai-col">${totalValue}</span>
                 </div>
@@ -569,7 +578,28 @@
             rincianHtml = `<div class="rincian-bongkaran"><div class="rincian-wrapper">${rowsHtml}</div></div>`;
             totalDisplay = totalValue;
         }
-        
+
+            // ========== FORMAT TOTAL DENGAN ANGKA PINTAR ==========
+            let totalDisplayFormatted = '';
+
+            // Format total berdasarkan currency
+            if (totalDisplay.includes('IDR')) {
+                // Jika total dalam IDR
+                const angkaTotal = parseFloat(totalDisplay.replace(/[^0-9,.]/g, '').replace(/\./g, '').replace(/,/g, '.'));
+                totalDisplayFormatted = `IDR ${formatAngkaPintar(angkaTotal, 'IDR')}`;
+            } else {
+                // Jika total dalam USD/EUR - PERBAIKAN PARSING
+                const match = totalDisplay.match(/([A-Z]+)\s+([\d.,]+)/);
+                if (match) {
+                    const currency = match[1];
+                    const angkaStr = match[2].replace(/\./g, '').replace(/,/g, '.');
+                    const angkaTotal = parseFloat(angkaStr);
+                    totalDisplayFormatted = `${currency} ${formatAngkaPintar(angkaTotal, currency)}`;
+                } else {
+                    totalDisplayFormatted = totalDisplay;
+                }
+            }
+
         const html = `
             <div class="print-container">
                 <!-- KIRI -->
@@ -595,10 +625,8 @@
                 <!-- KANAN -->
                 <div class="ref-no-cek">${data.noLoa}</div>
                 <div class="ref-norek-pengirim">${data.norekPengirim}</div>
-                <!-- TOTAL PERTAMA (atas) -->
-                <div class="ref-total-pertama">${totalDisplay}</div>
-                <!-- TOTAL KEDUA (bawah) -->
-                <div class="ref-total-kedua">${totalDisplay}</div>
+                <div class="ref-total-pertama">${totalDisplayFormatted}</div>
+                <div class="ref-total-kedua">${totalDisplayFormatted}</div>
                 
                 ${rincianHtml}
             </div>

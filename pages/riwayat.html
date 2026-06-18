@@ -18,16 +18,29 @@
     <div class="card">
         <h2 style="margin-top: 0;">📋 RIWAYAT</h2>
         
-        <!-- Toolbar: Export + Cache -->
+        <!-- Toolbar: Export + Cache + Print -->
         <div class="toolbar-container">
             <div class="export-group">
                 <button id="btnExportTransfer" class="btn btn-export">📊 Export Transfer</button>
                 <button id="btnExportTT" class="btn btn-export">📊 Export Tanda Terima</button>
                 <button id="btnExportValas" class="btn btn-export">📊 Export Valas</button>
             </div>
-            <!-- Tombol cache akan ditambahkan di sini oleh JavaScript -->
             <div class="cache-group" id="cacheGroup">
                 <!-- Akan diisi oleh JavaScript -->
+            </div>
+            <!-- TAMBAHKAN TOMBOL PRINT SETTINGS DI SINI -->
+            <div class="print-group" style="display: flex; gap: 10px; align-items: center; margin-left: 15px; padding-left: 15px; border-left: 1px solid #dee2e6;">
+                <button id="btnPrintSettings" class="btn btn-print-settings" style="padding: 6px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
+                    ⚙️ Print Settings
+                </button>
+                <div class="toggle-container" style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 11px; color: #555; font-weight: 600;">Auto Print 2 Copy</span>
+                    <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 22px;">
+                        <input type="checkbox" id="autoPrintToggle" checked>
+                        <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; transition: .3s; border-radius: 22px;"></span>
+                    </label>
+                    <span id="printStatus" class="status-text" style="font-size: 11px; font-weight: bold; color: #27ae60;">ON</span>
+                </div>
             </div>
         </div>
         
