@@ -5,111 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>APLIKASI AL - Riwayat</title>
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .search-advanced {
-            margin-bottom: 20px;
-        }
-        .search-advanced input, .search-advanced select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        .btn-print-ulang {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-        .btn-hapus {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .riwayat-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-        }
-        .riwayat-tab {
-            background: none;
-            border: none;
-            padding: 8px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #7f8c8d;
-        }
-        .riwayat-tab.active {
-            color: #27ae60;
-            border-bottom: 2px solid #27ae60;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .data-table th, .data-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .data-table th {
-            background: #2c3e50;
-            color: white;
-        }
-        .btn-success {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-secondary {
-            background-color: #95a5a6;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-back {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .app-header {
-            margin-bottom: 20px;
-        }
-        .app-title {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .subtitle {
-            color: #666;
-        }
-    </style>
 </head>
 <body>
 <div class="container">
@@ -121,13 +16,19 @@
     <button class="btn-back" onclick="window.location.href='../dashboard.html'">← KEMBALI KE MENU</button>
     
     <div class="card">
-        <h2>📋 RIWAYAT</h2>
+        <h2 style="margin-top: 0;">📋 RIWAYAT</h2>
         
-        <!-- Tombol Export -->
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <button id="btnExportTransfer" class="btn-success" style="width: auto;">📊 Export Transfer</button>
-            <button id="btnExportTT" class="btn-success" style="width: auto;">📊 Export Tanda Terima</button>
-            <button id="btnExportValas" class="btn-success" style="width: auto;">📊 Export Valas</button>
+        <!-- Toolbar: Export + Cache -->
+        <div class="toolbar-container">
+            <div class="export-group">
+                <button id="btnExportTransfer" class="btn btn-export">📊 Export Transfer</button>
+                <button id="btnExportTT" class="btn btn-export">📊 Export Tanda Terima</button>
+                <button id="btnExportValas" class="btn btn-export">📊 Export Valas</button>
+            </div>
+            <!-- Tombol cache akan ditambahkan di sini oleh JavaScript -->
+            <div class="cache-group" id="cacheGroup">
+                <!-- Akan diisi oleh JavaScript -->
+            </div>
         </div>
         
         <div class="riwayat-tabs">
@@ -136,20 +37,20 @@
             <button id="riwayatValasBtn" class="riwayat-tab">VALAS</button>
         </div>
         
-        <!-- Pencarian Lanjutan (hanya untuk transfer) -->
-        <div id="searchContainer" class="search-advanced" style="margin-bottom: 20px;">
+        <!-- Pencarian Lanjutan -->
+        <div id="searchContainer" class="search-advanced">
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="searchKeyword" placeholder="🔍 Cari (No, Nama, Bank)..." style="flex: 2;">
-                <input type="date" id="searchDateFrom" placeholder="Dari tanggal" style="flex: 1;">
-                <input type="date" id="searchDateTo" placeholder="Sampai tanggal" style="flex: 1;">
-                <select id="searchCurrency" style="flex: 1;">
+                <input type="text" id="searchKeyword" placeholder="🔍 Cari (No, Nama, Bank)..." style="flex: 2; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                <input type="date" id="searchDateFrom" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                <input type="date" id="searchDateTo" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                <select id="searchCurrency" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
                     <option value="">Semua Currency</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="IDR">IDR</option>
                 </select>
-                <button id="btnSearch" class="btn-success" style="width: auto;">🔍 Cari</button>
-                <button id="btnReset" class="btn-secondary" style="width: auto;">🔄 Reset</button>
+                <button id="btnSearch" class="btn-success">🔍 Cari</button>
+                <button id="btnReset" class="btn-secondary">🔄 Reset</button>
             </div>
         </div>
         
@@ -216,13 +117,11 @@
     </div>
 </div>
 
-<!-- Scripts - PASTIKAN URUTANNYA BENAR -->
+<!-- Scripts -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="../config.js"></script>
 <script src="../js/data.js"></script>
 <script src="../js/export.js"></script>
 <script src="../js/riwayat.js"></script>
-
-<!-- TIDAK ADA SCRIPT INLINE - SEMUA SUDAH DI HANDLE DI RIWAYAT.JS -->
 </body>
 </html>
