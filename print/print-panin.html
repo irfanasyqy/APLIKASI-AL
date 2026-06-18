@@ -633,6 +633,34 @@
         `;
         
         document.getElementById('printContainer').innerHTML = html;
+
+        // ========== CEK PARAMETER AUTO PRINT ==========
+        const autoPrintParam = params.get('autoPrint') || 'false';
+        const isAutoPrint = autoPrintParam === 'true';
+
+       // ========== AUTO PRINT ==========
+        if (isAutoPrint) {
+            console.log('🖨️ Auto Print 2 Copy ENABLED - Mencetak otomatis...');
+            
+            // Tunggu DOM selesai dirender
+            if (document.readyState === 'complete') {
+                // Jika sudah complete, langsung print
+                window.print();
+                setTimeout(function() {
+                    window.close();
+                }, 2000);
+            } else {
+                // Jika belum complete, tunggu
+                window.addEventListener('load', function() {
+                    window.print();
+                    setTimeout(function() {
+                        window.close();
+                    }, 2000);
+                });
+            }
+        } else {
+            console.log('📄 Auto Print DISABLED - Menunggu user print');
+        }
     </script>
 </body>
 </html>

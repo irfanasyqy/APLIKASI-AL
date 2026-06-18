@@ -16,6 +16,34 @@ function safeToString(value) {
     return String(value);
 }
 
+// ========== AUTO PRINT SETTINGS ==========
+function initPrintSettings() {
+    // Load setting dari localStorage
+    const autoPrintEnabled = localStorage.getItem('autoPrintEnabled') !== 'false';
+    const toggle = document.getElementById('autoPrintToggle');
+    const statusText = document.getElementById('printStatus');
+    
+    if (toggle) {
+        toggle.checked = autoPrintEnabled;
+        updatePrintStatus(autoPrintEnabled);
+        
+        toggle.addEventListener('change', function() {
+            const enabled = this.checked;
+            localStorage.setItem('autoPrintEnabled', enabled);
+            updatePrintStatus(enabled);
+            log(`🖨️ Auto Print 2 Copy: ${enabled ? 'ON' : 'OFF'}`, 'print');
+        });
+    }
+}
+
+function updatePrintStatus(enabled) {
+    const statusText = document.getElementById('printStatus');
+    if (statusText) {
+        statusText.textContent = enabled ? 'ON' : 'OFF';
+        statusText.className = `status-text ${enabled ? 'on' : 'off'}`;
+    }
+}
+
 // ========== FUNGSI LOG SATU UNTUK SEMUA ==========
 function log(message, type = 'info', data = null) {
     if (!DEBUG.enabled) return;
@@ -762,15 +790,14 @@ async function printUlangTransfer(rowData) {
     log(`🖨️ Print URL: ${printUrl}`, 'print');
     
     try {
-        const printWindow = window.open(printUrl, '_blank');
-        if (!printWindow) alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+        await printWithAutoPrint(printUrl);
     } catch (error) {
         log(`❌ Error print: ${error.message}`, 'error');
         alert('Gagal membuka halaman print: ' + error.message);
     }
 }
 
-function printUlangTT(rowData) {
+async function printUlangTT(rowData) {
     log('🖨️ Print TT', 'print', rowData);
     const noTT = rowData[1] || '-';
     const tanggal = rowData[2] || '-';
@@ -784,8 +811,7 @@ function printUlangTT(rowData) {
     const params = new URLSearchParams({ noTT, tanggal, dari, kepada, alamat, jumlah, currency, untuk, keterangan }).toString();
     const printUrl = `../print/print-tt.html?${params}`;
     log(`🖨️ Print URL TT: ${printUrl}`, 'print');
-    const printWindow = window.open(printUrl, '_blank');
-    if (!printWindow) alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+    await printWithAutoPrint(printUrl);
 }
 
 async function printUlangValas(rowData) {
@@ -865,8 +891,7 @@ async function printUlangValas(rowData) {
     
     const printUrl = bankPengirim === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`;
     log(`🖨️ URL Print: ${printUrl}`, 'print');
-    const printWindow = window.open(printUrl, '_blank');
-    if (!printWindow) alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+    await printWithAutoPrint(printUrl);
 }
 
 // ========== DELETE FUNCTIONS ==========
@@ -1061,6 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSearchButtons();
     setupExportButtons();
     addCacheControl();
+    initPrintSettings();
     
     loadRiwayatTransfer(false);
     
@@ -1278,34 +1304,6 @@ window.saveAlamatManual = saveAlamatManual;
 window.loadAlamatManualFromStorage = loadAlamatManualFromStorage;
 
 log('✅ riwayat.js selesai dimuat', 'success');
-
-// ========== AUTO PRINT SETTINGS ==========
-function initPrintSettings() {
-    // Load setting dari localStorage
-    const autoPrintEnabled = localStorage.getItem('autoPrintEnabled') !== 'false';
-    const toggle = document.getElementById('autoPrintToggle');
-    const statusText = document.getElementById('printStatus');
-    
-    if (toggle) {
-        toggle.checked = autoPrintEnabled;
-        updatePrintStatus(autoPrintEnabled);
-        
-        toggle.addEventListener('change', function() {
-            const enabled = this.checked;
-            localStorage.setItem('autoPrintEnabled', enabled);
-            updatePrintStatus(enabled);
-            log(`🖨️ Auto Print 2 Copy: ${enabled ? 'ON' : 'OFF'}`, 'print');
-        });
-    }
-}
-
-function updatePrintStatus(enabled) {
-    const statusText = document.getElementById('printStatus');
-    if (statusText) {
-        statusText.textContent = enabled ? 'ON' : 'OFF';
-        statusText.className = `status-text ${enabled ? 'on' : 'off'}`;
-    }
-}
 
 // ========== PRINT DENGAN AUTO PRINT ==========
 async function printWithAutoPrint(printUrl) {
