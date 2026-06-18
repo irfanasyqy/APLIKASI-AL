@@ -344,13 +344,13 @@ function renderValasTable(data) {
     let html = '';
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const tanggal = formatTanggal(row.tanggal || row[0]);
-        const noReferensi = row.no_referensi || row[1] || '-';
-        const dariRekening = row.dari_rekening || row[2] || '-';
-        const keRekening = row.ke_rekening || row[3] || '-';
-        const jumlahIDR = parseFloat(row.jumlah_idr || row[4]) || 0;
-        const kurs = parseFloat(row.kurs || row[5]) || 0;
-        const jumlahDapat = parseFloat(row.jumlah_dapat || row[6]) || 0;
+        const tanggal = formatTanggal(row.tanggal || row[1]);
+        const noReferensi = row.no_referensi || row[2] || '-';
+        const dariRekening = row.dari_rekening || row[3] || '-';
+        const keRekening = row.ke_rekening || row[4] || '-';
+        const jumlahIDR = parseFloat(row.jumlah_idr || row[5]) || 0;
+        const kurs = parseFloat(row.kurs || row[7]) || 0;
+        const jumlahDapat = parseFloat(row.jumlah_dapat || row[8]) || 0;
         
         html += `
             <tr>
@@ -563,14 +563,142 @@ async function printUlangTransfer(rowData) {
     }
 }
 
+// ========== PRINT ULANG TANDA TERIMA ==========
 function printUlangTT(rowData) {
     console.log('Printing TT:', rowData);
-    alert('Fitur print Tanda Terima sedang dalam pengembangan');
+    
+    const noTT = rowData[1] || '-';
+    const tanggal = rowData[2] || '-';
+    const dari = rowData[3] || '-';
+    const kepada = rowData[4] || '-';
+    const alamat = rowData[5] || '-';
+    const jumlah = parseFloat(rowData[6]) || 0;
+    const currency = rowData[7] || '-';
+    const untuk = rowData[8] || '-';
+    const keterangan = rowData[9] || '-';
+    
+    // ========== BUKA PRINT TT ==========
+    // Bisa menggunakan print-tt.html atau print-panin.html
+    const params = new URLSearchParams({
+        noTT: noTT,
+        tanggal: tanggal,
+        dari: dari,
+        kepada: kepada,
+        alamat: alamat,
+        jumlah: jumlah,
+        currency: currency,
+        untuk: untuk,
+        keterangan: keterangan
+    }).toString();
+    
+    const printUrl = `../print/print-tt.html?${params}`;
+    console.log('Print URL TT:', printUrl);
+    
+    const printWindow = window.open(printUrl, '_blank');
+    
+    if (!printWindow) {
+        alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+    }
 }
 
+// ========== PRINT ULANG VALAS ==========
 function printUlangValas(rowData) {
     console.log('Printing Valas:', rowData);
-    alert('Fitur print Valas sedang dalam pengembangan');
+    
+    // Ambil data dari rowData (RiwayatValas)
+    const tanggal = rowData[1] || '-';
+    const noRef = rowData[2] || '-';
+    const dariRekening = rowData[3] || '';
+    const keRekening = rowData[4] || '';
+    const jumlahValas = parseFloat(rowData[5]) || 0;
+    const mataUang = rowData[6] || 'USD';
+    const kurs = parseFloat(rowData[7]) || 0;
+    const jumlahIDR = parseFloat(rowData[8]) || 0;
+    const berita = rowData[9] || '';
+    const tujuan = rowData[10] || '';
+    
+    // ========== CARI ALAMAT DARI REKENING TUJUAN ==========
+    let alamatPenerima = '-';
+    let alamatBank = '-';
+    let swiftCode = '-';
+    let norekTujuan = '';
+    let namaPenerima = 'PEMBELIAN VALAS';
+    
+    // Cari di daftarRekening berdasarkan text
+    if (typeof daftarRekening !== 'undefined' && daftarRekening && daftarRekening.length > 0) {
+        // Cari rekening tujuan berdasarkan keRekening
+        const rekeningTujuan = daftarRekening.find(rek => {
+            const displayText = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+            return displayText === keRekening;
+        });
+        
+        if (rekeningTujuan) {
+            namaPenerima = rekeningTujuan.perusahaan || 'PEMBELIAN VALAS';
+            norekTujuan = rekeningTujuan.noRekening || '';
+            alamatPenerima = rekeningTujuan.alamatPenerima || '-';
+            alamatBank = rekeningTujuan.alamatBank || '-';
+            swiftCode = rekeningTujuan.swift || '-';
+            console.log('✅ Rekening tujuan ditemukan:', rekeningTujuan);
+        } else {
+            console.log('⚠️ Rekening tujuan tidak ditemukan:', keRekening);
+        }
+    }
+    
+    // ========== CARI NAMA PENGIRIM ==========
+    let norekPengirim = '';
+    let namaPengirim = 'PT SINAR CAHAYA CEMERLANG';
+    let bankPengirim = 'PANIN';
+    
+    if (typeof daftarRekening !== 'undefined' && daftarRekening && daftarRekening.length > 0) {
+        const rekeningAsal = daftarRekening.find(rek => {
+            const displayText = `${rek.perusahaan} - ${rek.jenisRekening} (${rek.mataUang}) - ${rek.noRekening} - ${rek.bank}`;
+            return displayText === dariRekening;
+        });
+        
+        if (rekeningAsal) {
+            namaPengirim = rekeningAsal.perusahaan || 'PT SINAR CAHAYA CEMERLANG';
+            norekPengirim = rekeningAsal.noRekening || '';
+            bankPengirim = rekeningAsal.bank && rekeningAsal.bank.toUpperCase().includes('BCA') ? 'BCA' : 'PANIN';
+        }
+    }
+    
+    // ========== BUAT URL PRINT ==========
+    const terbilang = terbilangPrint(jumlahValas, mataUang);
+    
+    const params = new URLSearchParams({
+        currency: mataUang,
+        jumlah: jumlahValas,
+        terbilang: terbilang,
+        nama: namaPenerima,
+        account: norekTujuan,
+        alamat: alamatPenerima,
+        bankName: bankPengirim === 'PANIN' ? 'BANK PANIN' : 'BANK BCA',
+        bankAlamat: alamatBank,
+        swift: swiftCode,
+        country: 'INDONESIA',
+        berita: berita || '-',
+        tujuan: tujuan || '-',
+        noLoa: noRef,
+        norekPengirim: norekPengirim,
+        pengirim: namaPengirim,
+        biayaTelex: 0,
+        metodeTransfer: 'SHARE',
+        biayaFullAmount: 0,
+        totalBiaya: 0,
+        valueDate: '-',
+        kurs: kurs,
+        jumlahIDR: jumlahIDR,
+        jenis: 'valas'
+    }).toString();
+    
+    console.log('Print URL Valas:', `../print/print-panin.html?${params}`);
+    
+    // ========== BUKA PRINT ==========
+    const printWindow = window.open(bankPengirim === 'PANIN' ? `../print/print-panin.html?${params}` : `../print/print-bca.html?${params}`, '_blank');
+    
+    if (!printWindow) {
+        alert('Pop-up diblokir! Harap izinkan pop-up untuk aplikasi ini.');
+    }
 }
 
 // ========== DELETE FUNCTIONS ==========
