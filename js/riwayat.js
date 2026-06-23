@@ -446,7 +446,7 @@ async function loadRiwayatTT(forceRefresh = false) {
         }
     }
     
-    tbody.innerHTML = '<tr><td colspan="7">Memuat data tanda terima...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="17">Memuat data tanda terima...</td></tr>';
     try {
         log('🔄 Fetching data TT dari API...', 'api');
         const response = await fetch(CONFIG.API_URL, {
@@ -463,11 +463,11 @@ async function loadRiwayatTT(forceRefresh = false) {
             renderTTTable(ttData);
         } else {
             log('📭 Tidak ada data TT', 'info');
-            tbody.innerHTML = '<tr><td colspan="7">Belum ada riwayat tanda terima</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="17">Belum ada riwayat tanda terima</td></tr>';
         }
     } catch (error) {
         log(`❌ Gagal load TT: ${error.message}`, 'error');
-        tbody.innerHTML = '<tr><td colspan="7">Gagal memuat data: ' + error.message + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="17">Gagal memuat data: ' + error.message + '</td></tr>';
     }
 }
 
@@ -569,51 +569,87 @@ function renderTransferTable(data) {
     });
 }
 
+// ========== RENDER TT TABLE (FIXED) ==========
 function renderTTTable(data) {
     const tbody = document.getElementById('riwayatTTBody');
     if (!tbody) return;
-    log(`🖥️ Render TT table: ${data?.length || 0} data`, 'render');
     
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">Tidak ada data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="17">Tidak ada data</td></tr>';
         return;
     }
     
     let html = '';
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        const tanggal = formatTanggal(row.tanggal || row[0]);
-        const noTT = row.no_tt || row[1] || '-';
-        const dari = row.dari || row[2] || '-';
-        const kepada = row.kepada || row[3] || '-';
-        const jumlah = parseFloat(row.jumlah || row[4]) || 0;
-        const currency = row.currency || row[5] || '-';
+        
+        // AMBIL DATA LANGSUNG DARI ARRAY (index-based)
+        const noTT = row[0] || '-';
+        const tanggalTT = row[1] || '-';
+        const noCustomer = row[2] || '-';
+        const namaCustomer = row[3] || '-';
+        const alamatCustomer = row[4] || '-';
+        const namaPIC = row[5] || '-';
+        const noTelepon = row[6] || '-';
+        const invoice1 = row[7] || '-';
+        const invoice2 = row[8] || '-';
+        const invoice3 = row[9] || '-';
+        const invoice4 = row[10] || '-';
+        const invoice5 = row[11] || '-';
+        const total = parseFloat(row[12]) || 0;
+        const pt = row[13] || '-';
+        const kolomO = row[14] || '';
+        const urlBukti = row[15] || '';
+        
+        // Format total
+        const totalFormatted = total.toLocaleString('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
         html += `
             <tr>
-                <td>${escapeHtml(tanggal)}</td>
-                <td>${escapeHtml(noTT)}</td>
-                <td>${escapeHtml(dari)}</td>
-                <td>${escapeHtml(kepada)}</td>
-                <td>${jumlah.toLocaleString('id-ID')}</td>
-                <td>${escapeHtml(currency)}</td>
+                <td><strong>${escapeHtml(noTT)}</strong></td>
+                <td>${escapeHtml(tanggalTT)}</td>
+                <td>${escapeHtml(noCustomer)}</td>
+                <td>${escapeHtml(namaCustomer)}</td>
+                <td style="font-size: 12px; max-width: 150px; word-wrap: break-word;">${escapeHtml(alamatCustomer)}</td>
+                <td>${escapeHtml(namaPIC)}</td>
+                <td>${escapeHtml(noTelepon)}</td>
+                <td style="font-size: 11px; max-width: 200px; word-wrap: break-word;">
+                    <strong>${escapeHtml(invoice1)}</strong>
+                </td>
+                <td>${escapeHtml(invoice2)}</td>
+                <td>${escapeHtml(invoice3)}</td>
+                <td>${escapeHtml(invoice4)}</td>
+                <td>${escapeHtml(invoice5)}</td>
+                <td><strong>Rp ${escapeHtml(totalFormatted)}</strong></td>
+                <td>${escapeHtml(pt)}</td>
+                <td>${escapeHtml(kolomO)}</td>
+                <td>${urlBukti ? `<a href="${escapeHtml(urlBukti)}" target="_blank">📎 Lihat</a>` : '-'}</td>
                 <td>
                     <button class="btn-print-tt" data-index="${i}">🖨️ Print</button>
                     <button class="btn-hapus-tt" data-index="${i}">🗑️ Hapus</button>
-                 </td>
+                </td>
             </tr>
         `;
     }
     tbody.innerHTML = html;
     
+    // Event listener untuk tombol print
     document.querySelectorAll('.btn-print-tt').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const idx = parseInt(btn.getAttribute('data-index'));
-            if (ttData[idx]) printUlangTT(ttData[idx]);
+        btn.addEventListener('click', function() {
+            const idx = parseInt(this.getAttribute('data-index'));
+            if (ttData[idx]) {
+                printUlangTT(ttData[idx]);
+            }
         });
     });
+    
+    // Event listener untuk tombol hapus
     document.querySelectorAll('.btn-hapus-tt').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const idx = parseInt(btn.getAttribute('data-index'));
+        btn.addEventListener('click', async function() {
+            const idx = parseInt(this.getAttribute('data-index'));
             if (confirm('Yakin ingin menghapus data tanda terima ini?')) {
                 await hapusRiwayatTT(idx);
                 await loadRiwayatTT(true);
@@ -797,18 +833,57 @@ async function printUlangTransfer(rowData) {
     }
 }
 
+// ========== PRINT TT (FIXED) ==========
 async function printUlangTT(rowData) {
     log('🖨️ Print TT', 'print', rowData);
-    const noTT = rowData[1] || '-';
-    const tanggal = rowData[2] || '-';
-    const dari = rowData[3] || '-';
-    const kepada = rowData[4] || '-';
-    const alamat = rowData[5] || '-';
-    const jumlah = parseFloat(rowData[6]) || 0;
-    const currency = rowData[7] || '-';
-    const untuk = rowData[8] || '-';
-    const keterangan = rowData[9] || '-';
-    const params = new URLSearchParams({ noTT, tanggal, dari, kepada, alamat, jumlah, currency, untuk, keterangan }).toString();
+    
+    // AMBIL DATA LANGSUNG DARI ARRAY (index-based)
+    const noTT = rowData[0] || '-';
+    const tanggalTT = rowData[1] || '-';
+    const noCustomer = rowData[2] || '-';
+    const namaCustomer = rowData[3] || '-';
+    const alamatCustomer = rowData[4] || '-';
+    const namaPIC = rowData[5] || '-';
+    const noTelepon = rowData[6] || '-';
+    const invoice1 = rowData[7] || '-';
+    const invoice2 = rowData[8] || '-';
+    const invoice3 = rowData[9] || '-';
+    const invoice4 = rowData[10] || '-';
+    const invoice5 = rowData[11] || '-';
+    const total = parseFloat(rowData[12]) || 0;
+    const pt = rowData[13] || '-';
+    const kolomO = rowData[14] || '';
+    const urlBukti = rowData[15] || '';
+    
+    // Format total
+    const totalFormatted = total.toLocaleString('id-ID', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    const totalTerbilang = terbilangPrint(total, 'IDR');
+    
+    // BUAT PARAMETER UNTUK PRINT
+    const params = new URLSearchParams({
+        noTT: noTT,
+        tanggalTT: tanggalTT,
+        noCustomer: noCustomer,
+        namaCustomer: namaCustomer,
+        alamatCustomer: alamatCustomer,
+        namaPIC: namaPIC,
+        noTelepon: noTelepon,
+        invoice1: invoice1,
+        invoice2: invoice2,
+        invoice3: invoice3,
+        invoice4: invoice4,
+        invoice5: invoice5,
+        total: total.toString(),
+        totalFormatted: totalFormatted,
+        totalTerbilang: totalTerbilang,
+        pt: pt,
+        kolomO: kolomO,
+        urlBukti: urlBukti
+    }).toString();
+    
     const printUrl = `../print/print-tt.html?${params}`;
     log(`🖨️ Print URL TT: ${printUrl}`, 'print');
     await printWithAutoPrint(printUrl);
@@ -912,15 +987,31 @@ async function hapusRiwayatTransfer(index) {
 async function hapusRiwayatTT(index) {
     const rowData = ttData[index];
     if (!rowData) return;
+    
+    const noTT = rowData[0] || '';
+    
     try {
         const response = await fetch(CONFIG.API_URL, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'deleteRiwayatTT', rowIndex: index, id: rowData.id || rowData[0] })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                type: 'deleteRiwayatTT', 
+                rowIndex: index,
+                noTT: noTT
+            })
         });
         const result = await response.json();
-        if (result.success) { log('✅ Data TT berhasil dihapus', 'success'); await loadRiwayatTT(true); }
-        else { log(`❌ Gagal menghapus: ${result.error}`, 'error'); alert('Gagal menghapus: ' + (result.error || 'Unknown error')); }
-    } catch (error) { log(`❌ Error hapus TT: ${error.message}`, 'error'); alert('Error koneksi saat menghapus'); }
+        if (result.success) {
+            log(`✅ Data TT ${noTT} berhasil dihapus`, 'success');
+            await loadRiwayatTT(true);
+        } else {
+            log(`❌ Gagal menghapus: ${result.error}`, 'error');
+            alert('Gagal menghapus: ' + (result.error || 'Unknown error'));
+        }
+    } catch (error) {
+        log(`❌ Error hapus TT: ${error.message}`, 'error');
+        alert('Error koneksi saat menghapus');
+    }
 }
 
 async function hapusRiwayatValas(index) {
@@ -1032,7 +1123,6 @@ function addCacheControl() {
         `;
         log('✅ Tombol cache ditambahkan', 'success');
     } else {
-        // Fallback
         const toolbar = document.querySelector('.toolbar-container');
         if (toolbar) {
             const newCacheGroup = document.createElement('div');
@@ -1079,15 +1169,12 @@ window.log = log;
 document.addEventListener('DOMContentLoaded', function() {
     log('🚀 DOM ready, memulai inisialisasi...', 'info');
     
-    // Load alamat manual dari localStorage
     loadAlamatManualFromStorage();
-    
     initTabs();
     setupSearchButtons();
     setupExportButtons();
     addCacheControl();
     initPrintSettings();
-    
     loadRiwayatTransfer(false);
     
     setTimeout(() => {
@@ -1099,10 +1186,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function openAlamatEditor() {
     log('📝 Membuka Alamat Editor', 'info');
     
-    // Ambil data alamat saat ini
     const alamatData = window.ALAMAT_MANUAL || {};
     
-    // Buat modal
     const modal = document.createElement('div');
     modal.id = 'alamatEditorModal';
     modal.style.cssText = `
@@ -1119,7 +1204,6 @@ function openAlamatEditor() {
         animation: fadeIn 0.3s ease;
     `;
     
-    // Buat konten modal
     let tableRows = '';
     const sortedKeys = Object.keys(alamatData).sort();
     
@@ -1211,8 +1295,6 @@ function openAlamatEditor() {
     `;
     
     document.body.appendChild(modal);
-    
-    // Tambahkan event listener untuk close dengan ESC
     document.addEventListener('keydown', handleEscKey);
 }
 
@@ -1233,7 +1315,6 @@ function handleEscKey(e) {
 function saveAlamatManual() {
     log('💾 Menyimpan perubahan alamat...', 'info');
     
-    // Ambil semua input
     const inputs = document.querySelectorAll('.alamat-input');
     const updatedData = {};
     
@@ -1251,7 +1332,6 @@ function saveAlamatManual() {
         updatedData[key][field] = input.value;
     });
     
-    // Tambahkan perusahaan dari data lama
     const oldData = window.ALAMAT_MANUAL || {};
     Object.keys(updatedData).forEach(key => {
         if (oldData[key]) {
@@ -1259,10 +1339,8 @@ function saveAlamatManual() {
         }
     });
     
-    // Simpan ke window
     window.ALAMAT_MANUAL = updatedData;
     
-    // Simpan ke localStorage
     try {
         localStorage.setItem('alamatManual', JSON.stringify(updatedData));
         log('✅ Alamat manual disimpan ke localStorage', 'success');
@@ -1270,12 +1348,8 @@ function saveAlamatManual() {
         log('⚠️ Gagal menyimpan ke localStorage: ' + e.message, 'warning');
     }
     
-    // Tutup modal
     closeAlamatEditor();
-    
-    // Refresh data rekening
     loadRekening(true);
-    
     alert('✅ Alamat manual berhasil disimpan!');
 }
 
@@ -1285,7 +1359,6 @@ function loadAlamatManualFromStorage() {
         const stored = localStorage.getItem('alamatManual');
         if (stored) {
             const data = JSON.parse(stored);
-            // Merge dengan data default
             const defaultData = window.ALAMAT_MANUAL || {};
             window.ALAMAT_MANUAL = { ...defaultData, ...data };
             log('✅ Alamat manual dimuat dari localStorage', 'cache');
@@ -1309,14 +1382,12 @@ log('✅ riwayat.js selesai dimuat', 'success');
 async function printWithAutoPrint(printUrl) {
     const autoPrintEnabled = localStorage.getItem('autoPrintEnabled') !== 'false';
     
-    // Tambahkan parameter autoPrint ke URL
     const separator = printUrl.includes('?') ? '&' : '?';
     const urlWithParam = `${printUrl}${separator}autoPrint=${autoPrintEnabled ? 'true' : 'false'}`;
     
     log(`🖨️ Print dengan Auto Print: ${autoPrintEnabled ? 'ON' : 'OFF'}`, 'print');
     log(`🖨️ URL: ${urlWithParam}`, 'print');
     
-    // Buka window print
     const printWindow = window.open(urlWithParam, '_blank');
     
     if (!printWindow) {

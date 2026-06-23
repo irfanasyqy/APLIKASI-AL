@@ -1,10 +1,11 @@
 // ========== TUKAR-FAKTUR.JS ==========
-// Tukar Faktur
+// Tukar Faktur - Dengan Auto Generate NO TT (TT001, TT002, dst)
 
 // Global variables
 let selectedCustomer = null;
 let selectedInvoices = [];
 let currentPT = '';
+let customerData = [];
 let ptList = [
     'PT. SINAR CAHAYA CEMERLANG',
     'PT. SINAR ANUGERAH CEMERLANG',
@@ -46,7 +47,6 @@ function gantiPT() {
 // =====================================================
 // 3. LOAD CUSTOMER LIST
 // =====================================================
-
 async function loadCustomers(searchText) {
     if (searchText.length < 3) {
         document.getElementById('customerList').style.display = 'none';
@@ -135,7 +135,6 @@ async function searchInvoice(invoiceNumber) {
                 const invDB = cleanInvoiceNumber(cols[5] || '');
                 
                 if (ptDB === searchPT && invDB.includes(invoiceNumber)) {
-                    // Gunakan fungsi parseNominal
                     let nominalRaw = cols[8] || '0';
                     let nominal = parseNominal(nominalRaw);
                     
@@ -164,20 +163,15 @@ async function searchInvoice(invoiceNumber) {
 }
 
 // =====================================================
-// PARSE NOMINAL DENGAN LOGIKA
+// PARSE NOMINAL
 // =====================================================
 function parseNominal(nominalRaw) {
     if (!nominalRaw) return 0;
     
     let str = String(nominalRaw);
-    
-    // 1. Hapus "Rp" (case insensitive)
     str = str.replace(/Rp/gi, '');
-    
-    // 2. Hapus semua koma (pemisah ribuan)
     str = str.replace(/,/g, '');
     
-    // 3. Cek bagian setelah titik
     let hasDecimal = false;
     let decimalValue = 0;
     
@@ -185,33 +179,23 @@ function parseNominal(nominalRaw) {
         let parts = str.split('.');
         let afterDot = parts[1] || '';
         
-        // Jika setelah titik adalah "00" atau kosong
         if (afterDot === '00' || afterDot === '0' || afterDot === '') {
-            // Hapus titik dan angka setelahnya
             str = parts[0];
         } else {
-            // Jika setelah titik > 0, simpan sebagai desimal
             hasDecimal = true;
             decimalValue = parseInt(afterDot) || 0;
             str = parts[0];
         }
     }
     
-    // Konversi ke angka
     let nominal = parseInt(str) || 0;
     
-    // Tambahkan desimal jika ada
     if (hasDecimal && decimalValue > 0) {
         nominal = nominal + (decimalValue / 100);
     }
     
-    console.log(`Parse: "${nominalRaw}" → ${nominal}`);
-    
     return nominal;
 }
-
-// Contoh penggunaan di searchInvoice:
-// let nominal = parseNominal(cols[8]);
 
 function cleanInvoiceNumber(inv) {
     if (!inv) return '';
@@ -307,19 +291,15 @@ function updateInvoiceDisplay() {
 }
 
 // =====================================================
-// 7. GENERATE NO TUKAR FAKTUR (CEK DARI DATABASE)
+// 7. GENERATE NO TT (TT001, TT002, TT003, ...)
 // =====================================================
 async function generateNoTT() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    
     // Ambil nomor terakhir dari database
     let lastNumber = await getLastTTNumber();
     let newNumber = lastNumber + 1;
     
-    // Format: TT/2025/01/001
-    const noTT = `TT/${year}/${month}/${String(newNumber).padStart(3, '0')}`;
+    // Format: TT001, TT002, TT003, dst
+    const noTT = `TT${String(newNumber).padStart(3, '0')}`;
     document.getElementById('noTT').innerText = noTT;
     
     return noTT;
@@ -338,25 +318,21 @@ async function getLastTTNumber() {
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
-            // Cari nomor TT terbesar
             let maxNumber = 0;
-            const currentYear = new Date().getFullYear();
             
             for (const tt of result.data) {
                 const noTT = tt.noTT || '';
-                // Cek format TT/2025/01/001
-                const match = noTT.match(/TT\/(\d{4})\/\d{2}\/(\d{3})/);
+                // Cek format TT001, TT002, dst
+                const match = noTT.match(/TT(\d+)/);
                 if (match) {
-                    const year = parseInt(match[1]);
-                    const num = parseInt(match[2]);
-                    // Hanya hitung yang tahunnya sama dengan tahun ini
-                    if (year === currentYear && num > maxNumber) {
+                    const num = parseInt(match[1]);
+                    if (num > maxNumber) {
                         maxNumber = num;
                     }
                 }
             }
             
-            console.log(`Nomor TT terakhir tahun ${currentYear}: ${maxNumber}`);
+            console.log(`📊 Nomor TT terakhir: ${maxNumber}`);
             return maxNumber;
         }
         
@@ -376,7 +352,7 @@ function resetInvoices() {
 }
 
 // =====================================================
-// 9. SIMPAN TUKAR FAKTUR
+// 9. SIMPAN TUKAR FAKTUR (SIMPAN TEKS LENGKAP INVOICE)
 // =====================================================
 async function simpanTukarFaktur() {
     if (!selectedCustomer) {
@@ -397,9 +373,33 @@ async function simpanTukarFaktur() {
         return;
     }
     
-    // Generate nomor baru sebelum simpan (biar dapat nomor terbaru)
+    // Generate nomor baru
     const noTT = await generateNoTT();
+    const now = new Date();
+    const waktuSave = now.toLocaleString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
     
+    // ★ BUAT TEKS LENGKAP INVOICE ★
+    const invoiceTexts = [];
+    selectedInvoices.forEach((inv, index) => {
+        const nomor = index + 1;
+        const teks = `INVOICE ASLI NO ${inv.no} SENILAI ${formatRupiah(inv.nominal || 0)}`;
+        invoiceTexts.push(teks);
+    });
+    
+    // ★ BUAT DAFTAR INVOICE UNTUK ALERT ★
+    let invoiceListText = '';
+    invoiceTexts.forEach((teks, idx) => {
+        invoiceListText += `\n   ${idx + 1}. ${teks}`;
+    });
+    
+    // ★ DATA UNTUK DISIMPAN ★
     const data = {
         type: 'saveTandaTerima',
         noTT: noTT,
@@ -409,15 +409,17 @@ async function simpanTukarFaktur() {
         customerAlamat: selectedCustomer.alamat || '',
         customerPic: selectedCustomer.pic || '',
         customerTelepon: selectedCustomer.hp || '',
-        invoices: selectedInvoices.map(inv => ({
-            no: inv.no,
-            nominal: inv.nominal,
-            nominalDisplay: inv.nominalDisplay,
-            url: inv.url
-        })),
-        total: selectedInvoices.reduce((sum, inv) => sum + inv.nominal, 0),
+        // ★ SIMPAN TEKS LENGKAP INVOICE ★
+        invoice1: invoiceTexts[0] || '',
+        invoice2: invoiceTexts[1] || '',
+        invoice3: invoiceTexts[2] || '',
+        invoice4: invoiceTexts[3] || '',
+        invoice5: invoiceTexts[4] || '',
+        total: selectedInvoices.reduce((sum, inv) => sum + (inv.nominal || 0), 0),
         ptCode: getPTCode(currentPT),
-        ptName: currentPT
+        ptName: currentPT,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString()
     };
     
     const btnSimpan = document.getElementById('btnSimpanTT');
@@ -426,6 +428,8 @@ async function simpanTukarFaktur() {
     btnSimpan.disabled = true;
     
     try {
+        console.log('📤 Menyimpan data:', data);
+        
         const response = await fetch(CONFIG.API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -434,17 +438,28 @@ async function simpanTukarFaktur() {
         const result = await response.json();
         
         if (result.success) {
-            alert(`✅ Tukar Faktur No. ${noTT} berhasil disimpan!`);
+            // ★ ALERT DENGAN FORMAT INVOICE ★
+            alert(`✅ Tukar Faktur No. ${noTT} BERHASIL DISIMPAN!
+            
+📋 Detail:
+PT: ${currentPT}
+Customer: ${selectedCustomer.nomor} - ${selectedCustomer.nama}
+Total: ${formatRupiah(selectedInvoices.reduce((sum, inv) => sum + (inv.nominal || 0), 0))}
+Jumlah Faktur: ${selectedInvoices.length} faktur
+
+📑 DAFTAR INVOICE:
+${invoiceListText}
+
+🕐 Waktu Simpan: ${waktuSave}`);
             
             resetInvoices();
             selectedCustomer = null;
             document.getElementById('selectedCustomerInfo').style.display = 'none';
             document.getElementById('searchCustomer').value = '';
             
-            // Generate nomor baru untuk form berikutnya
             await generateNoTT();
             
-            if (confirm('🖨️ Cetak Tukar Faktur sekarang?')) {
+            if (confirm('🖨️ Cetak Tanda Terima sekarang?')) {
                 window.open(`../print/print-tt.html?noTT=${encodeURIComponent(noTT)}`, '_blank');
             }
         } else {
@@ -452,7 +467,7 @@ async function simpanTukarFaktur() {
         }
     } catch (error) {
         console.error('Error save:', error);
-        alert('❌ Error koneksi saat menyimpan');
+        alert('❌ Error koneksi saat menyimpan: ' + error.message);
     } finally {
         btnSimpan.innerText = originalText;
         btnSimpan.disabled = false;
@@ -471,12 +486,14 @@ function refreshData() {
         document.getElementById('customerList').style.display = 'none';
         selectedCustomer = null;
         resetInvoices();
+        // Generate nomor baru
+        generateNoTT();
         alert('✅ Data siap direfresh! Silakan cari customer/invoice kembali.');
     }
 }
 
 // =====================================================
-// 11. FORMAT RUPIAH (HANYA SATU)
+// 11. FORMAT RUPIAH
 // =====================================================
 function formatRupiah(angka) {
     if (isNaN(angka) || angka === 0) return 'Rp 0';
@@ -491,11 +508,14 @@ function formatRupiah(angka) {
 // =====================================================
 // 12. EVENT LISTENERS
 // =====================================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadActivePT();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadActivePT();
     
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('tanggalTT').value = today;
+    
+    // Generate nomor TT otomatis
+    await generateNoTT();
     
     const searchInput = document.getElementById('searchCustomer');
     let typingTimer;
@@ -539,3 +559,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global functions
 window.removeInvoice = removeInvoice;
+window.gantiPT = gantiPT;
+window.refreshData = refreshData;
+window.simpanTukarFaktur = simpanTukarFaktur;
+
+console.log('✅ tukar-faktur.js selesai dimuat');

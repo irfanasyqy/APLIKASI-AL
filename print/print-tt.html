@@ -13,45 +13,45 @@
         
         @page {
             size: A4;
-            margin: 5mm;
+            margin: 0mm;
         }
         
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
+            background: white;
         }
         
         body {
             font-family: 'Times New Roman', Times, serif;
-            background: #f5f5f5;
-            padding: 5px;
+            padding: 0;
+            margin: 0;
         }
         
         .print-container {
             max-width: 210mm;
             margin: 0 auto;
             background: white;
-            padding: 5mm;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2mm;
+            border-radius: 0;
+            box-shadow: none;
         }
         
-        /* WRAPPER - 2 copy dalam 1 halaman */
         .copy-wrapper {
             display: flex;
             flex-direction: column;
-            height: 287mm !important;
+            height: 297mm !important;
             page-break-after: avoid;
             page-break-inside: avoid;
-            position: relative;  /* Tambahkan ini agar cut-line absolute berfungsi */
+            position: relative;
         }
         
         .copy-item {
             height: 50%;
-            padding: 5mm 7mm;
+            padding: 4mm 6mm;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 0;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -59,46 +59,43 @@
         }
         
         .copy-item:first-child {
-            border-bottom: none;  /* Hapus border-bottom */
-            margin-bottom: 0;  /* Hapus margin-bottom */
+            border-bottom: none;
+            margin-bottom: 0;
         }
         
-        /* HEADER PERUSAHAAN */
         .company-header {
             text-align: center;
             border-bottom: 2px solid #000;
-            padding-bottom: 4px;
-            margin-bottom: 4px;
+            padding-bottom: 3px;
+            margin-bottom: 3px;
         }
         
         .company-header h1 {
-            font-size: 14pt;
+            font-size: 13pt;
             font-weight: bold;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
         
         .company-header .address {
-            font-size: 11pt;
-            line-height: 1.3;
+            font-size: 10pt;
+            line-height: 1.2;
             margin-top: 1px;
             color: #333;
         }
         
-        /* JUDUL TANDA TERIMA */
         .title-section {
             text-align: center;
-            margin: 1px 0 3px 0;
+            margin: 1px 0 2px 0;
         }
         
         .title-section h2 {
-            font-size: 15pt;
+            font-size: 14pt;
             font-weight: bold;
             text-decoration: underline;
             letter-spacing: 2px;
         }
         
-        /* FORM INFO - JARAK SANGAT RAPAT */
         .info-section {
             margin: 1px 0 0px 0;
         }
@@ -106,45 +103,41 @@
         .info-row {
             display: flex;
             margin-bottom: -1px;
-            font-size: 11pt;
+            font-size: 10.5pt;
             line-height: 1.2;
         }
         
         .info-label {
-            width: 75px;
+            width: 70px;
             font-weight: bold;
             flex-shrink: 0;
         }
         
         .info-value {
             flex: 1;
-            font-size: 11pt;
+            font-size: 10.5pt;
         }
         
-        .info-value .highlight {
-            font-weight: bold;
-        }
-        
-        /* INVOICE SECTION */
         .invoice-section {
             margin: 1px 0 2px 0;
+            flex: 1;
         }
         
         .invoice-row {
             display: flex;
-            font-size: 11pt;
-            line-height: 1.4;
+            font-size: 10.5pt;
+            line-height: 1.3;
             margin-bottom: 0px;
         }
         
         .invoice-label {
-            width: 105px;
+            width: 100px;
             font-weight: bold;
             flex-shrink: 0;
         }
         
         .invoice-colon {
-            width: 15px;
+            width: 12px;
             flex-shrink: 0;
             text-align: center;
         }
@@ -153,15 +146,8 @@
             flex: 1;
         }
         
-        .invoice-item {
-            display: block;
-            font-size: 11pt;
-            line-height: 1.4;
-        }
-        
-        /* FOOTER TTD */
         .signature-section {
-            margin-top: 4px;
+            margin-top: 3px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -180,11 +166,11 @@
         .signature-left .signature-line {
             width: 100%;
             border-top: 1px solid #000;
-            margin-top: 100px;
+            margin-top: 80px;
         }
         
         .signature-left .signature-label {
-            font-size: 11pt;
+            font-size: 10pt;
             margin-top: 2px;
         }
         
@@ -196,16 +182,16 @@
         }
         
         .signature-right .city-date {
-            font-size: 11pt;
-            margin-bottom: 20px;
+            font-size: 10.5pt;
+            margin-bottom: 15px;
             white-space: nowrap;
             font-family: 'Times New Roman', Times, serif;
             letter-spacing: 0.5px;
         }
         
         .signature-right .receiver-label {
-            font-size: 11pt;
-            margin-bottom: 100px;
+            font-size: 10.5pt;
+            margin-bottom: 80px;
         }
         
         .signature-right .signature-line {
@@ -215,18 +201,17 @@
         }
         
         .signature-right .signature-name {
-            font-size: 11pt;
+            font-size: 10.5pt;
             margin-top: 2px;
         }
         
         .signature-left > div:first-child {
-            font-size: 11pt;
+            font-size: 10.5pt;
         }
         
-        /* GARIS POTONG TENGAH - POSISI FIX DI TENGAH */
         .cut-line {
             position: absolute;
-            top: 144.5mm;  /* 287mm / 2 = 143.5mm (14.35cm) */
+            top: 148.5mm;
             left: 0;
             right: 0;
             border-top: 2px dashed #999;
@@ -239,7 +224,6 @@
             pointer-events: none;
         }
         
-        /* BUTTON */
         .no-print {
             margin-bottom: 10px;
             text-align: center;
@@ -290,23 +274,23 @@
         
         @media print {
             html, body {
-                margin: 0;
-                padding: 0;
-                height: auto;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 100% !important;
+                background: white !important;
             }
             
             body {
-                background: white;
-                padding: 0;
-                margin: 0;
+                padding: 0 !important;
+                margin: 0 !important;
             }
             
             .print-container {
-                box-shadow: none;
-                padding: 2mm;
-                border-radius: 0;
-                max-width: 100%;
-                margin: 0;
+                box-shadow: none !important;
+                padding: 0mm !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                margin: 0 !important;
             }
             
             .no-print {
@@ -314,10 +298,12 @@
             }
             
             .copy-wrapper {
-                height: 293mm !important;  /* 297mm - 4mm (margin) */
+                height: 297mm !important;
                 position: relative !important;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             
             .copy-item {
@@ -326,6 +312,7 @@
                 height: 50% !important;
                 page-break-inside: avoid !important;
                 page-break-after: avoid !important;
+                margin: 0 !important;
             }
             
             .copy-item:first-child {
@@ -333,9 +320,8 @@
                 margin-bottom: 0 !important;
             }
             
-            /* GARIS POTONG DI PRINT */
             .cut-line {
-                top: 146.5mm !important;  /* 293mm / 2 = 146.5mm */
+                top: 148.5mm !important;
                 border-top: 2px dashed #999 !important;
                 height: 0 !important;
                 margin: 0 !important;
@@ -345,19 +331,19 @@
             }
             
             .company-header {
-                border-bottom-color: #000;
+                border-bottom-color: #000 !important;
             }
             
             .signature-line {
-                border-top-color: #000;
+                border-top-color: #000 !important;
             }
             
             .signature-section {
-                border-top-color: #eee;
+                border-top-color: #eee !important;
             }
             
             .signature-right .city-date {
-                font-size: 11pt !important;
+                font-size: 10.5pt !important;
                 white-space: nowrap !important;
             }
         }
@@ -379,20 +365,15 @@
 
 <script src="../config.js"></script>
 <script>
-    // Konfigurasi API
     const API_URL = CONFIG.API_URL;
-    
-    // Ambil parameter dari URL
     const urlParams = new URLSearchParams(window.location.search);
     const noTT = urlParams.get('noTT') || urlParams.get('noTF');
     
-    // DATA PERUSAHAAN LENGKAP
     const COMPANY_DATA = {
         name: 'PT. SINAR CAHAYA CEMERLANG',
         address: 'JL GUNUNG SAHARI II NO. 7 RT 12/07 GUNUNG SAHARI SELATAN, KEMAYORAN, KOTA ADM. JAKARTA PUSAT, DKI JAKARTA, 10610'
     };
     
-    // Fungsi format Rupiah
     function formatRupiah(angka) {
         if (angka === undefined || angka === null || isNaN(angka)) return 'Rp 0';
         return new Intl.NumberFormat('id-ID', {
@@ -403,50 +384,26 @@
         }).format(angka);
     }
     
-    // Fungsi format tanggal - PERBAIKAN TOTAL
     function formatDate(dateStr) {
-        // Jika tidak ada data
-        if (!dateStr) {
-            console.warn('Tanggal kosong, menggunakan default');
-            return getDefaultDate();
-        }
-        
+        if (!dateStr) return getDefaultDate();
         try {
-            // Coba parse tanggal
             let date = new Date(dateStr);
-            
-            // Jika invalid date
-            if (isNaN(date.getTime())) {
-                console.warn('Tanggal invalid:', dateStr);
-                return getDefaultDate();
-            }
-            
+            if (isNaN(date.getTime())) return getDefaultDate();
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-            
-            const day = date.getDate();
-            const month = months[date.getMonth()];
-            const year = date.getFullYear();
-            
-            return 'Jakarta, ' + day + ' ' + month + ' ' + year;
+            return 'Jakarta, ' + date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
         } catch (e) {
-            console.error('Error formatting date:', e);
             return getDefaultDate();
         }
     }
     
-    // Fungsi untuk mendapatkan tanggal default (hari ini)
     function getDefaultDate() {
         const now = new Date();
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        const day = now.getDate();
-        const month = months[now.getMonth()];
-        const year = now.getFullYear();
-        return 'Jakarta, ' + day + ' ' + month + ' ' + year;
+        return 'Jakarta, ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
     }
     
-    // Escape HTML
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, function(m) {
@@ -457,7 +414,6 @@
         });
     }
     
-    // Load data dari API
     async function loadData() {
         if (!noTT) {
             document.getElementById('content').innerHTML = `
@@ -479,44 +435,32 @@
             
             if (result.success && result.data) {
                 const tt = result.data.find(item => item.noTT === noTT);
-                
                 if (!tt) {
                     document.getElementById('content').innerHTML = `
                         <div class="error-message">
-                            ❌ Data tidak ditemukan untuk No. TT: ${escapeHtml(noTT)}<br>
-                            <small>Pastikan nomor Tanda Terima benar</small>
+                            ❌ Data tidak ditemukan untuk No. TT: ${escapeHtml(noTT)}
                         </div>
                     `;
                     return;
                 }
-                
                 displayPrintContent(tt);
             } else {
                 document.getElementById('content').innerHTML = `
-                    <div class="error-message">
-                        ❌ Gagal memuat data: ${result.error || 'Unknown error'}
-                    </div>
+                    <div class="error-message">❌ Gagal memuat data: ${result.error || 'Unknown error'}</div>
                 `;
             }
         } catch (error) {
-            console.error('Error:', error);
             document.getElementById('content').innerHTML = `
-                <div class="error-message">
-                    ❌ Error koneksi: ${error.message}
-                </div>
+                <div class="error-message">❌ Error koneksi: ${error.message}</div>
             `;
         }
     }
     
-    // Buat satu copy Tanda Terima
     function createCopy(tt, ptName, ptAddress, invoices, formattedDate) {
-        // Batasi invoice maksimal 5
         const maxInvoices = invoices.slice(0, 5);
-        
-        // Buat daftar invoice
         let invoiceRows = '';
+        
         if (maxInvoices.length > 0) {
-            // Baris pertama dengan label "Telah diterima" dan titik dua
             invoiceRows += `
                 <div class="invoice-row">
                     <div class="invoice-label">Telah diterima</div>
@@ -524,8 +468,6 @@
                     <div class="invoice-value">1. ${escapeHtml(maxInvoices[0].no)}${maxInvoices[0].nominal ? ' SENILAI ' + formatRupiah(maxInvoices[0].nominal) : ''}</div>
                 </div>
             `;
-            
-            // Baris berikutnya (hanya titik dua, tanpa label)
             for (let i = 1; i < maxInvoices.length; i++) {
                 invoiceRows += `
                     <div class="invoice-row">
@@ -536,7 +478,6 @@
                 `;
             }
         } else {
-            // Jika tidak ada invoice
             invoiceRows = `
                 <div class="invoice-row">
                     <div class="invoice-label">Telah diterima</div>
@@ -553,18 +494,13 @@
         
         return `
             <div class="copy-item">
-                <!-- HEADER -->
                 <div class="company-header">
                     <h1>${escapeHtml(ptName)}</h1>
                     <div class="address">${escapeHtml(ptAddress)}</div>
                 </div>
-                
-                <!-- JUDUL -->
                 <div class="title-section">
                     <h2>TANDA TERIMA</h2>
                 </div>
-                
-                <!-- INFO -->
                 <div class="info-section">
                     <div class="info-row">
                         <span class="info-label">Kepada</span>
@@ -583,13 +519,9 @@
                         <span class="info-value">: ${escapeHtml(customerAlamat)}</span>
                     </div>
                 </div>
-                
-                <!-- INVOICE -->
                 <div class="invoice-section">
                     ${invoiceRows}
                 </div>
-                
-                <!-- SIGNATURE -->
                 <div class="signature-section">
                     <div class="signature-left">
                         <div>Hormat Kami,</div>
@@ -607,13 +539,11 @@
         `;
     }
     
-    // Tampilkan konten cetak dengan 2 copy dalam 1 halaman
     function displayPrintContent(tt) {
-        // Kumpulkan invoice - maksimal 5
         let invoices = [];
         if (tt.invoices && tt.invoices.length > 0) {
             invoices = tt.invoices.slice(0, 5);
-        } else if (tt.invoice1 || tt.invoice2 || tt.invoice3 || tt.invoice4 || tt.invoice5) {
+        } else {
             for (let i = 1; i <= 5; i++) {
                 const invNo = tt[`invoice${i}`];
                 if (invNo && invNo !== '') {
@@ -622,45 +552,28 @@
             }
         }
         
-        // Ambil data perusahaan
         let ptName = tt.ptName || tt.ptCode || tt.companyName || tt.perusahaan || COMPANY_DATA.name;
         let ptAddress = tt.ptAddress || tt.companyAddress || tt.alamatPerusahaan || COMPANY_DATA.address;
-        
-        // Jika ptName masih singkatan, gunakan nama lengkap
         if (ptName && ptName.length < 10 && ptName.toUpperCase() === ptName) {
             ptName = COMPANY_DATA.name;
             ptAddress = COMPANY_DATA.address;
         }
         
-        // Ambil tanggal dengan fallback
-        let tanggal = tt.tanggal;
-        if (!tanggal) {
-            // Coba ambil dari field lain
-            tanggal = tt.tgl || tt.date || tt.createdAt || tt.updatedAt;
-        }
-        
-        // Format tanggal
+        let tanggal = tt.tanggal || tt.tgl || tt.date || tt.createdAt || tt.updatedAt;
         const formattedDate = formatDate(tanggal);
         
-        // Buat 2 copy
         const copy1 = createCopy(tt, ptName, ptAddress, invoices, formattedDate);
         const copy2 = createCopy(tt, ptName, ptAddress, invoices, formattedDate);
         
-        const html = `
+        document.getElementById('content').innerHTML = `
             <div class="copy-wrapper">
                 ${copy1}
-                
-                <!-- GARIS POTONG -->
                 <div class="cut-line"></div>
-                
                 ${copy2}
             </div>
         `;
-        
-        document.getElementById('content').innerHTML = html;
     }
     
-    // Load data
     loadData();
 </script>
 </body>
