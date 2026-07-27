@@ -229,11 +229,11 @@ function prosesAngkaIndonesia(input) {
     return { bulat, desimal };
 }
 
-function terbilangDenganKoma(jumlah, mataUang) {
+function terbilangDenganPOIN(jumlah, mataUang) {
     const { bulat, desimal } = prosesAngkaIndonesia(jumlah);
     if (bulat === 0 && desimal === 0) return `NOL ${mataUang.toUpperCase()}`;
     let hasil = bulat > 0 ? terbilang(bulat) : 'Nol';
-    if (desimal > 0) hasil += ' KOMA ' + terbilang(desimal);
+    if (desimal > 0) hasil += ' POIN ' + terbilang(desimal);
     switch(mataUang.toUpperCase()) {
         case 'USD': hasil += ' DOLAR AS'; break;
         case 'EUR': hasil += ' EURO'; break;
@@ -251,7 +251,7 @@ function terbilangDenganKoma(jumlah, mataUang) {
 }
 
 function terbilangPrint(jumlah, mataUang) {
-    return terbilangDenganKoma(jumlah, mataUang).toUpperCase();
+    return terbilangDenganPOIN(jumlah, mataUang).toUpperCase();
 }
 
 // ========== FUNGSI FORMAT TANGGAL ==========

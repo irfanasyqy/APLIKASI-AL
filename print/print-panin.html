@@ -363,14 +363,14 @@
         };
 
         // ========== FORMAT ANGKA (FORMAT INDONESIA) ==========
-        // Pemisah ribuan = titik (.), pemisah desimal = koma (,)
+        // Pemisah ribuan = titik (.), pemisah desimal = KOMA (,)
         // Desimal tetap 2 digit jika ada nilai desimal
         const formatAngka = (angka, curr) => {
             if (isNaN(angka) || angka === 0) return '0';
             
             const hasDecimal = angka % 1 !== 0;
             
-            // Semua currency pakai format Indonesia (titik ribuan, koma desimal)
+            // Semua currency pakai format Indonesia (titik ribuan, KOMA desimal)
             if (hasDecimal) {
                 return angka.toLocaleString('id-ID', { 
                     minimumFractionDigits: 2, 

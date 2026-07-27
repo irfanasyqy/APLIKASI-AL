@@ -336,7 +336,7 @@ function terbilangAngka(angka, currency) {
     let pecahan = Math.round((angka - bulat) * 100);
     let hasil = convert(bulat);
     if (hasil === '') hasil = 'NOL';
-    if (pecahan > 0) hasil += ` KOMA ${convert(pecahan)}`;
+    if (pecahan > 0) hasil += ` POIN ${convert(pecahan)}`;
     return hasil + ' ' + currency;
 }
 
