@@ -51,7 +51,7 @@
 
         .currency { 
             position: absolute; 
-            top: 35mm; 
+            top: 20mm; 
             left: 18mm; 
             font-size: 11pt; 
             font-weight: bold; 
@@ -60,7 +60,7 @@
 
         .jumlah-angka { 
             position: absolute; 
-            top: 35mm; 
+            top: 20mm; 
             left: 50mm; 
             font-size: 11pt; 
             font-weight: bold; 
@@ -69,16 +69,16 @@
 
         .terbilang { 
             position: absolute; 
-            top: 180mm; 
+            top: 168mm; 
             left: 20mm; 
-            font-size: 10pt;
+            font-size: 8pt;
             font-weight: bold; 
             max-width: 90mm; 
             white-space: normal; 
             word-wrap: break-word; 
             line-height: 1.2; 
             display: -webkit-box; 
-            -webkit-line-clamp: 2; 
+            -webkit-line-clamp: 3; 
             -webkit-box-orient: vertical; 
             overflow: hidden; 
         }
@@ -107,10 +107,10 @@
 
         .alamat { 
             position: absolute; 
-            top: 64mm; 
-            left: 25mm; 
+            top: 45mm; 
+            left: 40mm; 
             font-weight: bold;
-            font-size: 9pt; 
+            font-size: 8pt; 
             max-width: 80mm; 
             white-space: normal; 
             word-wrap: break-word; 
@@ -158,8 +158,8 @@
 
         .negara { 
             position: absolute; 
-            top: 89mm; 
-            left: 20mm; 
+            top: 69mm; 
+            left: 40mm; 
             font-weight: bold; 
             white-space: nowrap; 
             max-width: 90mm; 
@@ -211,41 +211,40 @@
         /* KOLOM KANAN - REFERENSI & TOTAL */
         /* ======================================== */
 
-        .ref-no-cek { 
+        .bank-name { 
             position: absolute; 
-            top: 69mm; 
-            left: 110mm;
-            font-weight: bold; 
-            text-align: left; 
-        }
-
-        .ref-norek-pengirim { 
-            position: absolute; 
-            top: 69mm; 
+            top: 35mm; 
             left: 135mm; 
-            text-align: left; 
-            font-size: 11pt; 
-            font-weight: bold;
+            font-size: 11pt;
+            font-weight: bold; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
+        }
+        
+        .bank-alamat { 
+            position: absolute; 
+            top: 40mm; 
+            left: 135mm; 
+            max-width: 90mm;
+            font-weight: bold; 
+            white-space: normal; 
+            word-wrap: break-word; 
+            line-height: 1.2; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
         }
 
-        .ref-total-pertama { 
+        .negara { 
             position: absolute; 
-            top: 69mm; 
-            left: 170mm; 
-            text-align: left; 
-            font-size: 10pt; 
+            top: 59mm; 
+            left: 135mm; 
             font-weight: bold; 
-            color: #000; 
-        }
-
-        .ref-total-kedua { 
-            position: absolute; 
-            top: 80mm; 
-            left: 157mm; 
-            text-align: left; 
-            font-size: 10pt; 
-            font-weight: bold; 
-            color: #000; 
+            white-space: nowrap; 
+            max-width: 90mm; 
+            overflow-x: auto; 
         }
 
         /* ======================================== */
@@ -254,8 +253,8 @@
 
         .rincian-bongkaran {
             position: absolute;
-            top: 110mm;
-            left: 130mm;
+            top: 150mm;
+            left: 45mm;
             width: auto;
             font-size: 8pt;
             font-weight: bold;
@@ -606,13 +605,12 @@
         const html = `
             <div class="print-container">
                 <!-- KIRI -->
-                <div class="currency">${data.currency}</div>
-                <div class="jumlah-angka">${formattedJumlah}</div>
                 <div class="terbilang">${data.terbilang}</div>
                 
                 <div class="nama-penerima">${data.nama}</div>
                 <div class="account">${data.account}</div>
                 <div class="alamat">${data.alamat}</div>
+                <div class="negara">${data.country}</div>
                 
                 <div class="bank-name">${data.bankName}</div>
                 <div class="bank-alamat">${data.bankAlamat}</div>
@@ -625,11 +623,6 @@
                 <div class="pengirim">${data.pengirim}</div>
                 <div class="deretan-angka">${norekFormat}</div>
                 
-                <!-- KANAN -->
-                <div class="ref-no-cek">${data.noLoa}</div>
-                <div class="ref-norek-pengirim">${data.norekPengirim}</div>
-                <div class="ref-total-pertama">${totalDisplayFormatted}</div>
-                <div class="ref-total-kedua">${totalDisplayFormatted}</div>
                 
                 ${rincianHtml}
             </div>
