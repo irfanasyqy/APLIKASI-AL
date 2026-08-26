@@ -171,6 +171,13 @@ function hitungFullAmountBiaya(currency, country) {
     return 0;
 }
 
+// ========== HITUNG PROVISI BCA ==========
+// Provisi BCA = 0,125% = 1/800 dari jumlah valas
+function hitungProvisiBCA(jumlahValas) {
+    if (!jumlahValas || jumlahValas <= 0) return 0;
+    return jumlahValas / 800;
+}
+
 function updateFullAmountInfo() {
     const metode = metodeTransfer?.value;
     const supplierSelect = document.getElementById('supplierSelect');
@@ -381,7 +388,16 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
     const biayaTelexVal = parseInt(document.getElementById('biayaTelex')?.value) || 35000;
     const metodeTransferVal = document.getElementById('metodeTransfer')?.value || 'SHARE';
     const biayaFullAmountVal = parseFloat(document.getElementById('fullAmountBiaya')?.value) || 0;
-    const totalBiaya = biayaTelexVal + (metodeTransferVal === 'FULL_AMOUNT' ? biayaFullAmountVal : 0);
+    // Provisi BCA = 1/800 dari jumlah valas
+    const provisiBCAVal = metodeTransferVal === 'BCA_PROVISI'
+    ? hitungProvisiBCA(jumlah)
+    : 0;
+
+    // Total biaya
+    const totalBiaya =
+    biayaTelexVal +
+    (metodeTransferVal === 'FULL_AMOUNT' ? biayaFullAmountVal : 0) +
+    provisiBCAVal;
     
     // Ambil mata uang rekening asal
     const mataUangRekeningAsal = getCurrencyFromRekeningText(rekeningAsalText);
@@ -417,6 +433,7 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
         biayaTelex: biayaTelexVal,
         metodeTransfer: metodeTransferVal,
         biayaFullAmount: biayaFullAmountVal,
+        provisiBCA: provisiBCAVal,
         totalBiaya: totalBiaya,
         kurs: kurs,
         jumlahIDR: jumlahIDR
@@ -458,6 +475,7 @@ document.getElementById('btnPrintTransfer')?.addEventListener('click', async fun
         biayaTelex: biayaTelexVal,
         metodeTransfer: metodeTransferVal,
         biayaFullAmount: biayaFullAmountVal,
+        provisiBCA: provisiBCAVal,
         totalBiaya: totalBiaya,
         kurs: kurs,
         jumlahIDR: jumlahIDR,
@@ -602,6 +620,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         biayaTelex: 0,
         metodeTransfer: 'SHARE',
         biayaFullAmount: 0,
+        provisiBCA: provisiBCAVal,
         totalBiaya: 0,
         valueDate: '-',
         kurs: kurs,
