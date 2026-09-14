@@ -315,7 +315,7 @@ async function loadRekening(forceRefresh = false) {
                     alamatPenerima = 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat';
                     alamatBank = bank.toUpperCase().includes('BCA') 
                         ? 'Jl. Wahid Hasyim No. 10, Jakarta Pusat' 
-                        : 'Jl. Garuda No. 1, Jakarta Pusat';
+                        : 'Jl. Garuda No. 26-26 A, Kemayoran Jakarta Pusat, DKI Jakarta';
                 }
                 
                 return {
