@@ -608,7 +608,7 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         nama: namaPenerima,
         account: norekTujuan,
         alamat: alamatPenerima,
-        bankName: bankPengirim === 'PANIN' ? 'BANK PANIN' : 'BANK BCA',
+        bankName: bankPengirim === 'PANIN' ? 'PANIN GARUDA' : 'BANK BCA',
         bankAlamat: alamatBank,
         swift: swiftCode,
         country: 'INDONESIA',
