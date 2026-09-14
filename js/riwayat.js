@@ -161,17 +161,6 @@ function clearCache(key = null) {
     }
 }
 
-// ========== DATA ALAMAT MANUAL (GLOBAL) ==========
-window.ALAMAT_MANUAL = {
-    '1222': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Garuda No. 1, Jakarta Pusat', swift: '' },
-    '1223': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Wahid Hasyim No. 10, Jakarta Pusat', swift: '' },
-    '1224': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Garuda No. 1, Jakarta Pusat', swift: '' },
-    '1234': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Garuda No. 1, Jakarta Pusat', swift: '' },
-    '1233': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Garuda No. 1, Jakarta Pusat', swift: '' },
-    '1243': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Wahid Hasyim No. 10, Jakarta Pusat', swift: '' },
-    '1253': { alamatPenerima: 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat', alamatBank: 'Jl. Garuda No. 1, Jakarta Pusat', swift: '' }
-};
-
 // ========== FUNGSI TERBILANG ==========
 function terbilang(angka) {
     angka = Math.floor(Math.abs(angka));
@@ -314,7 +303,7 @@ async function loadRekening(forceRefresh = false) {
                 if (alamatPenerima === '-') {
                     alamatPenerima = 'Jl. Gunung Sahari 2 No. 7, Jakarta Pusat';
                     alamatBank = bank.toUpperCase().includes('BCA') 
-                        ? 'Jl. Wahid Hasyim No. 10, Jakarta Pusat' 
+                        ? 'Jl. K.H. Wahid Hasyim No.183 A-B, Kb. Kacang, Kec. Tanah Abang, Kota Jakarta Pusat' 
                         : 'Jl. Garuda No. 26-26 A, Kemayoran, Jakarta Pusat';
                 }
                 
