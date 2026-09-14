@@ -620,7 +620,6 @@ document.getElementById('btnPrintValas')?.addEventListener('click', async () => 
         biayaTelex: 0,
         metodeTransfer: 'SHARE',
         biayaFullAmount: 0,
-        provisiBCA: provisiBCAVal,
         totalBiaya: 0,
         valueDate: '-',
         kurs: kurs,
