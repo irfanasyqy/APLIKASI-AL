@@ -16,6 +16,112 @@ let ptList = [
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1iJ6NMTx3LW09ZoKXpCrJwUux4M_EeBzKu_gP7NgGW6s/export?format=tsv&gid=0';
 
 // =====================================================
+// 13. REFRESH INSTAN (TRIGGER PROSES_TAMBAH_DATA)
+// =====================================================
+async function refreshInstan() {
+    // Konfirmasi dulu
+    if (!confirm(
+        '🚀 REFRESH INSTAN\n\n' +
+        'Proses ini akan:\n' +
+        '1. Scan folder Drive untuk cari invoice baru\n' +
+        '2. Proses semua PDF yang belum masuk database\n' +
+        '3. Update sheet INVOICE_DB\n\n' +
+        '⏱️ Proses bisa memakan waktu 1-5 menit.\n' +
+        'Jangan tutup halaman ini.\n\n' +
+        'Lanjutkan?'
+    )) {
+        return;
+    }
+    
+    const btn = document.getElementById('btnRefreshInstan');
+    const originalText = btn ? btn.innerText : '';
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Memproses...';
+    }
+    
+    try {
+        // Step 1: Trigger PROSES_TAMBAH_DATA di Apps Script
+        console.log('🚀 Mengirim trigger PROSES_TAMBAH_DATA...');
+        
+        const triggerResponse = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})   // body kosong → default case → trigger PROSES_TAMBAH_DATA
+        });
+        
+        const triggerText = await triggerResponse.text();
+        console.log('📥 Response trigger:', triggerText);
+        
+        if (!triggerText.includes('SUKSES')) {
+            alert('⚠️ ' + triggerText);
+            return;
+        }
+        
+        // Step 2: Polling status sampai selesai
+        let selesai = false;
+        let cekCount = 0;
+        const maxCek = 60;   // max 60x cek (5 menit, tiap 5 detik)
+        
+        while (!selesai && cekCount < maxCek) {
+            cekCount++;
+            
+            if (btn) {
+                btn.innerText = `⏳ Memproses... (${cekCount * 5}s)`;
+            }
+            
+            // Tunggu 5 detik sebelum cek status
+            await new Promise(r => setTimeout(r, 5000));
+            
+            try {
+                const statusResponse = await fetch(CONFIG.API_URL + '?action=getprocessingstatus');
+                const statusText = await statusResponse.text();
+                
+                console.log(`📊 Cek ${cekCount}:`, statusText);
+                
+                // Kalau sudah tidak ada proses berjalan
+                if (statusText.includes('TIDAK ADA PROSES BERJALAN')) {
+                    selesai = true;
+                    break;
+                }
+            } catch(e) {
+                console.warn('Cek status gagal:', e);
+            }
+        }
+        
+        // Step 3: Refresh data customer
+        console.log('✅ Proses selesai, refresh data...');
+        customerData = [];
+        document.getElementById('searchCustomer').value = '';
+        document.getElementById('selectedCustomerInfo').style.display = 'none';
+        document.getElementById('invoiceList').style.display = 'none';
+        document.getElementById('customerList').style.display = 'none';
+        selectedCustomer = null;
+        resetInvoices();
+        
+        alert(
+            '✅ REFRESH INSTAN SELESAI!\n\n' +
+            `⏱️ Waktu: ${cekCount * 5} detik\n` +
+            '📊 Data customer & invoice sudah di-refresh.\n\n' +
+            'Silakan cari customer/invoice kembali.'
+        );
+        
+    } catch (error) {
+        console.error('Error refresh instan:', error);
+        alert('❌ Error: ' + error.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    }
+}
+
+// Daftarkan di global
+window.refreshInstan = refreshInstan;
+
+// =====================================================
 // 1. LOAD PT AKTIF
 // =====================================================
 async function loadActivePT() {
@@ -555,6 +661,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             searchInvoice(invoiceInput.value);
         }
     });
+    // Tombol Refresh Instan
+    const btnRefreshInstan = document.getElementById('btnRefreshInstan');
+    if (btnRefreshInstan) {
+        btnRefreshInstan.addEventListener('click', refreshInstan);
+    }
 });
 
 // Global functions
