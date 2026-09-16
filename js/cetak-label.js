@@ -43,6 +43,8 @@ async function loadCustomersToModal(searchText) {
         
         if (result.success && result.data) {
             customerData = result.data;
+            
+            // Filter berdasarkan nama (object field)
             const filtered = customerData.filter(c => 
                 c.nama && c.nama.toLowerCase().includes(searchText.toLowerCase())
             );
@@ -59,7 +61,7 @@ async function loadCustomersToModal(searchText) {
                     div.innerHTML = `
                         <div class="nama">📛 ${escapeHtml(c.nomor || '')} - ${escapeHtml(c.nama || '')}</div>
                         <div class="alamat">📍 ${escapeHtml(c.alamat || '-')}</div>
-                        <div class="alamat">📞 ${escapeHtml(c.telepon || '-')} | 📱 ${escapeHtml(c.hp || '-')}</div>
+                        <div class="alamat">👤 ${escapeHtml(c.pic || '-')} | 📱 ${escapeHtml(c.hp || '-')}</div>
                     `;
                     div.onclick = () => selectCustomerForLabel(c);
                     listDiv.appendChild(div);
@@ -78,21 +80,20 @@ async function loadCustomersToModal(searchText) {
 function selectCustomerForLabel(customer) {
     if (!currentLabel) return;
     
-    const nomor = customer.nomor || '';
-    const nama = customer.nama || '';
+    // Ambil field dari object
+    const nama   = customer.nama   || '';
     const alamat = customer.alamat || '';
-    const telp = customer.telepon || '';
-    const hp = customer.hp || '';
+    const pic    = customer.pic    || '';
+    const hp     = customer.hp     || '';
     
     labelData[currentLabel] = {
-        nomor: nomor,
-        nama: nama,
+        nama:   nama,
         alamat: alamat,
-        telp: telp,
-        hp: hp
+        pic:    pic,
+        hp:     hp
     };
     
-    updateLabelDisplay(currentLabel, nama, alamat, hp);
+    updateLabelDisplay(currentLabel, nama, alamat, pic, hp);
     saveToLocalStorage();
     
     alert(`✅ Customer "${nama}" berhasil ditambahkan ke ${currentLabel}`);
@@ -102,13 +103,19 @@ function selectCustomerForLabel(customer) {
 // =====================================================
 // 4. UPDATE TAMPILAN HASIL LABEL
 // =====================================================
-function updateLabelDisplay(label, nama, alamat, hp) {
+function updateLabelDisplay(label, nama, alamat, pic, hp) {
     const dataDiv = document.getElementById(`dataLabel${getLabelIndex(label)}`);
     if (dataDiv) {
+        let picHp = '';
+        if (pic && pic !== '-' && hp && hp !== '-') picHp = `${pic} - ${hp}`;
+        else if (pic && pic !== '-')                picHp = pic;
+        else if (hp && hp !== '-')                  picHp = hp;
+        else                                        picHp = '-';
+        
         dataDiv.innerHTML = `
-            <div>📛 Nama: ${escapeHtml(nama) || '-'}</div>
-            <div>📍 Alamat: ${escapeHtml(alamat) || '-'}</div>
-            <div>📱 HP: ${escapeHtml(hp) || '-'}</div>
+            <div>🏢 ${escapeHtml(nama) || '-'}</div>
+            <div>📍 ${escapeHtml(alamat) || '-'}</div>
+            <div>📱 ${escapeHtml(picHp)}</div>
         `;
     }
 }
@@ -133,7 +140,7 @@ function loadFromLocalStorage() {
             for (const [label, value] of Object.entries(data)) {
                 if (value && value.nama) {
                     labelData[label] = value;
-                    updateLabelDisplay(label, value.nama, value.alamat, value.hp);
+                    updateLabelDisplay(label, value.nama, value.alamat, value.pic, value.hp);
                 }
             }
         } catch(e) {}
@@ -166,9 +173,9 @@ function bersihkanSemua() {
             const dataDiv = document.getElementById(`dataLabel${i}`);
             if (dataDiv) {
                 dataDiv.innerHTML = `
-                    <div>Nama: -</div>
-                    <div>Alamat: -</div>
-                    <div>HP: -</div>
+                    <div>🏢 -</div>
+                    <div>📍 -</div>
+                    <div>📱 -</div>
                 `;
             }
         }
@@ -200,13 +207,12 @@ function escapeHtml(str) {
     });
 }
 
-// ========== CETAK-LABEL.JS ==========
-// Di bagian akhir, ganti dengan ini:
-
+// =====================================================
+// 10. EVENT LISTENERS
+// =====================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     
-    // Tombol Pilih Customer di setiap label - PASTIKAN ELEMENNYA ADA
     const customerButtons = document.querySelectorAll('.btn-pilih-customer');
     if (customerButtons.length > 0) {
         customerButtons.forEach(btn => {
@@ -219,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Tidak ada tombol .btn-pilih-customer di halaman ini');
     }
     
-    // Search di modal - CEK APAKAH ELEMEN ADA
     const searchInput = document.getElementById('modalSearchInput');
     if (searchInput) {
         let typingTimer;
@@ -237,25 +242,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Tombol Cetak - CEK ELEMEN
     const btnCetak = document.getElementById('btnCetak');
     if (btnCetak) {
         btnCetak.addEventListener('click', cetakLabel);
     }
     
-    // Tombol Refresh - CEK ELEMEN
     const btnRefresh = document.getElementById('btnRefresh');
     if (btnRefresh) {
         btnRefresh.addEventListener('click', refreshData);
     }
     
-    // Tombol Bersihkan - CEK ELEMEN
     const btnBersihkan = document.getElementById('btnBersihkan');
     if (btnBersihkan) {
         btnBersihkan.addEventListener('click', bersihkanSemua);
     }
     
-    // Modal elements - CEK APAKAH ADA
     const modalClose = document.getElementById('modalClose');
     if (modalClose) {
         modalClose.addEventListener('click', closeModal);

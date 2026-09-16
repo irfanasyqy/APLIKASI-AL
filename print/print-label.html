@@ -3,148 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print Label Customer - APLIKASI AL</title>
+    <title>Print Label Customer</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
-        /* Ukuran kertas Label Tom & Jerry 101 (101mm x 152mm) */
+
+        /* ============================================
+           KERTAS PRINTER : A4 (210mm x 297mm)
+           AREA LABEL     : 210mm x 165mm (21cm x 16,5cm)
+           ============================================
+           Label  : 100mm x 50mm (10cm x 5cm)
+           Grid   : 2 kolom x 3 baris = 6 label
+           Gap    : 4mm horizontal, 3mm vertikal
+           
+           Padding area label:
+           - Kiri  : 3mm (0,3cm)
+           - Kanan : 3mm (0,3cm)
+           - Atas  : 6mm (0,6cm)
+           - Bawah : 3mm (sisa)
+           
+           Verifikasi horizontal:
+           3 + 100 + 4 + 100 + 3 = 210mm ✅
+           
+           Verifikasi vertikal:
+           6 + 50 + 3 + 50 + 3 + 50 + 3 = 165mm ✅
+           ============================================ */
         @page {
-            size: 101mm 152mm;
+            size: A4 portrait;
             margin: 0;
         }
-        
-        body {
-            font-family: 'Courier New', 'Lucida Console', monospace;
+
+        html, body {
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            padding: 0;
             background: white;
-            width: 101mm;
-            height: 152mm;
-            margin: 0;
-            padding: 2mm;
+            font-family: 'Courier New', 'Lucida Console', monospace;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
-        
-        /* Container grid 2 kolom x 3 baris - ukuran tetap */
+
+        .label-area {
+            width: 210mm;
+            height: 165mm;
+            padding: 6mm 3mm 3mm 3mm;
+            margin: 0;
+            display: block;
+        }
+
         .labels-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            gap: 1.5mm;
-            width: 100%;
-            height: 100%;
+            grid-template-columns: 100mm 100mm;
+            grid-template-rows: 50mm 50mm 50mm;
+            gap: 3mm 4mm;
+            width: 204mm;
+            height: 156mm;
+            margin: 0;
+            padding: 0;
         }
-        
-        /* Setiap label card - ukuran tetap */
+
         .label-card {
             background: white;
             border: 0.5px solid #ccc;
-            padding: 2mm 1.5mm;
-            display: flex;
-            flex-direction: column;
+            padding: 2mm 1mm;
+            overflow: hidden;
+            width: 100mm;
+            height: 50mm;
+            display: block;
             page-break-inside: avoid;
             break-inside: avoid;
-            overflow: hidden;
-            /* Ukuran tetap */
+        }
+
+        .label-body {
             width: 100%;
             height: 100%;
-        }
-        
-        /* Body label untuk yang ada data */
-        .label-body {
-            font-size: 7pt;
-            line-height: 1.3;
-            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
-        
+
         .customer-name {
-            font-size: 9pt;
+            font-size: 12pt;
             font-weight: bold;
-            margin-bottom: 1.5mm;
-            text-align: center;
-            border-bottom: 0.5px dotted #999;
-            padding-bottom: 0.5mm;
+            text-align: left;
             word-break: break-word;
-        }
-        
-        .customer-row {
+            line-height: 1.15;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             margin-bottom: 1mm;
-            display: flex;
-            flex-wrap: wrap;
         }
-        
-        .customer-label {
-            font-weight: bold;
-            width: 22%;
-            min-width: 12mm;
-            font-size: 6.5pt;
-        }
-        
-        .customer-value {
-            width: 78%;
+
+        .customer-address {
+            font-size: 10pt;
+            line-height: 1.25;
             word-break: break-word;
-            font-size: 6.5pt;
+            overflow: hidden;
+            margin-bottom: 1mm;
         }
-        
-        /* Label kosong - ukuran tetap, tidak membesar */
+
+        .customer-pic {
+            font-size: 10pt;
+            font-weight: bold;
+            line-height: 1.25;
+            word-break: break-word;
+            overflow: hidden;
+            margin-top: 0;
+        }
+
         .label-card.empty {
-            /* Tidak ada konten, tapi ukuran tetap sama */
+            /* kosong */
         }
-        
-        /* SAAT PRINT - semua border hilang */
+
+        /* ============================================
+           SAAT PRINT
+           ============================================ */
         @media print {
-            body {
+            html, body {
+                width: 210mm;
+                height: 297mm;
                 margin: 0;
-                padding: 2mm;
+                padding: 0;
             }
-            
-            /* Hilangkan border saat print */
+
+            .label-area {
+                width: 210mm;
+                height: 165mm;
+                padding: 6mm 3mm 3mm 3mm;
+                margin: 0;
+            }
+
             .label-card {
                 border: none !important;
-                padding: 2mm 1.5mm;
-            }
-            
-            /* Hilangkan garis bawah nama customer saat print */
-            .customer-name {
-                border-bottom: none;
-            }
-            
-            .label-card {
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            
-            /* Pastikan grid tetap proporsional */
-            .labels-grid {
-                gap: 1.5mm;
+                padding: 2mm 1mm;
             }
         }
     </style>
 </head>
 <body>
-    <div class="labels-grid" id="labelsGrid">
-        <!-- Akan diisi oleh JavaScript -->
+    <div class="label-area">
+        <div class="labels-grid" id="labelsGrid">
+            <!-- diisi JS -->
+        </div>
     </div>
 
     <script>
-        // Ambil data dari localStorage
         function getLabelData() {
             const saved = localStorage.getItem('cetakLabelData');
             if (saved) {
-                try {
-                    return JSON.parse(saved);
-                } catch(e) {
-                    return {};
-                }
+                try { return JSON.parse(saved); } catch(e) { return {}; }
             }
             return {};
         }
-        
-        // Escape HTML
+
         function escapeHtml(str) {
             if (!str || str === '-' || str === '') return '-';
             return String(str).replace(/[&<>]/g, function(m) {
@@ -154,49 +169,42 @@
                 return m;
             });
         }
-        
-        // Cek apakah customer memiliki data
+
         function hasCustomerData(customer) {
             return customer && customer.nama && customer.nama !== '-' && customer.nama.trim() !== '';
         }
-        
-        // Buat HTML untuk label yang ADA DATA (tanpa footer)
+
         function createDataLabel(customer) {
+            const pic = customer.pic && customer.pic !== '-' ? customer.pic : '';
+            const hp  = customer.hp  && customer.hp  !== '-' ? customer.hp  : '';
+
+            let picHp = '';
+            if (pic && hp)      picHp = `${pic} - ${hp}`;
+            else if (pic)       picHp = pic;
+            else if (hp)        picHp = hp;
+            else                picHp = '-';
+
             return `
                 <div class="label-card">
                     <div class="label-body">
-                        <div class="customer-name">
-                            ${escapeHtml(customer.nama)}
-                        </div>
-                        <div class="customer-row">
-                            <div class="customer-label">Nomor:</div>
-                            <div class="customer-value">${escapeHtml(customer.nomor || '-')}</div>
-                        </div>
-                        <div class="customer-row">
-                            <div class="customer-label">Alamat:</div>
-                            <div class="customer-value">${escapeHtml(customer.alamat || '-')}</div>
-                        </div>
-                        <div class="customer-row">
-                            <div class="customer-label">HP:</div>
-                            <div class="customer-value">${escapeHtml(customer.hp || '-')}</div>
-                        </div>
+                        <div class="customer-name">${escapeHtml(customer.nama)}</div>
+                        <div class="customer-address">${escapeHtml(customer.alamat || '-')}</div>
+                        <div class="customer-pic">${escapeHtml(picHp)}</div>
                     </div>
                 </div>
             `;
         }
-        
-        // Buat HTML untuk label KOSONG - ukuran tetap, tidak membesar
+
         function createEmptyLabel() {
             return `<div class="label-card empty"></div>`;
         }
-        
-        // Render semua label
+
         function renderLabels() {
             const labelData = getLabelData();
             const grid = document.getElementById('labelsGrid');
-            
+
             const labelKeys = ['B3', 'I3', 'B7', 'I7', 'B11', 'I11'];
-            
+
             let html = '';
             for (const key of labelKeys) {
                 const customer = labelData[key];
@@ -206,17 +214,13 @@
                     html += createEmptyLabel();
                 }
             }
-            
+
             grid.innerHTML = html;
         }
-        
-        // Cetak otomatis saat halaman dimuat
+
         window.addEventListener('DOMContentLoaded', () => {
             renderLabels();
-            
-            setTimeout(() => {
-                window.print();
-            }, 300);
+            setTimeout(() => { window.print(); }, 300);
         });
     </script>
 </body>
