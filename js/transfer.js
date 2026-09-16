@@ -24,6 +24,90 @@ function populateSelect(selectEl, rekeningList, label) {
     });
 }
 
+// ========== SEARCH SUPPLIER ==========
+const searchSupplierInput = document.getElementById('searchSupplier');
+const supplierSearchResult = document.getElementById('supplierSearchResult');
+const supplierSelect = document.getElementById('supplierSelect');
+
+if (searchSupplierInput && supplierSelect) {
+    searchSupplierInput.addEventListener('input', function() {
+        const keyword = this.value.toLowerCase().trim();
+        
+        // Kalau input kosong → tampilkan semua supplier
+        if (keyword.length === 0) {
+            if (supplierSearchResult) supplierSearchResult.textContent = '';
+            populateSupplierSelect(suppliers);
+            return;
+        }
+        
+        // Filter supplier — pakai String() biar aman untuk number
+        const filtered = suppliers.filter(s => {
+            const nama    = String(s.nama || '').toLowerCase();
+            const account = String(s.account || '').toLowerCase();
+            const bank    = String(s.bankName || '').toLowerCase();
+            return nama.includes(keyword) || account.includes(keyword) || bank.includes(keyword);
+        });
+        
+        // Tampilkan info hasil
+        if (supplierSearchResult) {
+            supplierSearchResult.textContent = filtered.length > 0 
+                ? `Ditemukan ${filtered.length} supplier` 
+                : 'Tidak ada supplier yang cocok';
+        }
+        
+        // Update dropdown
+        populateSupplierSelect(filtered);
+        
+        // Kalau hasil cuma 1, auto-select
+        if (filtered.length === 1) {
+            supplierSelect.value = suppliers.indexOf(filtered[0]);
+            supplierSelect.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+// Fungsi untuk populate dropdown supplier
+function populateSupplierSelect(list) {
+    if (!supplierSelect) return;
+    const currentValue = supplierSelect.value;
+    
+    supplierSelect.innerHTML = '<option value="">-- Pilih Supplier --</option>';
+    
+    list.forEach((s) => {
+        const idx = suppliers.indexOf(s);
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = `${s.nama} - ${s.account} - ${s.bankName}`;
+        supplierSelect.appendChild(option);
+    });
+    
+    // Kembalikan pilihan sebelumnya kalau masih ada
+    if (currentValue && supplierSelect.querySelector(`option[value="${currentValue}"]`)) {
+        supplierSelect.value = currentValue;
+    }
+}
+
+// Fungsi untuk populate dropdown supplier
+function populateSupplierSelect(list) {
+    if (!supplierSelect) return;
+    const currentValue = supplierSelect.value;
+    
+    supplierSelect.innerHTML = '<option value="">-- Pilih Supplier --</option>';
+    
+    list.forEach((s) => {
+        const idx = suppliers.indexOf(s);
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = `${s.nama} - ${s.account} - ${s.bankName}`;
+        supplierSelect.appendChild(option);
+    });
+    
+    // Kembalikan pilihan sebelumnya kalau masih ada
+    if (currentValue && supplierSelect.querySelector(`option[value="${currentValue}"]`)) {
+        supplierSelect.value = currentValue;
+    }
+}
+
 async function loadRekening() {
     try {
         const response = await fetch(CONFIG.API_URL, {
