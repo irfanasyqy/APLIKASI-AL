@@ -224,7 +224,7 @@ function terbilangDenganPOIN(jumlah, mataUang) {
     let hasil = bulat > 0 ? terbilang(bulat) : 'Nol';
     if (desimal > 0) hasil += ' POIN ' + terbilang(desimal);
     switch(mataUang.toUpperCase()) {
-        case 'USD': hasil += ' DOLAR AS'; break;
+        case 'USD': hasil += ' USD'; break;
         case 'EUR': hasil += ' EURO'; break;
         case 'SGD': hasil += ' DOLAR SINGAPURA'; break;
         case 'GBP': hasil += ' POUNDSTERLING'; break;
