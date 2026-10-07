@@ -35,73 +35,29 @@
         .btn-batal { background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         
         /* ========== PENGATURAN LEBAR KOLOM DESKTOP ========== */
-        /* No */
-        th:nth-child(1), td:nth-child(1) {
-            width: 50px;
-        }
-        
-        /* Nama Perusahaan */
-        th:nth-child(2), td:nth-child(2) {
-            min-width: 180px;
-            max-width: 250px;
-        }
-        
-        /* Alamat */
-        th:nth-child(3), td:nth-child(3) {
-            min-width: 250px;
-            max-width: 350px;
-        }
-        
-        /* Jadwal Tukar Faktur */
-        th:nth-child(4), td:nth-child(4) {
-            min-width: 140px;
-            max-width: 200px;
-        }
-        
-        /* PIC + Telepon (lebar seperti alamat) */
-        th:nth-child(5), td:nth-child(5) {
-            min-width: 220px;
-            max-width: 320px;
-            white-space: normal;
-            word-break: break-word;
-        }
-        
-        /* Email / Keterangan */
-        th:nth-child(6), td:nth-child(6) {
-            min-width: 150px;
-            max-width: 220px;
-        }
-        
-        /* Kolom Aksi */
-        th:nth-child(7), td:nth-child(7) {
-            width: 100px;
-            white-space: nowrap;
-        }
+        th:nth-child(1), td:nth-child(1) { width: 50px; }
+        th:nth-child(2), td:nth-child(2) { min-width: 180px; max-width: 250px; }
+        th:nth-child(3), td:nth-child(3) { min-width: 250px; max-width: 350px; }
+        th:nth-child(4), td:nth-child(4) { min-width: 140px; max-width: 200px; }
+        th:nth-child(5), td:nth-child(5) { min-width: 220px; max-width: 320px; white-space: normal; word-break: break-word; }
+        th:nth-child(6), td:nth-child(6) { min-width: 150px; max-width: 220px; }
+        th:nth-child(7), td:nth-child(7) { width: 100px; white-space: nowrap; }
         
         /* ========== MOBILE ========== */
         @media (max-width: 768px) {
             th, td { padding: 8px 5px; font-size: 12px; }
             .btn-edit, .btn-hapus { padding: 4px 8px; font-size: 11px; }
-            
-            /* Mobile: semua kolom auto, tapi PIC + Telepon sama dengan Nama Perusahaan */
             th:nth-child(1), td:nth-child(1) { width: 40px; }
-            
-            /* Nama Perusahaan dan PIC + Telepon - sama-sama auto dan bisa wrap */
             th:nth-child(2), td:nth-child(2),
             th:nth-child(5), td:nth-child(5) {
-                min-width: auto;
-                max-width: none;
-                white-space: normal;
-                word-break: break-word;
+                min-width: auto; max-width: none;
+                white-space: normal; word-break: break-word;
             }
-            
-            /* Kolom lainnya juga auto */
             th:nth-child(3), td:nth-child(3),
             th:nth-child(4), td:nth-child(4),
             th:nth-child(6), td:nth-child(6),
             th:nth-child(7), td:nth-child(7) {
-                min-width: auto;
-                max-width: none;
+                min-width: auto; max-width: none;
             }
         }
         
@@ -203,8 +159,12 @@
         <button class="btn-batal" id="btnBatal">❌ BATAL</button>
     </div>
 </div>
+
 <script>
-// ========== CUSTOMER JS ==========
+// ========== CUSTOMER JS (FIXED) ==========
+// Struktur data dari API: array of OBJECT dengan properti:
+// { nomor, nama, alamat, jadwal, pic, hp, keterangan1, keterangan2, namaPasar }
+
 let allCustomersData = [];
 
 function escapeHtml(str) {
@@ -217,7 +177,7 @@ function escapeHtml(str) {
     });
 }
 
-// Ganti fungsi loadCustomers
+// Load data customer dari API
 async function loadCustomers() {
     const tbody = document.getElementById('customerTableBody');
     tbody.innerHTML = '<tr><td colspan="7">📡 Memuat data customer...</td></tr>';
@@ -230,11 +190,20 @@ async function loadCustomers() {
         });
         const result = await response.json();
         
+        console.log('API Response:', result);
+        
         if (result.success && result.data && result.data.length > 0) {
-            // LANGSUNG PAKAI, TANPA FILTER
-            allCustomersData = result.data;
+            // ✅ FIX: bungkus setiap row dengan index aslinya
+            // Struktur: [{row: {...data customer...}, index: 0}, ...]
+            allCustomersData = result.data.map((row, idx) => ({
+                row: row,
+                index: idx
+            }));
+            
+            console.log('allCustomersData (wrapped):', allCustomersData);
             renderTable(allCustomersData);
         } else {
+            allCustomersData = [];
             tbody.innerHTML = '<tr><td colspan="7">📭 Belum ada data customer</td></tr>';
             document.getElementById('totalData').innerHTML = '📊 Total Data: 0 customer';
         }
@@ -244,6 +213,7 @@ async function loadCustomers() {
     }
 }
 
+// Render tabel — data berisi array of {row, index}
 function renderTable(data) {
     const tbody = document.getElementById('customerTableBody');
     
@@ -255,7 +225,9 @@ function renderTable(data) {
     
     let html = '';
     for (let i = 0; i < data.length; i++) {
-        const row = data[i];
+        const item = data[i];          // {row, index}
+        const row = item.row;          // objek customer
+        const originalIndex = item.index;  // ✅ index asli, PASTI BENAR
         
         const no = row.nomor || (i + 1);
         const nama = row.nama || '-';
@@ -273,7 +245,7 @@ function renderTable(data) {
         }
         
         html += `
-            <tr data-index="${i}">
+            <tr data-index="${originalIndex}">
                 <td>${escapeHtml(String(no))}</td>
                 <td>${escapeHtml(String(nama))}</td>
                 <td>${escapeHtml(String(alamat))}</td>
@@ -281,8 +253,8 @@ function renderTable(data) {
                 <td>${escapeHtml(String(picHp))}</td>
                 <td>${escapeHtml(String(email))}</td>
                 <td>
-                    <button class="btn-edit" onclick="editCustomer(${i})">✏️ Edit</button>
-                    <button class="btn-hapus" onclick="hapusCustomer(${i})">🗑️ Hapus</button>
+                    <button class="btn-edit" onclick="editCustomer(${originalIndex})">✏️ Edit</button>
+                    <button class="btn-hapus" onclick="hapusCustomer(${originalIndex})">🗑️ Hapus</button>
                 </td>
             </tr>
         `;
@@ -292,18 +264,21 @@ function renderTable(data) {
     document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} customer`;
     
     // Preview klik baris
-    document.querySelectorAll('#customerTableBody tr').forEach(row => {
-        row.addEventListener('click', function(e) {
+    document.querySelectorAll('#customerTableBody tr').forEach(rowEl => {
+        rowEl.addEventListener('click', function(e) {
             if (e.target.tagName === 'BUTTON') return;
-            const idx = this.getAttribute('data-index');
-            if (idx !== null && allCustomersData[idx]) {
-                showPreview(allCustomersData[idx]);
+            const idx = parseInt(this.getAttribute('data-index'), 10);
+            if (!isNaN(idx) && allCustomersData[idx]) {
+                showPreview(allCustomersData[idx].row);  // ✅ akses .row
             }
         });
     });
 }
 
+// Preview data — menerima objek customer
 function showPreview(row) {
+    console.log('=== showPreview ===', row);
+    
     const nama = row.nama || '-';
     const alamat = row.alamat || '-';
     const jadwal = row.jadwal || '-';
@@ -332,6 +307,7 @@ function showPreview(row) {
     document.getElementById('previewPanel').style.display = 'block';
 }
 
+// Filter pencarian
 function filterCustomers() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
     if (!searchTerm) {
@@ -339,7 +315,8 @@ function filterCustomers() {
         return;
     }
     
-    const filtered = allCustomersData.filter(row => {
+    const filtered = allCustomersData.filter(item => {
+        const row = item.row;  // ✅ akses .row
         const nama = (row.nama || '').toLowerCase();
         const alamat = (row.alamat || '').toLowerCase();
         const jadwal = (row.jadwal || '').toLowerCase();
@@ -348,12 +325,19 @@ function filterCustomers() {
         return nama.includes(searchTerm) || alamat.includes(searchTerm) || 
                jadwal.includes(searchTerm) || pic.includes(searchTerm) || hp.includes(searchTerm);
     });
+    
+    console.log('Filtered:', filtered);
     renderTable(filtered);
 }
 
+// Edit customer
 function editCustomer(index) {
-    const row = allCustomersData[index];
-    if (!row) return;
+    const item = allCustomersData[index];
+    if (!item) {
+        alert('❌ Data customer tidak ditemukan');
+        return;
+    }
+    const row = item.row;  // ✅ akses .row
     
     document.getElementById('editId').value = index;
     document.getElementById('namaCustomer').value = row.nama || '';
@@ -370,8 +354,15 @@ function editCustomer(index) {
     document.getElementById('customerForm').style.display = 'block';
 }
 
+// Hapus customer
 async function hapusCustomer(index) {
-    const row = allCustomersData[index];
+    const item = allCustomersData[index];
+    if (!item) {
+        alert('❌ Data customer tidak ditemukan');
+        return;
+    }
+    const row = item.row;  // ✅ akses .row
+    
     const nama = row.nama || 'customer';
     
     if (!confirm(`⚠️ Yakin ingin menghapus "${nama}"?`)) return;
@@ -389,13 +380,14 @@ async function hapusCustomer(index) {
             loadCustomers();
             document.getElementById('previewPanel').style.display = 'none';
         } else {
-            alert('❌ Gagal menghapus');
+            alert('❌ Gagal menghapus: ' + (result.error || 'Unknown error'));
         }
     } catch (error) {
-        alert('❌ Error koneksi');
+        alert('❌ Error koneksi: ' + error.message);
     }
 }
 
+// Simpan customer
 async function simpanCustomer() {
     const editId = document.getElementById('editId').value;
     const nama = document.getElementById('namaCustomer').value.trim();
@@ -449,6 +441,7 @@ async function simpanCustomer() {
     }
 }
 
+// Tutup form
 function tutupForm() {
     document.getElementById('overlay').style.display = 'none';
     document.getElementById('customerForm').style.display = 'none';
@@ -467,14 +460,19 @@ function tutupForm() {
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     loadCustomers();
-    document.getElementById('btnTambahCustomer').onclick = function() { tutupForm(); document.getElementById('overlay').style.display = 'block'; document.getElementById('customerForm').style.display = 'block'; };
+    document.getElementById('btnTambahCustomer').onclick = function() {
+        tutupForm();
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('customerForm').style.display = 'block';
+    };
     document.getElementById('btnSimpan').onclick = simpanCustomer;
     document.getElementById('btnBatal').onclick = tutupForm;
     document.getElementById('overlay').onclick = tutupForm;
     document.getElementById('searchInput').oninput = filterCustomers;
 });
 </script>
+
+<!-- ✅ HANYA CONFIG YANG DIPERLUKAN, TIDAK ADA customer.js LAGI -->
 <script src="../config.js"></script>
-<script src="../js/customer.js"></script>
 </body>
 </html>

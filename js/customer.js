@@ -30,9 +30,21 @@ async function loadCustomers() {
         console.log('API Response:', result);
         
         if (result.success && result.data && result.data.length > 0) {
-            allCustomersData = result.data;
+            // ✅ FIX: simpan index asli sebagai properti __index
+            // sehingga tidak bergantung pada indexOf() yang rawan salah
+            allCustomersData = result.data.map((row, idx) => {
+                if (!Array.isArray(row)) {
+                    console.warn('Row bukan array:', row);
+                    return row;
+                }
+                // Simpan index asli (index di sheet)
+                row.__index = idx;
+                return row;
+            });
+            
             renderTable(allCustomersData);
         } else {
+            allCustomersData = [];
             tbody.innerHTML = '<tr><td colspan="7">📭 Belum ada data customer</td></tr>';
             document.getElementById('totalData').innerHTML = '📊 Total Data: 0 customer';
         }
@@ -45,36 +57,46 @@ async function loadCustomers() {
 // Render tabel
 function renderTable(data) {
     const tbody = document.getElementById('customerTableBody');
-    
+
     if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7">📭 Tidak ada data customer</td></tr>';
         document.getElementById('totalData').innerHTML = '📊 Total Data: 0 customer';
         return;
     }
-    
+
     let html = '';
+
     for (let i = 0; i < data.length; i++) {
         const row = data[i];
-        
+
+        // ✅ FIX: gunakan __index yang sudah disimpan saat load
+        // Fallback ke indexOf kalau __index tidak ada
+        let originalIndex = (row.__index !== undefined && row.__index !== null)
+            ? row.__index
+            : allCustomersData.indexOf(row);
+
+        if (originalIndex === -1) originalIndex = i;
+
         // Mapping index yang BENAR
         const no = (row[0] && row[0] !== '') ? row[0] : (i + 1);
         const nama = (row[1] && row[1] !== '') ? row[1] : '-';
         const alamat = (row[2] && row[2] !== '') ? row[2] : '-';
-        const jadwal = (row[3] && row[3] !== '') ? row[3] : '-';      // JADWAL di index 3
-        const pic = (row[4] && row[4] !== '') ? row[4] : '-';          // PIC di index 4
-        const hp = (row[5] && row[5] !== '') ? row[5] : '-';           // NO HP di index 5
-        const email = (row[6] && row[6] !== '') ? row[6] : '-';        // KETERANGAN 1 di index 6
-        
+        const jadwal = (row[3] && row[3] !== '') ? row[3] : '-';
+        const pic = (row[4] && row[4] !== '') ? row[4] : '-';
+        const hp = (row[5] && row[5] !== '') ? row[5] : '-';
+        const email = (row[6] && row[6] !== '') ? row[6] : '-';
+
         // Gabungan PIC + HP
         let picHp = pic;
+
         if (pic !== '-' && hp !== '-') {
             picHp = pic + ' - ' + hp;
         } else if (hp !== '-') {
             picHp = hp;
         }
-        
+
         html += `
-            <tr data-index="${i}">
+            <tr data-index="${originalIndex}">
                 <td>${escapeHtml(String(no))}</td>
                 <td class="cell-nama">${escapeHtml(String(nama))}</td>
                 <td class="cell-alamat">${escapeHtml(String(alamat))}</td>
@@ -82,21 +104,32 @@ function renderTable(data) {
                 <td class="cell-pic-hp">${escapeHtml(String(picHp))}</td>
                 <td class="cell-email">${escapeHtml(String(email))}</td>
                 <td>
-                    <button class="btn-edit" onclick="editCustomer(${i})">✏️ Edit</button>
-                    <button class="btn-hapus" onclick="hapusCustomer(${i})">🗑️ Hapus</button>
+                    <button class="btn-edit" onclick="editCustomer(${originalIndex})">
+                        ✏️ Edit
+                    </button>
+
+                    <button class="btn-hapus" onclick="hapusCustomer(${originalIndex})">
+                        🗑️ Hapus
+                    </button>
                 </td>
             </tr>
         `;
     }
-    
+
     tbody.innerHTML = html;
-    document.getElementById('totalData').innerHTML = `📊 Total Data: ${data.length} customer`;
-    
+
+    document.getElementById('totalData').innerHTML =
+        `📊 Total Data: ${data.length} customer`;
+
     // Preview klik baris
-    document.querySelectorAll('#customerTableBody tr').forEach(row => {
-        row.addEventListener('click', (e) => {
+    document.querySelectorAll('#customerTableBody tr').forEach(rowEl => {
+        rowEl.addEventListener('click', (e) => {
+
+            // Jangan jalankan preview kalau yang diklik tombol
             if (e.target.tagName === 'BUTTON') return;
-            const idx = row.getAttribute('data-index');
+
+            const idx = rowEl.getAttribute('data-index');
+
             if (idx !== null && allCustomersData[idx]) {
                 showPreview(allCustomersData[idx]);
             }
@@ -170,7 +203,10 @@ function escapeHtml(str) {
 // Edit customer
 function editCustomer(index) {
     const row = allCustomersData[index];
-    if (!row) return;
+    if (!row) {
+        alert('❌ Data customer tidak ditemukan');
+        return;
+    }
     
     document.getElementById('editId').value = index;
     document.getElementById('namaCustomer').value = row[1] || '';
@@ -190,8 +226,15 @@ function editCustomer(index) {
 // Hapus customer
 async function hapusCustomer(index) {
     const row = allCustomersData[index];
-    const nama = row.nama || 'customer';
-    const nomor = row.nomor || '';
+    if (!row) {
+        alert('❌ Data customer tidak ditemukan');
+        return;
+    }
+
+    // ✅ FIX: data berbentuk array, bukan objek
+    // row[1] = nama, row[0] = nomor
+    const nama = row[1] || 'customer';
+    const nomor = row[0] || '';
     
     if (!confirm(`⚠️ Yakin ingin menghapus "${nama}" (No. ${nomor})?`)) return;
     
