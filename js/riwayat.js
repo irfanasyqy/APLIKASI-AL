@@ -254,6 +254,73 @@ function formatTanggal(timestamp) {
         return timestamp;
     }
 }
+// ========== SORT: PALING BARU DI ATAS ==========
+function sortByNewest(data, type = 'transfer') {
+    if (!data || data.length === 0) return data;
+    
+    const sorted = [...data];
+    
+    // Cek apakah ada minimal 1 tanggal valid
+    const hasValidDate = sorted.some(row => {
+        let d;
+        if (type === 'valas' && row && !Array.isArray(row)) {
+            d = row.tanggal || row[1];
+        } else {
+            d = Array.isArray(row) ? (row[1] || row[0]) : null;
+        }
+        return parseDateSafe(d) !== null;
+    });
+    
+    if (hasValidDate) {
+        // Sort descending berdasarkan tanggal
+        sorted.sort((a, b) => {
+            let dateA, dateB;
+            if (type === 'valas' && a && !Array.isArray(a)) {
+                dateA = a.tanggal || a[1];
+                dateB = b.tanggal || b[1];
+            } else {
+                dateA = Array.isArray(a) ? (a[1] || a[0]) : '';
+                dateB = Array.isArray(b) ? (b[1] || b[0]) : '';
+            }
+            const timeA = parseDateSafe(dateA) || 0;
+            const timeB = parseDateSafe(dateB) || 0;
+            return timeB - timeA; // terbaru dulu
+        });
+    } else {
+        // Fallback: reverse (asumsi API append di akhir = terbaru)
+        sorted.reverse();
+    }
+    
+    return sorted;
+}
+
+    // Helper parse tanggal (support DD/MM/YYYY, YYYY-MM-DD, timestamp)
+    function parseDateSafe(str) {
+        if (!str) return null;
+        const s = String(str).trim();
+        if (!s || s === '-') return null;
+        
+        // Timestamp angka (10 atau 13 digit)
+        if (/^\d{10,13}$/.test(s)) {
+            const ts = parseInt(s);
+            return ts > 9999999999 ? ts : ts * 1000;
+        }
+        
+        // Format DD/MM/YYYY atau DD-MM-YYYY
+        const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (dmy) {
+            return new Date(`${dmy[3]}-${dmy[2].padStart(2,'0')}-${dmy[1].padStart(2,'0')}`).getTime();
+        }
+        
+        // Format YYYY-MM-DD
+        const ymd = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+        if (ymd) {
+            return new Date(`${ymd[1]}-${ymd[2].padStart(2,'0')}-${ymd[3].padStart(2,'0')}`).getTime();
+        }
+        
+        const t = new Date(s).getTime();
+        return isNaN(t) ? null : t;
+    }
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -382,9 +449,10 @@ async function loadRiwayatTransfer(forceRefresh = false) {
     if (!forceRefresh) {
         const cachedData = getFromCache(config.key, config.expiry);
         if (cachedData) {
-            transferData = cachedData;
+            // ✅ SORT: paling baru di atas
+            transferData = sortByNewest(cachedData, 'transfer');
             currentTransferData = [...transferData];
-            log(`📋 Data transfer dari CACHE: ${transferData.length} item`, 'cache');
+            log(`📋 Data transfer dari CACHE: ${transferData.length} item (sorted newest)`, 'cache');
             renderTransferTable(currentTransferData);
             return;
         }
@@ -401,9 +469,10 @@ async function loadRiwayatTransfer(forceRefresh = false) {
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
-            transferData = result.data;
+            // ✅ SORT: paling baru di atas
+            transferData = sortByNewest(result.data, 'transfer');
             currentTransferData = [...transferData];
-            log(`📊 Data transfer dari API: ${transferData.length} item`, 'api');
+            log(`📊 Data transfer dari API: ${transferData.length} item (sorted newest)`, 'api');
             saveToCache(config.key, transferData);
             renderTransferTable(currentTransferData);
         } else {
@@ -428,8 +497,9 @@ async function loadRiwayatTT(forceRefresh = false) {
     if (!forceRefresh) {
         const cachedData = getFromCache(config.key, config.expiry);
         if (cachedData) {
-            ttData = cachedData;
-            log(`📋 Data TT dari CACHE: ${ttData.length} item`, 'cache');
+            // ✅ SORT: paling baru di atas
+            ttData = sortByNewest(cachedData, 'tt');
+            log(`📋 Data TT dari CACHE: ${ttData.length} item (sorted newest)`, 'cache');
             renderTTTable(ttData);
             return;
         }
@@ -446,8 +516,9 @@ async function loadRiwayatTT(forceRefresh = false) {
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
-            ttData = result.data;
-            log(`📊 Data TT dari API: ${ttData.length} item`, 'api');
+            // ✅ SORT: paling baru di atas
+            ttData = sortByNewest(result.data, 'tt');
+            log(`📊 Data TT dari API: ${ttData.length} item (sorted newest)`, 'api');
             saveToCache(config.key, ttData);
             renderTTTable(ttData);
         } else {
@@ -472,8 +543,9 @@ async function loadRiwayatValas(forceRefresh = false) {
     if (!forceRefresh) {
         const cachedData = getFromCache(config.key, config.expiry);
         if (cachedData) {
-            valasData = cachedData;
-            log(`📋 Data valas dari CACHE: ${valasData.length} item`, 'cache');
+            // ✅ SORT: paling baru di atas
+            valasData = sortByNewest(cachedData, 'valas');
+            log(`📋 Data valas dari CACHE: ${valasData.length} item (sorted newest)`, 'cache');
             renderValasTable(valasData);
             return;
         }
@@ -490,8 +562,9 @@ async function loadRiwayatValas(forceRefresh = false) {
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
-            valasData = result.data;
-            log(`📊 Data valas dari API: ${valasData.length} item`, 'api');
+            // ✅ SORT: paling baru di atas
+            valasData = sortByNewest(result.data, 'valas');
+            log(`📊 Data valas dari API: ${valasData.length} item (sorted newest)`, 'api');
             saveToCache(config.key, valasData);
             renderValasTable(valasData);
         } else {
@@ -742,6 +815,10 @@ function applySearch() {
     if (currency) {
         filtered = filtered.filter(row => row[6] === currency);
     }
+    
+    // ✅ Pastikan tetap sorted terbaru di atas
+    filtered = sortByNewest(filtered, 'transfer');
+    
     currentTransferData = filtered;
     renderTransferTable(currentTransferData);
 }
